@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using NUnit.Framework;
 using PictoArcher.Core;
-using UnityEngine;
 
 namespace PictoArcher.Tests.EditMode
 {

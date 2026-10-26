@@ -17,5 +17,8 @@ namespace PictoArcher.Game
         public static void Unregister(Transform t) => active.Remove(t);
 
         public static void Clear() => active.Clear();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetOnLoad() => active.Clear();
     }
 }
