@@ -258,6 +258,7 @@ SHEET_INDEX = [
     ("敵とボス", "敵10種、中ボス、ボス2種、予兆、姿、コードの名前", "§8、世界観 §3"),
     ("強化", "強化15種・カード26枚、SkillId、上限", "§9、ロードマップ"),
     ("画面表示", "HUD と画面の一覧", "§10・§6"),
+    ("画面構成", "画面ごとの配置の図（箱と円の簡単な図）", "§6・§10"),
     ("ドット絵", "大きさ、取り込み、フリー素材", "§11、世界観 §6"),
     ("世界観", "フィールド、照明、プレイヤーと武器の見た目", "世界観 §1〜§3"),
     ("技術方針", "Unity の構成、レイヤー、コードの名前", "§12、ロードマップ"),
@@ -653,7 +654,7 @@ def build_screens(b):
         ("プレイヤーの頭上", "HPバー＋数字", "C"),
         ("画面上部の1段目", "ウェーブ 23/50、⏸（右端）。ボス戦ではボスのHPバー（💀付き）", "C"),
         ("画面上部の2段目", "経験値バー＋★n、コイン数", "C"),
-        ("画面上部の3段目（フィールドに重ねる）", "選んだ武器のアイコンと、取得した強化のアイコン一覧（16px、半透明の帯の上）。1段に収まらないときは2段に折り返す", "C"),
+        ("画面上部の3段目（フィールドに重ねる）", "選んだ武器のアイコンと、取得した強化のアイコン一覧（32×32、半透明の帯の上）。1段に収まらないときは2段に折り返す", "C"),
         ("戦闘中", "ダメージ数字のポップアップ（C）、ヒットストップ・画面の揺れ（A）", "C・A"),
     ])
     s.heading("画面の一覧")
@@ -665,7 +666,197 @@ def build_screens(b):
         ("クリア", "🏆（後ろに一枚絵。届くまでは 🏆 だけ）、⏱、コイン、↻ 🏠", "C"),
         ("死亡", "💀、23/50、武器と強化のアイコン、↻ 🏠", "C"),
     ])
-    s.para("画面のレイアウト（縦長）の絵はスキル系UI担当が4週目までに作る。開発ビルドやデバッグ表示でも文字を出さない。")
+    s.para("大まかな配置は「画面構成」シートの図を見る。仕上げのレイアウト（縦長）の絵はスキル系UI担当が4週目までに作る。開発ビルドやデバッグ表示でも文字を出さない。")
+
+
+def build_layouts(b):
+    """画面ごとの配置の目安。縦長 270×480 を 1マス＝10px の箱と円で描く。"""
+    W, H, GAP = 27, 48, 2
+    s = b.sheet("画面構成", "画面構成（配置の目安・縦長 270×480）", SPEC + " §6・§10", [1.0] * (4 * W + 3 * GAP))
+    ws = s.ws
+    BG, HUD, DIM, PANEL = "3A3F47", "1E2126", "2A2D33", "2B2F36"
+    WALL, OBST, BTN, ICON, CARD, PICTURE = "6B6F76", "8A8F98", "D6D6D6", "BDBDBD", "EEEEEE", "4A5059"
+    WHITE, GREEN, YELLOW, RED, RED_AREA = "FFFFFF", "43A047", "FDD835", "E53935", "E57373"
+    ENEMY_GRAY, ENEMY_BROWN, ENEMY_PINK, XP_EMPTY = "9E9E9E", "8D6E63", "F48FB1", "555A62"
+    MIDDLE = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    LINE = Side(style="thin", color=HUD)
+    FRAME = Side(style="medium", color="000000")
+
+    s.heading("この図の見方")
+    s.bullets([
+        "縦長の画面（270×480。P2-00 で切り替えたあと）の配置の目安。1マス＝10px。自作の絵（32×32）はおよそ3×3マス。",
+        "箱と円は場所と大きさの目安で、絵ではない。仕上げのレイアウトの絵はスキル系UI担当が4週目までに作る。",
+        "画面の中に出すのは記号と数字だけ。①②③や図の下の説明は仕様書のためのもので、ゲームには出さない。",
+        "色は「色の目安」を見る。青と紫は意味のある物だけに使うので、この図では使っていない。",
+    ])
+
+    class Mock:
+        def __init__(self, slot, top, name):
+            self.r0, self.c0 = top, 1 + slot * (W + GAP)
+            ws.merge_cells(start_row=top - 1, start_column=self.c0, end_row=top - 1, end_column=self.c0 + W - 1)
+            c = ws.cell(row=top - 1, column=self.c0, value=name)
+            c.font = font(True, 10, C_TITLE)
+
+        def at(self, x, y):
+            return ws.cell(row=self.r0 + y, column=self.c0 + x)
+
+        def screen(self):
+            for y in range(H):
+                for x in range(W):
+                    c = self.at(x, y)
+                    c.fill = fill(BG)
+                    c.border = Border(left=FRAME if x == 0 else None, right=FRAME if x == W - 1 else None,
+                                      top=FRAME if y == 0 else None, bottom=FRAME if y == H - 1 else None)
+
+        def paint(self, x, y, w, h, color):
+            for yy in range(y, y + h):
+                for xx in range(x, x + w):
+                    self.at(xx, yy).fill = fill(color)
+
+        def circle(self, cx, cy, r, color, label=None, label_color="000000"):
+            for y in range(int(cy - r) - 1, int(cy + r) + 2):
+                for x in range(int(cx - r) - 1, int(cx + r) + 2):
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= r * r:
+                        self.at(x, y).fill = fill(color)
+            if label:
+                self.text(cx, cy, label, label_color)
+
+        def text(self, x, y, label, color, size=8):
+            c = self.at(x, y)
+            c.value = label
+            c.font = font(True, size, color)
+            c.alignment = MIDDLE
+
+        def box(self, x, y, w, h, color, label="", size=9, label_color="000000", border=True):
+            c = self.at(x, y)
+            c.value = label or None
+            c.fill = fill(color)
+            c.font = font(True, size, label_color)
+            c.alignment = MIDDLE
+            if border:
+                c.border = Border(left=LINE, right=LINE, top=LINE, bottom=LINE)
+            if w > 1 or h > 1:
+                ws.merge_cells(start_row=self.r0 + y, start_column=self.c0 + x,
+                               end_row=self.r0 + y + h - 1, end_column=self.c0 + x + w - 1)
+
+    def home(m):
+        m.box(4, 6, 19, 13, PICTURE, "①", 14, WHITE)
+        m.box(6, 22, 15, 3, PANEL, "37/50", 11, WHITE, False)
+        m.box(6, 26, 15, 3, PANEL, "⏱ 12:34", 11, WHITE, False)
+        m.box(8, 33, 11, 6, BTN, "▶", 20)
+
+    def weapon(m):
+        m.box(10, 14, 7, 2, BG, "▼", 11, WHITE, False)
+        for x, label in ((1, "①"), (10, "②"), (19, "③")):
+            m.box(x, 17, 7, 7, ICON, label, 14)
+
+    def play(m):
+        m.paint(0, 0, W, 4, HUD)
+        m.box(1, 0, 6, 2, HUD, "23/50", 9, WHITE, False)
+        m.box(23, 0, 3, 2, BTN, "⏸", 10)
+        m.box(1, 2, 3, 2, HUD, "★5", 8, WHITE, False)
+        m.paint(4, 2, 9, 2, YELLOW)
+        m.paint(13, 2, 5, 2, XP_EMPTY)
+        m.box(20, 2, 6, 2, HUD, "● 120", 8, YELLOW, False)
+        m.paint(0, 4, W, 1, WALL)
+        m.paint(0, 4, 1, H - 4, WALL)
+        m.paint(W - 1, 4, 1, H - 4, WALL)
+        m.paint(0, H - 1, W, 1, WALL)
+        m.paint(1, 5, W - 2, 3, PANEL)
+        m.box(1, 5, 3, 3, ICON, "◆", 8)
+        for x in (5, 9, 13, 17):
+            m.box(x, 5, 3, 3, ICON, "◇", 8)
+        m.paint(5, 30, 3, 2, OBST)
+        m.paint(18, 18, 2, 3, OBST)
+        m.circle(6, 13, 1.6, ENEMY_GRAY)
+        m.circle(9, 21, 1.6, ENEMY_PINK)
+        m.circle(20, 25, 1.6, ENEMY_BROWN)
+        m.text(8, 11, "12", WHITE)
+        m.paint(10, 30, 1, 1, WHITE)
+        m.paint(9, 26, 1, 1, WHITE)
+        m.paint(12, 33, 3, 1, GREEN)
+        m.text(16, 33, "80", WHITE, 7)
+        m.circle(13, 36, 1.6, WHITE)
+        m.circle(19, 40, 3, RED_AREA, "!", "000000")
+        m.paint(3, 44, 10, 1, RED)
+
+    def cards(m):
+        m.paint(0, 0, W, H, DIM)
+        for i, x in enumerate((2, 10, 18)):
+            m.paint(x, 12, 7, 24, CARD)
+            m.box(x + 1, 13, 5, 5, ICON, "①", 12)
+            m.box(x + 1, 19, 5, 2, CARD, "★★", 9, "000000", False)
+            m.box(x + 1, 22, 5, 12, BG, "③", 11, WHITE)
+            m.box(x + 2, 38, 3, 3, BTN, str(i + 1), 11)
+
+    def pause(m):
+        m.paint(0, 0, W, H, DIM)
+        m.box(8, 12, 11, 4, BTN, "▶", 16)
+        m.box(8, 18, 11, 4, BTN, "↻", 16)
+        m.box(8, 24, 11, 4, BTN, "🏠", 14)
+        m.box(4, 31, 3, 3, DIM, "🔊", 12, WHITE, False)
+        m.paint(8, 32, 14, 1, BTN)
+        m.paint(17, 31, 1, 3, WHITE)
+
+    def clear(m):
+        m.box(2, 4, 23, 15, PICTURE, "🏆", 28, WHITE)
+        m.box(6, 22, 15, 3, PANEL, "⏱ 12:34", 11, WHITE, False)
+        m.box(6, 26, 15, 3, PANEL, "● 120", 11, YELLOW, False)
+        m.box(5, 33, 7, 5, BTN, "↻", 16)
+        m.box(15, 33, 7, 5, BTN, "🏠", 14)
+
+    def death(m):
+        m.box(9, 4, 9, 8, PANEL, "💀", 26, WHITE, False)
+        m.box(6, 14, 15, 3, PANEL, "23/50", 11, WHITE, False)
+        m.box(3, 19, 3, 3, ICON, "◆", 8)
+        for x, y in ((7, 19), (11, 19), (15, 19), (19, 19), (3, 23), (7, 23)):
+            m.box(x, y, 3, 3, ICON, "◇", 8)
+        m.box(5, 33, 7, 5, BTN, "↻", 16)
+        m.box(15, 33, 7, 5, BTN, "🏠", 14)
+
+    bands = [
+        [("ホーム", home, "①一枚絵かプレイヤーの絵を置く場所（中身は未定）\n37/50＝最高記録　⏱＝最短タイム\n▶＝開始（武器を選ぶ画面へ）"),
+         ("武器を選ぶ", weapon, "①②③＝武器3種の絵（32×32 を2倍で表示）\n▼＝前回選んだ武器"),
+         ("プレイ（HUD）", play, "1段目：23/50＝ウェーブ、⏸。ボス戦では赤いボスのHPバー＋💀\n2段目：★5＋経験値バー（黄）、●＝コイン\n3段目：◆武器、◇強化（32×32。収まらなければ2段に折り返す）\n白＝プレイヤー（頭上に緑のHPバーと数字）、白い点＝弾、灰・桃・茶＝敵、12＝ダメージ数字\n赤い円と赤い線＝攻撃の予兆"),
+         ("カード選択", cards, "画面を暗くしてカード3枚を並べる\n①強化のアイコン（2倍）　★★＝段階\n③実演アニメ\n1 2 3＝キーでも選べる（クリックでも可）")],
+        [("一時停止", pause, "▶続ける　↻やり直し　🏠ホーム\n🔊＝音量（つまみを左右に動かす）"),
+         ("クリア", clear, "🏆の後ろに一枚絵（届くまでは🏆だけ）\n⏱＝クリアまでの時間　●＝得たコイン\n↻やり直し　🏠ホーム"),
+         ("死亡", death, "💀と、たどり着いたウェーブ 23/50\n◆武器と◇取った強化のアイコン\n↻やり直し　🏠ホーム")],
+    ]
+    legend = [(HUD, "HUD の帯"), (WALL, "壁"), (OBST, "障害物"), (BTN, "ボタン（中立の色）"),
+              (ICON, "アイコンの場所（中身は絵）"), (PICTURE, "一枚絵の場所"), (WHITE, "プレイヤー・弾"),
+              (ENEMY_GRAY, "敵（灰）"), (ENEMY_PINK, "敵（桃）"), (ENEMY_BROWN, "敵（茶）"),
+              (RED, "攻撃の予兆（赤い線）"), (RED_AREA, "攻撃の予兆（赤い円）"), (GREEN, "HP"),
+              (YELLOW, "経験値・コイン")]
+
+    top = s.row + 2
+    for band_no, band in enumerate(bands):
+        for y in range(H):
+            ws.row_dimensions[top + y].height = 9
+        cap_row = top + H + 1
+        cap_lines = 1
+        for slot, (name, draw, caption) in enumerate(band):
+            m = Mock(slot, top, name)
+            m.screen()
+            draw(m)
+            ws.merge_cells(start_row=cap_row, start_column=m.c0, end_row=cap_row, end_column=m.c0 + W - 1)
+            c = ws.cell(row=cap_row, column=m.c0, value=caption)
+            c.font = font(size=8)
+            c.alignment = WRAP
+            cap_lines = max(cap_lines, lines_needed(caption, 34))
+        if band_no == len(bands) - 1:
+            m = Mock(len(band), top, "色の目安")
+            for i, (color, label) in enumerate(legend):
+                y = 1 + i * 3
+                m.box(1, y, 3, 2, color)
+                ws.merge_cells(start_row=top + y, start_column=m.c0 + 5, end_row=top + y + 1, end_column=m.c0 + W - 1)
+                c = m.at(5, y)
+                c.value = label
+                c.font = font(size=9)
+                c.alignment = Alignment(vertical="center")
+        ws.row_dimensions[cap_row].height = 12 * cap_lines
+        top = cap_row + 3
+    s.row = top
 
 
 def build_art(b):
@@ -674,13 +865,12 @@ def build_art(b):
     s.table(["項目", "前提", ""], [
         ("描画の基準解像度", "270×480（1080×1920 の 4倍拡大）。URP 2D の Pixel Perfect Camera を使う", ""),
         ("フィールド", "1画面＝270×480 の中に収める（壁を含む）。HUD はフィールドの上に重ねる。戦える広さはおよそ 240×400", ""),
-        ("タイル", "16px のマス目（1ユニット＝16px、PPU 16）", ""),
-        ("プレイヤー・通常の敵", "24〜32px 四方", ""),
-        ("中ボス", "48〜64px 四方", ""),
-        ("ボス", "64〜80px 四方", ""),
-        ("強化のアイコン", "32px 四方（カードでは 2倍で表示）", ""),
-        ("武器のアイコン", "32px 四方（武器を選ぶ画面では 2倍で表示）", ""),
-        ("HUD のピクトグラム", "16px 四方", ""),
+        ("タイル", "16px のマス目（1ユニット＝16px、PPU 16）。フリー素材もこの大きさのものを選ぶ", ""),
+        ("自作の絵の大きさ", "すべて 32×32 で描く（プレイヤー、敵、中ボス、ボス、アイコン、ピクトグラム、ボタン）。フリー素材（タイル、障害物、エフェクト）は対象外。32×32 は 2×2 ユニット", "【決定】"),
+        ("中ボス・ボス", "32×32 で描き、ゲーム内で 2倍に拡大して表示する（倍率は調整値）", ""),
+        ("強化のアイコン", "32×32（カードでは 2倍で表示）", ""),
+        ("武器のアイコン", "32×32（武器を選ぶ画面では 2倍で表示）", ""),
+        ("HUD のピクトグラム", "32×32（HUD では 1倍で表示）", ""),
         ("向き", "左右だけ（右向きを描き、左は反転）。上下の向きは描かない", ""),
         ("被弾の白い光り", "プログラマーがシェーダーで出す（コマを描かない）", ""),
         ("強化版の色", "プログラマーが色を変えて出す（別の絵を描かない）", ""),
@@ -911,17 +1101,17 @@ def build_prog_effort(b):
 
 CHAR_ART = [
     ("試作（絵柄・色の数・頭身を決め、パワースーツとクモ型のラフ）", "—", "—", 1.5, 1),
-    ("パワースーツ（プレイヤー）", "24〜32px", "待機4／走り6／被弾1／倒れる4／撃つ2×武器3種", 5, 2),
-    ("クモ型（モデル3）", "24px", "歩く4／壊れる3＋自爆型の差分（0.5）", 2, 3),
-    ("警備ロボ（モデル1）", "32px", "待機2／構え2／撃つ2／壊れる3＋範囲型の差分（0.5）", 2, 3),
-    ("多連装ロボ（モデル2）", "32px", "待機2／構え2／撃つ2／壊れる3＋五発連射型の差分（0.5）", 2, 4),
-    ("金属の塊（中ボス）", "48〜64px", "うごめく4／割れる2／消える3", 2, 4),
-    ("二足メカ（ボスA）", "64〜80px", "歩く4／ため2／突進3／ハッチが開く3／壊れる4", 3, 5),
-    ("作業ロボ（モデル6）", "32px", "歩く4／振る2／壊れる3", 1.5, 5),
-    ("火炎放射ロボ（モデル4）", "32px", "歩く4／放射2／壊れる3", 1.5, 6),
-    ("送電ロボ（モデル5）", "32px", "浮く2／ため2／壊れる3", 1.5, 6),
-    ("時限ロボ（モデル7）", "24〜32px", "歩く4／壊れる3", 1.5, 6),
-    ("中枢機械（最後のボス）", "64〜80px", "待機4／突進3／撃つ3／呼ぶ3／壊れる4", 3.5, 7),
+    ("パワースーツ（プレイヤー）", "32×32", "待機4／走り6／被弾1／倒れる4／撃つ2×武器3種", 5, 2),
+    ("クモ型（モデル3）", "32×32", "歩く4／壊れる3＋自爆型の差分（0.5）", 2, 3),
+    ("警備ロボ（モデル1）", "32×32", "待機2／構え2／撃つ2／壊れる3＋範囲型の差分（0.5）", 2, 3),
+    ("多連装ロボ（モデル2）", "32×32", "待機2／構え2／撃つ2／壊れる3＋五発連射型の差分（0.5）", 2, 4),
+    ("金属の塊（中ボス）", "32×32（2倍表示）", "うごめく4／割れる2／消える3", 2, 4),
+    ("二足メカ（ボスA）", "32×32（2倍表示）", "歩く4／ため2／突進3／ハッチが開く3／壊れる4", 3, 5),
+    ("作業ロボ（モデル6）", "32×32", "歩く4／振る2／壊れる3", 1.5, 5),
+    ("火炎放射ロボ（モデル4）", "32×32", "歩く4／放射2／壊れる3", 1.5, 6),
+    ("送電ロボ（モデル5）", "32×32", "浮く2／ため2／壊れる3", 1.5, 6),
+    ("時限ロボ（モデル7）", "32×32", "歩く4／壊れる3", 1.5, 6),
+    ("中枢機械（最後のボス）", "32×32（2倍表示）", "待機4／突進3／撃つ3／呼ぶ3／壊れる4", 3.5, 7),
     ("直しと統一", "—", "—", 1, 8),
 ]
 CHAR_MEASURES = [
@@ -935,11 +1125,11 @@ UI_ART = [
     ("数字と記号のフォントの確認（★ ⏱ × などを描き足す）", "—", "フリー素材のピクセルフォントに足りない記号", 0.5, 2),
     ("操作案内の絵（最小版は2週目）", "—", "矢印キー、マウス、手の動きのアニメ（キーに英字を描かない）", 2, 7),
     ("カードの枠", "—", "通常／選んでいる／★の段階表示", 2.5, 3),
-    ("武器のアイコン 3種", "32px", "銃・レーザー・ランチャー", 1, 3),
-    ("強化のアイコン（15種、カード26枚分。半分は4週目）", "32px", "本体の絵 約20枚＋向きの印 約8個", 10, 6),
+    ("武器のアイコン 3種", "32×32", "銃・レーザー・ランチャー", 1, 3),
+    ("強化のアイコン（15種、カード26枚分。半分は4週目）", "32×32", "本体の絵 約20枚＋向きの印 約8個", 10, 6),
     ("画面のレイアウト", "—", "ホーム、武器選択、カード選択、クリア、死亡、一時停止（縦長）", 1.5, 4),
     ("HUD", "—", "HPバー、経験値バー、ボスのHPバー、コイン、23/50 の枠、武器と強化の一覧の枠", 3.5, 5),
-    ("ボタンとピクトグラム", "16px", "▶ ⏸ ↻ 🏠 🔊 🏆 💀 ⚠ ⏱ ♥ ★ × など約12個", 2, 7),
+    ("ボタンとピクトグラム", "32×32", "▶ ⏸ ↻ 🏠 🔊 🏆 💀 ⚠ ⏱ ♥ ★ × など約12個", 2, 7),
     ("直しと統一", "—", "実際の画面で見て、色・大きさ・並びを直す（新しい絵は足さない）", 3, 8),
 ]
 UI_MEASURES = [
@@ -1515,6 +1705,7 @@ def main():
     build_enemies(b)
     build_skills(b)
     build_screens(b)
+    build_layouts(b)
     build_art(b)
     build_world(b)
     build_tech(b)
