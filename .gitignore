@@ -38,3 +38,6 @@
 *.app
 sysinfo.txt
 crashlytics-build.properties
+
+# Claude Code: personal settings stay local
+.claude/settings.local.json

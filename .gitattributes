@@ -16,3 +16,6 @@
 *.ogg binary
 *.ttf binary
 *.otf binary
+
+# Spec workbook: regenerate with tools/spec/build_spec_xlsx.py instead of merging
+*.xlsx binary

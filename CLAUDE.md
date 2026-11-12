@@ -1,6 +1,28 @@
 # PictoArcher：Claude へのルール
 
 3人の Claude が同じルールで動くための文書。Unity 6000.5.10f1（URP 2D）。
+開発ルールの正本は `docs/development-rules.md`。仕様の一覧・工程・工数は `docs/PictoArcher_仕様書.xlsx`。
+
+## 作業を始める前に（毎回・必ず）
+
+3人とも Claude を使うので、同じ作業を2つの Claude が始めないように、コードやファイルを触る前に次を行う。
+
+1. 次を実行して結果を見る。
+   ```bash
+   git fetch --prune
+   gh issue list --state open
+   gh pr list --state open
+   git branch -r
+   ```
+2. 頼まれた作業の Issue を探す（タイトルは `[作業工程の ID] タスク名`）。
+   - Issue の担当（assignee）がほかの人なら、作業を始めずに人に伝える。
+   - 同じファイルを触る PR（下書きを含む）が開いているなら、作業を始めずに人に伝える。
+   - Issue がないなら、作ってよいか人に聞く。
+3. 自分の Issue の担当になってから、`main` から `<担当>/t<Issue番号>-<短い英語>` のブランチを切り、下書きの PR（本文に `Closes #<番号>` と触るファイル）を開く。push と PR の作成は人の OK をもらってから。
+4. 仕様書「作業工程」シートの「先に要るもの」がマージ済みか確かめる。まだなら人に伝える。
+5. 作業中は Issue に書いてあること以外をしない。担当外のファイル（ほかの人のプレハブ、`Run.unity` など）を直したくなったら、直さずに人に伝える。
+
+1セッション＝1タスク。別のタスクに移るときは `/clear` してから。計画が要る作業は Plan Mode で計画を作り、人が読んでから進める。
 
 ## 文字ゼロのルール
 
@@ -21,12 +43,16 @@
 
 - 開発ビルドやデバッグ表示でも文字を出さない。ログはコンソールだけ。
 - 描画の基準解像度は 480×270。1ユニット＝16px（Assets PPU 16）。画像は Filter Mode を Point、圧縮なしで取り込む。
+  - 注：設計書 第3版で画面は縦長（基準 270×480）に決まった。切り替えは計画2のタスク0（作業工程 `P2-00`、C さん）で行い、そのときこの行も直す。それが `main` に入るまでは今の 480×270 のまま作業し、縦長を前提にしたプレハブを作らない。
+- 自作する絵はすべて 32×32 で描く（2×2 ユニット）。フリー素材（タイル、障害物、エフェクト）は対象外。
 - コードの名前は世界観に依存させず、役割で付ける（弾は `Projectile`、追う敵は `Chaser`）。
 
 ## フォルダ構成
 
 ```
 CLAUDE.md                  全員の Claude が読むルール
+.claude/                   共有の Claude 設定（settings.json、skills/、agents/）
+.github/                   PR と Issue のテンプレート
 Assets/_Project/
   Scripts/Core/            PictoArcher.Core（純粋な C#、テスト対象）
     PictoArcher.Core.asmdef
@@ -58,7 +84,11 @@ Assets/_Project/
   Fonts/                   数字と記号だけのピクセルフォント
   Art/                     絵（フリー素材と、絵の担当から届いたスプライトシート）
 tools/run-editmode-tests.sh
+tools/spec/build_spec_xlsx.py  仕様書 .xlsx を作るスクリプト
 docs/assets-list.md
+docs/development-rules.md  開発ルールの正本
+docs/PictoArcher_仕様書.xlsx  仕様書（スクリプトで作る。直接書き換えない）
+docs/superpowers/          設計書（specs/）と計画（plans/）
 ```
 
 ルール：
@@ -79,7 +109,19 @@ docs/assets-list.md
 ## シーンとブランチ
 
 - `Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。
-- ブランチ名は `<担当>/t<番号>-<短い名前>`（例 `c/t1-foundation`）。1タスク＝1ブランチ。
+- ブランチ名は `<担当>/t<Issue番号>-<短い名前>`（例 `a/t12-weapon-select`）。1タスク＝1 Issue＝1ブランチ。
 - `main` へは直接入れない。ほかの1人が確認してからマージする。
 - Claude が書いたコードも、マージ前に人が読む。
+- PR は `.github/pull_request_template.md` の項目を埋める。コミットの種類、レビュー、マージの方法は `docs/development-rules.md` §6〜§8。
+- 仕様を変えるときは、設計書（`.md`）と `tools/spec/build_spec_xlsx.py` を同じ PR で直し、`.xlsx` を作り直す（§10）。
+
+## Claude の動かし方（ハイブリッド運用）
+
+- メインのセッションは1タスクの計画・判断・統合をする。サブエージェントは同時に2〜3体まで。
+  - `log-triage`（haiku）：長いログやテスト結果から失敗と原因だけを抜き出す。
+  - `transcriber`（haiku）：計画にコードが全部書いてあるタスクを写して、テストして、コミットする。
+  - `task-reviewer`（sonnet）：1タスクが終わるごとに、仕様に合っているかとコードの質を見る。
+- 同じファイルを触るサブエージェントを同時に動かさない。
+- スキル `minimal-read-edit`（必要な所だけ読んで直す）と `lean-token-workflow`（長いログやサブエージェントの使い方）を使う。プラグインは `superpowers`。
+- フックは共有しない。
 - UnityYAMLMerge は各自で設定する（`README.md` を見る）。
