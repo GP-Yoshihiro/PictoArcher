@@ -1261,7 +1261,7 @@ def build_schedule(b):
 
 TASKS = [
     # (ID, 計画, タスク, 担当, 先に要るもの, 開始週, 終了週, 見積もり, 状態, Issue, メモ)
-    ("P1-00", "計画1", "コーディング規則と実行順の土台（Main・SceneBase・SceneTransform・Root Scene 方式・ArchitectureGuardTests・スキル）", "C", "P1-01", 3, 3, 1, "作業中", "#4", "設計書 2026-11-14-coding-rules-design.md、2026-11-14-root-scene-design.md"),
+    ("P1-00", "計画1", "コーディング規則と実行順の土台（Main・SceneBase・SceneTransform・Root Scene 方式・ArchitectureGuardTests・スキル）", "C", "P1-01", 3, 3, 1, "済み", "#4", "設計書 2026-11-14-coding-rules-design.md、2026-11-14-root-scene-design.md"),
     ("P1-01", "計画1", "土台と CLAUDE.md", "C", "", 1, 1, 0.75, "済み", "", "PR #1"),
     ("P1-02", "計画1", "データ形式と共通部品", "A", "P1-01", 1, 1, 0.5, "済み", "", "PR #1"),
     ("P1-03", "計画1", "文字ゼロとドット絵の取り込み（NoTextGuardTests、PixelArtImportPostprocessor）", "C", "P1-01", 1, 2, 0.75, "未着手", "#6", ""),
