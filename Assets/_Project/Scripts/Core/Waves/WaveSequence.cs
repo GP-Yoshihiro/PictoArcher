@@ -2,8 +2,6 @@ using System;
 
 namespace PictoArcher.Core
 {
-    public enum WavePhase { NotStarted, Fighting, Resting, Completed, Stopped }
-
     public sealed class WaveSequence
     {
         public const float DefaultRestSeconds = 1.5f;

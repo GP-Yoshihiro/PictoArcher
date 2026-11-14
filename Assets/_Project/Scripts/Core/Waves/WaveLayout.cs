@@ -2,8 +2,6 @@ using System;
 
 namespace PictoArcher.Core
 {
-    public enum WaveKind { Tutorial, Combat, MiniBoss, Boss, FinalBoss, Angel }
-
     public static class WaveLayout
     {
         public const int TotalWaves = 50;
