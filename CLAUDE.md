@@ -55,7 +55,7 @@ C# を書く・直す・レビューする前に、スキル `pictoarcher-coding
 
 - 開発ビルドやデバッグ表示でも文字を出さない。ログはコンソールだけ。
 - 画面は縦長 9:16。描画の基準解像度は 270×480（Pixel Perfect Camera、Orthographic Size 15）。1ユニット＝16px（Assets PPU 16）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なしで取り込む。
-  - Player Settings は 540×960 のウィンドウ（基準の2倍）。全画面では整数倍で拡大し、余りは黒い帯（Crop Frame は Windowbox）。エディタの Game ビューは各自で 540×960 か 9:16 を選ぶ（共有の設定ではない）。
+  - Player Settings は 540×960 のウィンドウ（基準の2倍）。全画面では整数倍で拡大し、余りは黒い帯（Crop Frame は Windowbox）。エディタの Game ビューは各自で 540×960 か 9:16 を選ぶ（各自の PC に保存され、git で共有できない。手順は `README.md` の「Game ビューの設定」）。
 - ドット絵にするのはキャラクター（プレイヤー、敵、中ボス、ボス）だけ。すべて 32×32 で描く（2×2 ユニット）。フリー素材（タイル、障害物、エフェクト）は大きさを縛らない。
 - カード、アイコン、ボタン、ピクトグラムなどの UI は、ドット絵ではない普通の2Dの絵（Filter Mode は Bilinear）。カードは縦長。UI は uGUI の Canvas（Canvas Scaler は Scale With Screen Size、基準 1080×1920）に置く。
 - のちに iPad・iPhone へ対応させるので、画面は 9:16 で作り、UI は画面の端を基準に置いて端に余白をとる（対応そのものは8週間の範囲外）。
