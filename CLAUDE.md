@@ -35,16 +35,18 @@
 | 色の意味 | 赤＝危険・攻撃／緑＝回復／黄＝コイン・経験値／青＝防御・氷／紫＝レア。この5色は UI・拾うもの・エフェクトの意味だけに使い、敵の体の主な色やフィールドの照明には使わない（敵は灰・白・黒・茶・桃などから選ぶ。プレイヤーの弾は白） |
 | 予兆 | 敵の攻撃は必ず先に赤い線・赤い円で予告する |
 | 操作の案内 | 手・矢印キー・マウスの絵のアニメで見せる。キーの絵に英字（W A S D、Esc など）を描かない |
-| 絵文字 | フォントで出さない。すべてスプライト画像（ドット絵）で用意する |
-| フォント | TextMeshPro のフォントアセットには数字と記号だけを登録する。ドット絵に合うピクセルフォントを使う |
+| 絵文字 | フォントで出さない。すべてスプライト画像（UI の絵）で用意する |
+| フォント | TextMeshPro のフォントアセットには数字と記号だけを登録する。UI の絵に合う、読みやすいフォントを使う（ピクセルフォントでなくてよい） |
 | ボタン | ▶ 開始／⏸ 一時停止／↻ やり直し／🏠 ホーム／⚙ 設定／🔒 ロック中／🔊 音量 |
 | 素材 | 取り込む前に文字が入っていないか確認する（UIパックの「PLAY」、看板、ロゴ、背景の張り紙や画面の表示など） |
 | ウィンドウ・起動画面 | ウィンドウタイトルとアプリ名は OS が表示するもので画面内ではないため対象外。Unity のスプラッシュ画面は、出せない場合の扱いをチームで判断する |
 
 - 開発ビルドやデバッグ表示でも文字を出さない。ログはコンソールだけ。
-- 描画の基準解像度は 480×270。1ユニット＝16px（Assets PPU 16）。画像は Filter Mode を Point、圧縮なしで取り込む。
+- 描画の基準解像度は 480×270。1ユニット＝16px（Assets PPU 16）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なしで取り込む。
   - 注：設計書 第3版で画面は縦長（基準 270×480）に決まった。切り替えは計画2のタスク0（作業工程 `P2-00`、C さん）で行い、そのときこの行も直す。それが `main` に入るまでは今の 480×270 のまま作業し、縦長を前提にしたプレハブを作らない。
-- 自作する絵はすべて 32×32 で描く（2×2 ユニット）。フリー素材（タイル、障害物、エフェクト）は対象外。
+- ドット絵にするのはキャラクター（プレイヤー、敵、中ボス、ボス）だけ。すべて 32×32 で描く（2×2 ユニット）。フリー素材（タイル、障害物、エフェクト）は大きさを縛らない。
+- カード、アイコン、ボタン、ピクトグラムなどの UI は、ドット絵ではない普通の2Dの絵（Filter Mode は Bilinear）。カードは縦長。UI は uGUI の Canvas（Canvas Scaler は Scale With Screen Size、基準 1080×1920）に置く。
+- のちに iPad・iPhone へ対応させるので、画面は 9:16 で作り、UI は画面の端を基準に置いて端に余白をとる（対応そのものは8週間の範囲外）。
 - コードの名前は世界観に依存させず、役割で付ける（弾は `Projectile`、追う敵は `Chaser`）。
 
 ## フォルダ構成
@@ -75,14 +77,14 @@ Assets/_Project/
     UI/                    HudView, HeadHpView
   Scripts/Editor/          PictoArcher.Editor（エディタ専用）
     PictoArcher.Editor.asmdef
-    PixelArtImportPostprocessor.cs  ドット絵の取り込み設定
+    PixelArtImportPostprocessor.cs  ドット絵（キャラとフリー素材）の取り込み設定
   Tests/EditMode/          PictoArcher.Tests.EditMode
   Data/                    ScriptableObject のアセット（Enemies/, Waves/）
   Prefabs/                 MainCamera, Player, Projectile, Chaser, SpawnTelegraph, Field_Test
   Scenes/Run.unity         Cさんだけが編集する
   Scenes/Sandbox/          Sandbox_A.unity, Sandbox_B.unity（各自の試し用、他の人は触らない）
-  Fonts/                   数字と記号だけのピクセルフォント
-  Art/                     絵（フリー素材と、絵の担当から届いたスプライトシート）
+  Fonts/                   数字と記号だけのフォント
+  Art/                     絵（フリー素材と、絵の担当から届いたキャラのスプライトシートと UI の絵）
 tools/run-editmode-tests.sh
 tools/spec/build_spec_xlsx.py  仕様書 .xlsx を作るスクリプト
 docs/assets-list.md
