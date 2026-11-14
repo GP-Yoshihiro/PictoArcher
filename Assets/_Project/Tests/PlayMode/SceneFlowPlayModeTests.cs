@@ -16,7 +16,7 @@ namespace PictoArcher.Tests.PlayMode
         [UnityTest]
         public IEnumerator Boot_GoesToHome_ThenStartButtonGoesToRun()
         {
-            yield return LoadBootIgnoringTestSceneError();
+            yield return LoadBoot();
 
             yield return WaitForActiveScene("Home");
             Assert.AreEqual("Home", SceneManager.GetActiveScene().name);
@@ -35,7 +35,7 @@ namespace PictoArcher.Tests.PlayMode
         [UnityTest]
         public IEnumerator SceneWhoseDisposeThrows_StillMovesToNextScene()
         {
-            yield return LoadBootIgnoringTestSceneError();
+            yield return LoadBoot();
             yield return WaitForActiveScene("Home");
 
             var scene = SceneManager.CreateScene("DisposeThrows");
@@ -48,16 +48,28 @@ namespace PictoArcher.Tests.PlayMode
             yield return null;
         }
 
-        /// <summary>
-        /// テストの一時シーンには SceneBase がないので、Main がエラーを1回出す。そのエラーだけを見逃し、
-        /// Boot を読み込んだあとはエラーを見逃さない（見逃さない間に出たエラーと例外は、Expect していなければテストを落とす）。
-        /// </summary>
-        static IEnumerator LoadBootIgnoringTestSceneError()
+        [UnityTest]
+        public IEnumerator SceneOutsideAssetsWithoutSceneBase_OnlyWarns()
         {
-            LogAssert.ignoreFailingMessages = true;
+            yield return LoadBoot();
+            yield return WaitForActiveScene("Home");
+
+            // 保存していない新しいシーン（エディタの「無題」と同じ）。SceneBase がなくてもエラーにしない。
+            var scene = SceneManager.CreateScene("Untitled");
+            SceneManager.SetActiveScene(scene);
+            LogAssert.Expect(LogType.Warning, new Regex("SceneBase"));
+            yield return null;
+            yield return null;
+        }
+
+        /// <summary>
+        /// Boot を読み込む。テストの一時シーンは Assets の外にあるので、Main は警告だけを出し、エラーは出さない
+        /// （Expect していないエラーと例外は、テストを落とす）。
+        /// </summary>
+        static IEnumerator LoadBoot()
+        {
             SceneManager.LoadScene("Boot");
             yield return null;
-            LogAssert.ignoreFailingMessages = false;
         }
 
         static IEnumerator WaitForActiveScene(string name)

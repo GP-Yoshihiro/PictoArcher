@@ -142,6 +142,12 @@ namespace PictoArcher.Game
                 count++;
             }
 
+            if (count == 0 && !active.path.StartsWith("Assets/"))
+            {
+                // 保存していない無題のシーンや、テストの一時シーン。どのシーンでも Main は作られるので、エラーにはしない。
+                Debug.LogWarning("[Main] シーン「" + active.name + "」は Assets の中に保存されておらず、SceneBase もないので、何も動きません。");
+                return;
+            }
             if (count != 1)
             {
                 Debug.LogError("[Main] シーン「" + active.name + "」の一番上の階層に SceneBase が " + count + " 個あります。ちょうど1つにしてください。");
