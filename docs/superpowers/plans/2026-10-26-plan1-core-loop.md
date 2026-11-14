@@ -881,6 +881,8 @@ public class WaveSequenceTests
 
 ### Task 8: プレイヤーと弾（担当 A）
 
+> **注（2026-11-14）：** このタスクは `docs/superpowers/specs/2026-11-14-coding-rules-design.md` の規則に読み替えて作る。下のコードの `Update`・`OnTriggerEnter2D`・static の `EnemyRegistry`・public のフィールドは、そのまま写さない。シーンの Tick から呼ばれる System と View、`CollisionRelay2D`、`RunScene` が持つ `EnemyRegistry`、SO のプロパティを使う。書く前にスキル `pictoarcher-coding-rules` を読む。
+
 MonoBehaviour のつなぎ込みなので、確認は自分の試し用シーン `Sandbox_A.unity` での手動確認にする。ルールはタスク4・5・6でテスト済み。プレイヤーの絵は2週目に届く（世界観の文書 §4）ので、それまでは 24px の白い四角などの仮の図形で作る（設計書 §11）。
 
 **Files:**
@@ -918,6 +920,8 @@ MonoBehaviour のつなぎ込みなので、確認は自分の試し用シーン
 
 ### Task 9: 追う敵と出現予兆（担当 B）
 
+> **注（2026-11-14）：** このタスクは `docs/superpowers/specs/2026-11-14-coding-rules-design.md` の規則に読み替えて作る。下のコードの `Update`・`OnTriggerEnter2D`・static の `EnemyRegistry`・public のフィールドは、そのまま写さない。シーンの Tick から呼ばれる System と View、`CollisionRelay2D`、`RunScene` が持つ `EnemyRegistry`、SO のプロパティを使う。書く前にスキル `pictoarcher-coding-rules` を読む。
+
 追う敵の絵は3週目に届く（世界観の文書 §4）ので、それまでは 24px の灰色の丸などの仮の図形で作る。色の意味の5色は使わない（設計書 §5）。
 
 **Files:**
@@ -953,6 +957,8 @@ MonoBehaviour のつなぎ込みなので、確認は自分の試し用シーン
 ---
 
 ### Task 10: フィールド・ウェーブの流れ・HUD（担当 C）
+
+> **注（2026-11-14）：** このタスクは `docs/superpowers/specs/2026-11-14-coding-rules-design.md` の規則に読み替えて作る。下のコードの `Update`・`OnTriggerEnter2D`・static の `EnemyRegistry`・public のフィールドは、そのまま写さない。シーンの Tick から呼ばれる System と View、`CollisionRelay2D`、`RunScene` が持つ `EnemyRegistry`、SO のプロパティを使う。書く前にスキル `pictoarcher-coding-rules` を読む。
 
 `Run.unity` を編集するのはこのタスクだけ。A と B はプレハブを渡す。
 

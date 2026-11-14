@@ -11,6 +11,9 @@
 | 計画 | `docs/superpowers/plans/` | その計画を書く人 |
 | タスクの進み具合（今の状態） | GitHub の Issue と PR | 各担当 |
 | Claude のルール | `CLAUDE.md`、`.claude/` | 全員（PR で） |
+| コーディング規則（正本） | `docs/superpowers/specs/2026-11-14-coding-rules-design.md` | C さん（チームで決めたあと） |
+| コーディング規則のお手本 | `.claude/skills/pictoarcher-coding-rules/SKILL.md` | 全員（PR で） |
+| Unity の落とし穴 | `docs/unity-pitfalls.md` | 全員（PR で） |
 | 素材の出どころ | `docs/assets-list.md` | 素材を入れた人 |
 
 今の状態は Issue と PR で見る。仕様書の「作業工程」シートは予定表で、状態の列は C さんが週に1回 Issue から写す。
@@ -18,14 +21,35 @@
 ## §2 命名
 
 - 名前は世界観に依存させず、役割で付ける（弾は `Projectile`、追う敵は `Chaser`、ボスの体当たりは `Dash`）。
-- 名前空間：`PictoArcher.Core`（純粋な C#）、`PictoArcher.Game`（MonoBehaviour・ScriptableObject）、`PictoArcher.Editor`（エディタ専用）、`PictoArcher.Tests.EditMode`（テスト）。
-- 型・メソッド・プロパティ・定数：PascalCase（`FireTimer`、`Tick`、`Interval`）。
-- フィールド：private は `_camelCase`（`_elapsed`）。`private` は書かない（既定のまま）。`static readonly` は `camelCase`。
-- ScriptableObject の調整値：`public` のフィールドで camelCase（`maxHp`、`moveSpeed`）。
-- クラスは継承させないなら `sealed` にする。
+- 名前空間：`PictoArcher.Core`（純粋な C#）、`PictoArcher.Game`（MonoBehaviour・ScriptableObject）、`PictoArcher.Editor`（エディタ専用）、`PictoArcher.Tests.EditMode`・`PictoArcher.Tests.PlayMode`（テスト）。
+- 名前空間はこれだけ。フォルダを分けても名前空間は分けない。
+- 型・メソッド・プロパティ・イベント：PascalCase（`FireTimer`、`Tick`、`Interval`）。interface は `I` ＋ PascalCase（`ITickable`）。
+- フィールド：private は `_camelCase`（`_elapsed`）。`private` は書かない（既定のまま）。
+- `const` と `static readonly`：PascalCase（`TotalWaves`）。
+- 引数・ローカル変数：camelCase（`deltaTime`）。
+- ScriptableObject の調整値：`[SerializeField]` の `_camelCase` と、読み取り専用のプロパティ（`_moveSpeed`／`MoveSpeed`）。public のフィールドと public の setter は作らない。名前を変えるときは `[FormerlySerializedAs]` を付ける。
+- イベント：過去形で `On` を付けない（`Died`、`WaveCleared`）。受けるメソッドは `Handle` ＋ イベント名（`HandleDied`）。
+- 継承してよいのは骨組み（`SceneBase`、`DefinitionAsset<T>`、`DefinitionAsset<T>` を直接継承した抽象クラス）だけ。ほかのクラスはすべて `sealed`。
+- 1ファイルに1つの型。ファイル名と型の名前を同じにする。
+- 接尾辞：`XxxScene`（`SceneBase` の子）、`XxxSystem`（シーンが持つ処理、普通の C#）、`XxxView`（プレハブに付く MonoBehaviour）、`XxxDefinition`（ScriptableObject のデータ）、`XxxRelay`（Unity から来るものを受け取るだけ）、`XxxExtensions`（拡張メソッド）、`XxxId`（種類の enum）。
 - テスト：`Assets/_Project/Tests/EditMode/<クラス名>Tests.cs`。メソッドは PascalCase で、条件と結果を `_` で区切ってよい（`NoTarget_DoesNotFire`）。
 - アセット：プレハブは役割の名前（`Player`、`Projectile`、`Chaser`）。データは種類ごとのフォルダ（`Data/Enemies`、`Data/Waves`）。シーンの試し用は `Scenes/Sandbox/Sandbox_<担当>.unity`。
 - 構成は Unity の標準に合わせる。自分たちのものはすべて `Assets/_Project` の下。ルールは Core（テストする）、つなぎは Game、数値は ScriptableObject。
+
+## §2.1 設計の規則（8項目）
+
+正本は設計書 `docs/superpowers/specs/2026-11-14-coding-rules-design.md`、お手本はスキル `pictoarcher-coding-rules`。多くは `ArchitectureGuardTests` が自動で確かめる。
+
+1. 層と依存の向き：`Core`（純粋な C#）← `Game` ← `Editor`。Core で使ってよい UnityEngine のものは数学の型だけ。
+2. 実行順：標準ライフサイクル（`Update` など）を書くのは `Main` だけ。`Main` → シーン（`SceneBase`）→ System の順に、ソースに書いた順で呼ぶ。`Time.` を読むのは `Main` だけ。待ち時間はタイマーで作る。
+3. Unity が直接呼ぶもの：当たり判定は `CollisionRelay2D`、ボタンは `UiButtonRelay` が記録するだけで、処理は Tick の中。入力は Tick の中で読む。
+4. 組み合わせで作る：継承は骨組みだけ、ほかは `sealed`。敵は定義（ScriptableObject）と動く部品（普通の C#）の組み合わせで作る。
+5. データと状態を分ける：ScriptableObject は読み取り専用。実行中に変わる値は、データから作った普通の C# のオブジェクトが持つ。
+6. やり取り：参照は上から渡す（コンストラクター、`Init`、インスペクター）。`Find`、`Camera.main`、シングルトン、static の書き換えられる値は禁止。下から上へはイベントか戻り値。
+7. 名前とフォルダ：§2 のとおり。フォルダ構成は設計書 §10。
+8. 古い計画のコード（`Update`、`OnTriggerEnter2D`、static の `EnemyRegistry`、public のフィールド）は写さず、この規則に読み替える。
+
+ガードテストの例外を足すのは設計の変更なので、PR に理由を書く。
 
 ## §3 作業を始める前の確認（重複の防止）
 

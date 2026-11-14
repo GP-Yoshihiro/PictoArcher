@@ -24,6 +24,18 @@
 
 1セッション＝1タスク。別のタスクに移るときは `/clear` してから。計画が要る作業は Plan Mode で計画を作り、人が読んでから進める。
 
+## 実行順と設計の規則
+
+C# を書く・直す・レビューする前に、スキル `pictoarcher-coding-rules` を読む。正本は `docs/superpowers/specs/2026-11-14-coding-rules-design.md`。Unity の落とし穴は `docs/unity-pitfalls.md`。
+
+- Unity の標準ライフサイクル（`Awake`、`Start`、`Update`、`FixedUpdate`、`OnEnable`、`OnDestroy` など）を書くのは `Main` だけ。`Main` → シーン（`SceneBase` の `Init`／`Tick`／`FixedTick`／`LateTick`／`Dispose`）→ System の順に、ソースに書いた順で呼ぶ。
+- シーンはシーンの一番上の階層にちょうど1つ置く。System はシーンの `Init` で作り、`Tick` で1行ずつ呼び、`Dispose` で逆順に片付ける。
+- 当たり判定は `CollisionRelay2D`、ボタンは `UiButtonRelay` が受け取るだけ。処理は Tick の中。入力は Tick の中で読む。
+- 禁止：`Find` 系、`Camera.main`、コルーチン、`Invoke`、`async`、シングルトン、static の書き換えられる値、インスペクターで onClick に関数をつなぐこと、`Time.` を `Main` 以外で読むこと。
+- 継承は骨組み（`SceneBase`、`DefinitionAsset<T>`）だけ。ほかは `sealed`。敵は定義（ScriptableObject）と動く部品の組み合わせで作る。
+- ScriptableObject は `[SerializeField] _camelCase` ＋ 読み取り専用のプロパティ。実行中に書き換えない。
+- 古い計画（計画1 のタスク8〜10 など）のコードの `Update`、`OnTriggerEnter2D`、static の `EnemyRegistry`、public のフィールドは写さない。
+
 ## 文字ゼロのルール
 
 画面に文字を出さない。設計書 §5 のとおり。
@@ -56,47 +68,49 @@ CLAUDE.md                  全員の Claude が読むルール
 .claude/                   共有の Claude 設定（settings.json、skills/、agents/）
 .github/                   PR と Issue のテンプレート
 Assets/_Project/
+  Resources/Main.prefab    Main（実行順の大もと。起動時に自動で作られる）
   Scripts/Core/            PictoArcher.Core（純粋な C#、テスト対象）
     PictoArcher.Core.asmdef
-    MoveVectorResolver.cs  移動ベクトルの計算
-    TargetSelector.cs      一番近い敵を選ぶ
-    FireTimer.cs           連射の間隔
-    Health.cs              HP
-    HitInvulnerability.cs  無敵時間
-    WaveLayout.cs          50ウェーブの種類（WaveKind を含む）
-    WaveProgress.cs        1ウェーブの敵の数と全滅
-    WaveSequence.cs        今のウェーブ番号、休み、次のウェーブへ（WavePhase を含む）
+    Common/                ITickable, IFixedTickable, ILateTickable, TickList, SceneFlow, SceneFlowPhase
+    Combat/                TargetSelector, FireTimer, Health, HitInvulnerability
+    Movement/              MoveVectorResolver
+    Waves/                 WaveLayout, WaveKind, WaveProgress, WaveSequence, WavePhase
+    Extensions/            拡張メソッド（必要になったら作る）
   Scripts/Game/            PictoArcher.Game（MonoBehaviour と ScriptableObject）
     PictoArcher.Game.asmdef
-    Data/                  PlayerStats, EnemyDefinition, WaveDefinition, SkillId, SkillDefinition
-    IHittable.cs           弾や体当たりが当たる相手
-    EnemyRegistry.cs       今いる敵の一覧
-    Player/                PlayerController, PlayerShooter, PlayerHealth, Projectile
-    Enemies/               EnemyActor, ChaseMovement, SpawnTelegraph
-    Run/                   WaveSpawner, RunController
-    UI/                    HudView, HeadHpView
+    Main/                  Main, GameContext, GameClock, SceneId, SceneBase
+    Scenes/                BootScene, HomeScene, RunScene
+    Common/                CollisionRelay2D, UiButtonRelay, DefinitionAsset, Layers, IHittable
+    Data/                  PlayerStats, EnemyDefinition, WaveDefinition, SpawnEntry, SkillId, SkillDefinition
+    Enemies/               EnemyRegistry
+    Extensions/            拡張メソッド（必要になったら作る）
+    Player/ Run/ UI/       それぞれのタスクで足す
   Scripts/Editor/          PictoArcher.Editor（エディタ専用）
     PictoArcher.Editor.asmdef
     PixelArtImportPostprocessor.cs  ドット絵（キャラとフリー素材）の取り込み設定
-  Tests/EditMode/          PictoArcher.Tests.EditMode
+  Tests/EditMode/          PictoArcher.Tests.EditMode（ArchitectureGuardTests を含む）
+  Tests/PlayMode/          PictoArcher.Tests.PlayMode（Boot → Home → Run の流れ）
   Data/                    ScriptableObject のアセット（Enemies/, Waves/）
-  Prefabs/                 MainCamera, Player, Projectile, Chaser, SpawnTelegraph, Field_Test
-  Scenes/Run.unity         Cさんだけが編集する
+  Prefabs/                 MainCamera（Player、Projectile などはそれぞれのタスクで足す）
+  Scenes/Boot.unity, Home.unity, Run.unity   Cさんだけが編集する（Build Settings も同じ順）
   Scenes/Sandbox/          Sandbox_A.unity, Sandbox_B.unity（各自の試し用、他の人は触らない）
   Fonts/                   数字と記号だけのフォント
   Art/                     絵（フリー素材と、絵の担当から届いたキャラのスプライトシートと UI の絵）
 tools/run-editmode-tests.sh
+tools/run-playmode-tests.sh
 tools/spec/build_spec_xlsx.py  仕様書 .xlsx を作るスクリプト
 docs/assets-list.md
 docs/development-rules.md  開発ルールの正本
+docs/unity-pitfalls.md     Unity の落とし穴（初めての人向け）
 docs/PictoArcher_仕様書.xlsx  仕様書（スクリプトで作る。直接書き換えない）
 docs/superpowers/          設計書（specs/）と計画（plans/）
 ```
 
 ルール：
-- `Scripts/Core` は純粋な C#。`MonoBehaviour` や `UnityEngine` の部品を使わない。名前空間は `PictoArcher.Core`。
+- `Scripts/Core` は純粋な C#。Unity の部品を使わない（使ってよいのは `Vector2`、`Mathf` などの数学の型だけ）。名前空間は `PictoArcher.Core`。
 - Unity の部品（`MonoBehaviour`、`ScriptableObject`）は `Scripts/Game` に置く。名前空間は `PictoArcher.Game`。
 - エディタ専用のコードは `Scripts/Editor` に置く。名前空間は `PictoArcher.Editor`。
+- 名前空間はフォルダで分けない（`Scripts/Game/Main/` の中も `PictoArcher.Game`）。1ファイルに1つの型、ファイル名＝型名。
 - レイヤー：`Player`=6、`Enemy`=7、`PlayerShot`=8、`Wall`=9（障害物も `Wall`）。
 - `MainCamera.prefab` の位置は (0, 0, -10) から動かさない。カメラは動かない。
 - 数値（HP、攻撃力、速度、出現数）は ScriptableObject の調整値にする。コードに直接書かない。
@@ -106,11 +120,13 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 - `Core` のルールは、先に EditMode テストを書いて失敗を確認してから実装する。
 - NUnit を使う。置き場所は `Assets/_Project/Tests/EditMode/<クラス名>Tests.cs`。
 - 実行方法：Unity のエディタを閉じて、`tools/run-editmode-tests.sh`。失敗があると終了コードが 0 以外になる。結果は `Logs/editmode-results.xml`。
+- シーンの流れ（Boot → Home → Run）の確認は `tools/run-playmode-tests.sh`。結果は `Logs/playmode-results.xml`。シーンや `Main` を触ったときに実行する。
+- `ArchitectureGuardTests` は実行順・やり取り・命名の規則を確かめる。落ちたらメッセージの直し方に従う。テストの例外を足して通さない（足すなら人に伝え、PR に理由を書く）。
 - `NoTextGuardTests` を含む全テストが通ってからプルリクエストを出す。
 
 ## シーンとブランチ
 
-- `Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。
+- `Boot.unity`・`Home.unity`・`Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。
 - ブランチ名は `<担当>/t<Issue番号>-<短い名前>`（例 `a/t12-weapon-select`）。1タスク＝1 Issue＝1ブランチ。
 - `main` へは直接入れない。ほかの1人が確認してからマージする。
 - Claude が書いたコードも、マージ前に人が読む。
