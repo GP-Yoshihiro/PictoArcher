@@ -3,6 +3,7 @@
     "rootNamespace": "PictoArcher.Game",
     "references": [
         "PictoArcher.Core",
+        "UnityEngine.UI",
         "Unity.InputSystem",
         "Unity.TextMeshPro",
         "Unity.RenderPipelines.Universal.Runtime",
