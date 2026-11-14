@@ -13,10 +13,13 @@ namespace PictoArcher.Tests.EditMode
             Assert.AreEqual("6000.5.10f1", Application.unityVersion);
 
         [Test]
-        public void DefaultResolution_Is1920x1080()
+        public void Screen_IsPortraitWindow540x960()
         {
-            Assert.AreEqual(1920, PlayerSettings.defaultScreenWidth);
-            Assert.AreEqual(1080, PlayerSettings.defaultScreenHeight);
+            // 設計書 第3版 §11：縦長 9:16 のウィンドウ（基準 270×480 の2倍）。全画面は整数倍で拡大し、余りは黒い帯。
+            Assert.AreEqual(540, PlayerSettings.defaultScreenWidth);
+            Assert.AreEqual(960, PlayerSettings.defaultScreenHeight);
+            Assert.AreEqual(FullScreenMode.Windowed, PlayerSettings.fullScreenMode);
+            Assert.AreEqual(UIOrientation.Portrait, PlayerSettings.defaultInterfaceOrientation);
         }
 
         [Test]
@@ -39,16 +42,17 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test]
-        public void MainCamera_IsPixelPerfect480x270()
+        public void MainCamera_IsPixelPerfect270x480()
         {
-            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/MainCamera.prefab");
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/System/MainCamera.prefab");
             Assert.IsNotNull(go);
             Assert.IsTrue(go.GetComponent<Camera>().orthographic);
             var ppc = go.GetComponent<PixelPerfectCamera>();
             Assert.AreEqual(16, ppc.assetsPPU);
-            Assert.AreEqual(480, ppc.refResolutionX);
-            Assert.AreEqual(270, ppc.refResolutionY);
-            Assert.AreEqual(PixelPerfectCamera.CropFrame.StretchFill, ppc.cropFrame);
+            Assert.AreEqual(270, ppc.refResolutionX);
+            Assert.AreEqual(480, ppc.refResolutionY);
+            Assert.AreEqual(15f, go.GetComponent<Camera>().orthographicSize, "480 ÷ 2 ÷ 16 = 15");
+            Assert.AreEqual(PixelPerfectCamera.CropFrame.Windowbox, ppc.cropFrame, "全画面では整数倍で拡大し、余りを黒い帯にする");
             Assert.AreEqual(PixelPerfectCamera.GridSnapping.UpscaleRenderTexture, ppc.gridSnapping);
         }
 

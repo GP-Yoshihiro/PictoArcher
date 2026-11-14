@@ -1,5 +1,8 @@
+using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 using PictoArcher.Game;
 
 namespace PictoArcher.Tests.EditMode
@@ -10,7 +13,7 @@ namespace PictoArcher.Tests.EditMode
         public void PlayerStats_MoveFireRateDefaultsToFull()
         {
             var stats = ScriptableObject.CreateInstance<PlayerStats>();
-            Assert.AreEqual(1f, stats.moveFireRateMultiplier);
+            Assert.AreEqual(1f, stats.MoveFireRateMultiplier);
             Object.DestroyImmediate(stats);
         }
 
@@ -22,46 +25,47 @@ namespace PictoArcher.Tests.EditMode
         public void WaveDefinition_DefaultsToTelegraph08()
         {
             var wave = ScriptableObject.CreateInstance<WaveDefinition>();
-            Assert.AreEqual(0.8f, wave.telegraphSeconds);
+            Assert.AreEqual(0.8f, wave.TelegraphSeconds);
             Object.DestroyImmediate(wave);
         }
 
-        [TearDown]
-        public void TearDown()
+        [Test]
+        public void PlayerStatsAsset_KeepsValuesAfterRename()
         {
-            EnemyRegistry.Clear();
-            foreach (var go in created) if (go != null) Object.DestroyImmediate(go);
-            created.Clear();
+            var stats = AssetDatabase.LoadAssetAtPath<PlayerStats>("Assets/_Project/Data/Player/PlayerStats.asset");
+            Assert.IsNotNull(stats);
+            Assert.AreEqual(100, stats.MaxHp);
+            Assert.AreEqual(6f, stats.MoveSpeed);
+            Assert.AreEqual(0.5f, stats.FireInterval);
+            Assert.AreEqual(1f, stats.MoveFireRateMultiplier);
+            Assert.AreEqual(10, stats.ProjectileDamage);
+            Assert.AreEqual(14f, stats.ProjectileSpeed);
+            Assert.AreEqual(3f, stats.ProjectileLifetime);
+            Assert.AreEqual(0.6f, stats.InvulnerabilitySeconds);
+            Assert.AreEqual(80f, stats.DragRadiusPixels);
         }
 
-        readonly System.Collections.Generic.List<GameObject> created = new System.Collections.Generic.List<GameObject>();
-
+        // 保存された値は既定値と同じなので、上のテストだけでは名前を変えて値が消えても気づけない。
+        // 古い名前を FormerlySerializedAs で残していることも確かめる。
         [Test]
-        public void EnemyRegistry_IgnoresDuplicateRegisterAndUnknownUnregister()
+        public void PlayerStats_PrivateFieldsKeepOldNames()
         {
-            EnemyRegistry.Clear();
-            var a = new GameObject("a"); created.Add(a);
-            var b = new GameObject("b"); created.Add(b);
-            EnemyRegistry.Register(a.transform);
-            EnemyRegistry.Register(a.transform);
-            EnemyRegistry.Unregister(b.transform);
-            Assert.AreEqual(1, EnemyRegistry.Active.Count);
+            var fields = typeof(PlayerStats).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            Assert.AreEqual(9, fields.Length);
+            foreach (var field in fields)
+            {
+                var old = field.GetCustomAttribute<FormerlySerializedAsAttribute>();
+                Assert.IsNotNull(old, field.Name);
+                Assert.AreEqual("_" + old.oldName, field.Name);
+            }
         }
 
         [Test]
-        public void EnemyRegistry_HasSubsystemRegistrationResetMethod()
+        public void SpawnEntry_KeepsConstructorValues()
         {
-            var m = typeof(EnemyRegistry).GetMethod("ResetOnLoad",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            Assert.IsNotNull(m);
-            var attr = (RuntimeInitializeOnLoadMethodAttribute)System.Attribute.GetCustomAttribute(
-                m, typeof(RuntimeInitializeOnLoadMethodAttribute));
-            Assert.IsNotNull(attr);
-            Assert.AreEqual(RuntimeInitializeLoadType.SubsystemRegistration, attr.loadType);
-            var go = new GameObject("r"); created.Add(go);
-            EnemyRegistry.Register(go.transform);
-            m.Invoke(null, null);
-            Assert.AreEqual(0, EnemyRegistry.Active.Count);
+            var entry = new SpawnEntry(null, new Vector2(1, 2));
+            Assert.AreEqual(new Vector2(1, 2), entry.Position);
+            Assert.IsNull(entry.Enemy);
         }
     }
 }

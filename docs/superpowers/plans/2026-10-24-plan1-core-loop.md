@@ -1,5 +1,7 @@
 # 計画1 コアループ 実装計画
 
+> **注（2026-11-14）**：この計画の Boot／Run／`Resources/Main.prefab` は、Root Scene 方式（`docs/superpowers/specs/2026-11-14-root-scene-design.md`）で Root／Battle／`Root.unity` に変わった。今のコードはそちらに合わせる。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 1部屋を最初から最後まで遊べるようにする（入室 → 赤い `!` 円 → スライム出現 → 移動しながら自動射撃 → 全滅 → 扉の ➜ → 次の部屋）。

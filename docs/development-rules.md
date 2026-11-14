@@ -11,6 +11,9 @@
 | 計画 | `docs/superpowers/plans/` | その計画を書く人 |
 | タスクの進み具合（今の状態） | GitHub の Issue と PR | 各担当 |
 | Claude のルール | `CLAUDE.md`、`.claude/` | 全員（PR で） |
+| コーディング規則（正本） | `docs/superpowers/specs/2026-11-14-coding-rules-design.md` | C さん（チームで決めたあと） |
+| コーディング規則のお手本 | `.claude/skills/pictoarcher-coding-rules/SKILL.md` | 全員（PR で） |
+| Unity の落とし穴 | `docs/unity-pitfalls.md` | 全員（PR で） |
 | 素材の出どころ | `docs/assets-list.md` | 素材を入れた人 |
 
 今の状態は Issue と PR で見る。仕様書の「作業工程」シートは予定表で、状態の列は C さんが週に1回 Issue から写す。
@@ -18,21 +21,42 @@
 ## §2 命名
 
 - 名前は世界観に依存させず、役割で付ける（弾は `Projectile`、追う敵は `Chaser`、ボスの体当たりは `Dash`）。
-- 名前空間：`PictoArcher.Core`（純粋な C#）、`PictoArcher.Game`（MonoBehaviour・ScriptableObject）、`PictoArcher.Editor`（エディタ専用）、`PictoArcher.Tests.EditMode`（テスト）。
-- 型・メソッド・プロパティ・定数：PascalCase（`FireTimer`、`Tick`、`Interval`）。
-- フィールド：private は `_camelCase`（`_elapsed`）。`private` は書かない（既定のまま）。`static readonly` は `camelCase`。
-- ScriptableObject の調整値：`public` のフィールドで camelCase（`maxHp`、`moveSpeed`）。
-- クラスは継承させないなら `sealed` にする。
+- 名前空間：`PictoArcher.Core`（純粋な C#）、`PictoArcher.Game`（MonoBehaviour・ScriptableObject）、`PictoArcher.Editor`（エディタ専用）、`PictoArcher.Tests.EditMode`・`PictoArcher.Tests.PlayMode`（テスト）。
+- 名前空間はこれだけ。フォルダを分けても名前空間は分けない。
+- 型・メソッド・プロパティ・イベント：PascalCase（`FireTimer`、`Tick`、`Interval`）。interface は `I` ＋ PascalCase（`ITickable`）。
+- フィールド：private は `_camelCase`（`_elapsed`）。`private` は書かない（既定のまま）。
+- `const` と `static readonly`：PascalCase（`TotalWaves`）。
+- 引数・ローカル変数：camelCase（`deltaTime`）。
+- ScriptableObject の調整値：`[SerializeField]` の `_camelCase` と、読み取り専用のプロパティ（`_moveSpeed`／`MoveSpeed`）。public のフィールドと public の setter は作らない。名前を変えるときは `[FormerlySerializedAs]` を付ける。
+- イベント：過去形で `On` を付けない（`Died`、`WaveCleared`）。受けるメソッドは `Handle` ＋ イベント名（`HandleDied`）。
+- 継承してよいのは骨組み（`SceneBase`、`DefinitionAsset<T>`、`DefinitionAsset<T>` を直接継承した抽象クラス）だけ。ほかのクラスはすべて `sealed`。
+- 1ファイルに1つの型。ファイル名と型の名前を同じにする。
+- 接尾辞：`XxxScene`（`SceneBase` の子）、`XxxSystem`（シーンが持つ処理、普通の C#）、`XxxView`（プレハブに付く MonoBehaviour）、`XxxDefinition`（ScriptableObject のデータ）、`XxxRelay`（Unity から来るものを受け取るだけ）、`XxxExtensions`（拡張メソッド）、`XxxId`（種類の enum）。
 - テスト：`Assets/_Project/Tests/EditMode/<クラス名>Tests.cs`。メソッドは PascalCase で、条件と結果を `_` で区切ってよい（`NoTarget_DoesNotFire`）。
-- アセット：プレハブは役割の名前（`Player`、`Projectile`、`Chaser`）。データは種類ごとのフォルダ（`Data/Enemies`、`Data/Waves`）。シーンの試し用は `Scenes/Sandbox/Sandbox_<担当>.unity`。
+- アセット：プレハブは役割の名前（`Player`、`Projectile`、`Chaser`）。データは種類ごとのフォルダ（`Data/Player`、`Data/Enemies`、`Data/Waves`、`Data/Skills`、`Data/Obstacles`）。プレハブも種類ごと（`Prefabs/System`、`Prefabs/Player`、`Prefabs/Enemies` など）。絵は `Art/Characters`・`Art/Tiles`・`Art/Effects`・`Art/UI`、音は `Audio/BGM`・`Audio/SE`。直下に直接置かない。シーンの試し用は `Scenes/Sandbox/Sandbox_<担当>.unity`。
 - 構成は Unity の標準に合わせる。自分たちのものはすべて `Assets/_Project` の下。ルールは Core（テストする）、つなぎは Game、数値は ScriptableObject。
+
+## §2.1 設計の規則（8項目）
+
+正本は設計書 `docs/superpowers/specs/2026-11-14-coding-rules-design.md`、お手本はスキル `pictoarcher-coding-rules`。多くは `ArchitectureGuardTests` が自動で確かめる。
+
+1. 層と依存の向き：`Core`（純粋な C#）← `Game` ← `Editor`。Core で使ってよい UnityEngine のものは数学の型だけ。
+2. 実行順：標準ライフサイクル（`Update` など）を書くのは `Main` だけ。`Main` → シーン（`SceneBase`）→ System の順に、ソースに書いた順で呼ぶ。`Time.` を読むのは `Main` だけ。待ち時間はタイマーで作る。
+3. Unity が直接呼ぶもの：当たり判定は `CollisionRelay2D`、ボタンは `UiButtonRelay` が記録するだけで、処理は Tick の中。入力は Tick の中で読む。
+4. 組み合わせで作る：継承は骨組みだけ、ほかは `sealed`。敵は定義（ScriptableObject）と動く部品（普通の C#）の組み合わせで作る。
+5. データと状態を分ける：ScriptableObject は読み取り専用。実行中に変わる値は、データから作った普通の C# のオブジェクトが持つ。
+6. やり取り：参照は上から渡す（コンストラクター、`Init`、インスペクター）。`Find`、`Camera.main`、シングルトン、static の書き換えられる値は禁止。下から上へはイベントか戻り値。
+7. 名前とフォルダ：§2 のとおり。フォルダ構成は設計書 §10。
+8. 古い計画のコード（`Update`、`OnTriggerEnter2D`、static の `EnemyRegistry`、public のフィールド）は写さず、この規則に読み替える。
+
+ガードテストの例外を足すのは設計の変更なので、PR に理由を書く。
 
 ## §3 作業を始める前の確認（重複の防止）
 
 3人とも Claude を使うので、同じタスクを2人（2つの Claude）が始める、同じファイルを別々に直す、ということが起きやすい。タスクを始めるたびに、次を上から確かめる。Claude にも同じ確認をさせる（`CLAUDE.md`「作業を始める前に」）。
 
 ```bash
-git switch main && git pull
+git switch develop && git pull
 gh issue list --state open
 gh pr list --state open
 git fetch --prune && git branch -r
@@ -47,7 +71,7 @@ git fetch --prune && git branch -r
 同じ作業が重なったとき：
 
 - 先に Issue の担当になった人が続ける。あとから気づいた人は手を止め、Issue にコメントして別のタスクに移る。
-- 途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（main には入れない）。
+- 途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（develop には入れない）。
 - プレハブとシーンは2人で同時に直さない。
 
 ## §4 Issue
@@ -62,9 +86,21 @@ git fetch --prune && git branch -r
 
 ## §5 ブランチ
 
-- `main` から切る。1タスク＝1ブランチ。`main` に直接コミットしない。
-- 名前：`<担当>/t<Issue番号>-<短い英語>`（例 `a/t12-weapon-select`）。担当は `a`・`b`・`c`、絵の担当は `art`・`ui`。文書だけの変更は `<担当>/docs-<短い英語>`。
-- 長く持たない。2日に1回は `main` を取り込む（`git merge origin/main`）。
+- 日々の作業をまとめるのは `develop`。作業のブランチは `develop` から切り、PR も `develop` 向けに出す。
+- `main` はリリースした版だけを置く。`develop` から `main` へ入れるのはリリースのときだけで、C さんが `release/` のブランチで行う。
+- 1タスク＝1ブランチ。`develop` にも `main` にも直接コミットしない。
+- 名前：`<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`、`docs/t20-assets-list`）。名前でどんな作業かわかるようにする。
+
+| プレフィックス | 使うとき |
+|---|---|
+| `feature/` | 新機能の開発 |
+| `fix/`（または `bugfix/`） | バグの修正 |
+| `hotfix/` | 本番（リリースした版）の緊急修正。`main` から切り、`main` と `develop` の両方に入れる |
+| `release/` | リリースに向けた最終調整・バージョンアップ |
+| `refactor/` | 動きを変えずにコードを整理・改善 |
+| `docs/` | 文書の修正・追加 |
+
+- 長く持たない。2日に1回は `develop` を取り込む（`git merge origin/develop`）。
 
 ## §6 コミット
 
@@ -74,7 +110,7 @@ git fetch --prune && git branch -r
 
 ## §7 プルリクエスト
 
-- ブランチを作ったら、すぐ下書きの PR を開く：`gh pr create --draft`。本文に `Closes #<Issue番号>` と触るファイルを書く。これで、ほかの人と Claude に「この作業は進行中」と伝わる。
+- ブランチを作ったら、すぐ下書きの PR を開く：`gh pr create --draft --base develop`。本文に `Closes #<Issue番号>` と触るファイルを書く。これで、ほかの人と Claude に「この作業は進行中」と伝わる。
 - 本文は PR テンプレート（`.github/pull_request_template.md`）の項目を埋める。
 - 全テスト（`NoTextGuardTests` を含む）が通ってから「レビュー待ち」にする：`gh pr ready`。
 - レビューする人を1人指定する。
@@ -85,7 +121,8 @@ git fetch --prune && git branch -r
 - ほかの1人が読んで OK を出してからマージする。Claude が書いたコードも人が読む。
 - 見るところ：仕様に合っているか、文字が画面に出ないか、数値がコードに直接書かれていないか、担当外のファイルを触っていないか、テストがあるか。
 - マージは書いた本人が行う。方法は「Create a merge commit」。マージしたらブランチを消す：`gh pr merge --merge --delete-branch`。
-- `Run.unity` を触る PR は C さんがレビューする。
+- GitHub は既定のブランチ（`main`）へのマージでしか `Closes #<番号>` の Issue を閉じない。`develop` へマージしたら、`gh issue close <番号>` で Issue を閉じる。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を触る PR は C さんがレビューする。
 
 ## §9 Claude の使い方
 

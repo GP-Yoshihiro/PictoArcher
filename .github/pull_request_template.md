@@ -15,11 +15,11 @@ Closes #
 - [ ] 始める前に、開いている Issue・PR・ブランチを見て、同じ作業がないことを確かめた（docs/development-rules.md §3）
 - [ ] Issue の担当は自分で、先に要るタスクはマージ済み
 - [ ] 全テストが通った（`tools/run-editmode-tests.sh`、NoTextGuardTests を含む）
-- [ ] `main` を取り込んで、衝突がない
+- [ ] `develop` を取り込んで、衝突がない（PR の向き先も `develop`）
 - [ ] Claude が書いたコードを自分で全部読んだ
 - [ ] 画面と素材に文字がない。新しい素材は `docs/assets-list.md` に書いた
 - [ ] 数値をコードに直接書いていない（ScriptableObject の調整値にした）
-- [ ] 担当外のファイル（ほかの人のプレハブ、`Run.unity` など）を触っていない
+- [ ] 担当外のファイル（ほかの人のプレハブ、`Battle.unity` など）を触っていない
 - [ ] 仕様にないことを決めたら Issue に書いた
 
 ## 見てほしいところ

@@ -49,6 +49,17 @@ Windows：
 
 Unity のインストール先が違う場合は、パスを直す。
 
+## Game ビューの設定
+
+画面は縦長 9:16（ウィンドウは 540×960）。エディタの Game ビューの大きさは各自の PC の Unity の設定（Mac は `~/Library/Preferences/Unity/Editor-5.x/GameViewSizes.asset`）に保存され、プロジェクトには入らないので、git では共有できない。初めてのときに各自で次のように設定する。
+
+1. Game タブの上にある解像度の欄（最初は `Free Aspect`）を開く。
+2. 一番下の `+` を押す。
+3. `Type` を `Fixed Resolution`、`Width` を 540、`Height` を 960 にする。`Label` は自由（例 `PictoArcher`）。
+4. `OK` を押し、足した項目を選ぶ。
+
+Game ビューが 540×960 より小さいときは縮めて表示される。`Fixed Resolution` の代わりに `Aspect Ratio` で 9:16 を足してもよい。一度足せば、ほかの Unity プロジェクトでも選べる。
+
 ## 仕様書の作り直し
 
 仕様書 `.xlsx` はスクリプトで作る。Excel で直接書き換えない（黄色の入力セルは除く）。
