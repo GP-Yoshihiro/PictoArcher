@@ -27,7 +27,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "docs", "PictoArcher_仕様書.xlsx")
 
-VERSION = "1.1"
+VERSION = "1.2"
 BUILT = "2026-11-14"
 PROJECT_START = datetime.date(2026, 10, 26)  # 1週目の月曜（スケジュールの入力セル）
 
@@ -1261,6 +1261,7 @@ def build_schedule(b):
 
 TASKS = [
     # (ID, 計画, タスク, 担当, 先に要るもの, 開始週, 終了週, 見積もり, 状態, Issue, メモ)
+    ("P1-00", "計画1", "コーディング規則と実行順の土台（Main・SceneBase・ArchitectureGuardTests・スキル）", "C", "P1-01", 3, 3, 1, "作業中", "#4", "設計書 2026-11-14-coding-rules-design.md"),
     ("P1-01", "計画1", "土台と CLAUDE.md", "C", "", 1, 1, 0.75, "済み", "", "PR #1"),
     ("P1-02", "計画1", "データ形式と共通部品", "A", "P1-01", 1, 1, 0.5, "済み", "", "PR #1"),
     ("P1-03", "計画1", "文字ゼロとドット絵の取り込み（NoTextGuardTests、PixelArtImportPostprocessor）", "C", "P1-01", 1, 2, 0.75, "未着手", "", ""),
@@ -1268,9 +1269,9 @@ TASKS = [
     ("P1-05", "計画1", "照準と連射", "A", "P1-01", 1, 1, 0.5, "済み", "", "PR #1"),
     ("P1-06", "計画1", "HPと無敵時間", "B", "P1-01", 1, 1, 0.5, "済み", "", "PR #1"),
     ("P1-07", "計画1", "ウェーブの進行", "C", "P1-01", 1, 1, 1, "済み", "", "PR #1"),
-    ("P1-08", "計画1", "プレイヤーと弾", "A", "P1-02〜06", 1, 2, 1.5, "未着手", "", ""),
-    ("P1-09", "計画1", "追う敵（Chaser）と出現予兆", "B", "P1-02, 03, 06", 1, 2, 2.25, "未着手", "", ""),
-    ("P1-10", "計画1", "フィールド・ウェーブの流れ・HUD（HP と 1/50）", "C", "P1-03, 07, 08, 09", 2, 2, 1.5, "未着手", "", ""),
+    ("P1-08", "計画1", "プレイヤーと弾", "A", "P1-00, P1-02〜06", 1, 2, 1.5, "未着手", "", ""),
+    ("P1-09", "計画1", "追う敵（Chaser）と出現予兆", "B", "P1-00, P1-02, 03, 06", 1, 2, 2.25, "未着手", "", ""),
+    ("P1-10", "計画1", "フィールド・ウェーブの流れ・HUD（HP と 1/50）", "C", "P1-00, P1-03, 07, 08, 09", 2, 2, 1.5, "未着手", "", ""),
     ("P2-00", "計画2", "タスク0：第3版に合わせて直す（カメラ 270×480、Field_Test、Player Settings、WaveKind.Angel をなくす、SkillId を26枚に、CLAUDE.md）", "C", "計画1のマージ", 2, 2, 0.5, "未着手", "", "これが main に入るまで、縦長を前提にしたプレハブを作らない"),
     ("P2-01", "計画2", "経験値とコインの落下と吸い寄せ", "A", "P2-00", 3, 3, 0.5, "未着手", "", ""),
     ("P2-02", "計画2", "強化の仕組み（カード、重ね取り、抽選、上限）", "A", "P2-00", 3, 3, 2, "未着手", "", "Core に置き、EditMode テストを書く"),
@@ -1285,7 +1286,7 @@ TASKS = [
     ("P3-02", "計画3", "障害物のパターン6つとウェーブごとの切り替え（ObstacleLayout）", "C", "P2-00", 4, 4, 1.5, "未着手", "", ""),
     ("P3-03", "計画3", "中ボス（分裂、Splitter）と ⚠", "B", "P2-06", 4, 4, 1.5, "未着手", "", ""),
     ("P3-04", "計画3", "ボスA（ウェーブ10の形）とボスの HP バー", "B", "P2-06", 4, 4, 2.5, "未着手", "", ""),
-    ("P3-05", "計画3", "Boot と Home、クリア画面と死亡画面", "C", "P2-00", 4, 4, 1, "未着手", "", ""),
+    ("P3-05", "計画3", "Boot と Home、クリア画面と死亡画面", "C", "P2-00", 4, 4, 1, "未着手", "", "Boot と Home のシーンの骨組みは P1-00 で作った。ここでは画面を作る"),
     ("P3-06", "計画3", "武器を選ぶ画面", "C", "P2-05", 4, 4, 0.5, "未着手", "", ""),
     ("P3-07", "計画3", "保存（JSON。前回の武器を含む）", "C", "P3-05", 4, 4, 0.5, "未着手", "", ""),
     ("P3-08", "計画3", "一時停止メニュー", "C", "P3-05", 4, 4, 0.5, "未着手", "", ""),
@@ -1515,22 +1516,38 @@ def build_rules(b):
     s.heading("命名")
     s.table(["対象", "ルール", "詳しくは"], [
         ("名前の付け方", "世界観に依存させず、役割で付ける（弾は Projectile、追う敵は Chaser）", "§2"),
-        ("名前空間", "PictoArcher.Core／PictoArcher.Game／PictoArcher.Editor／PictoArcher.Tests.EditMode", "§2"),
-        ("型・メソッド・プロパティ", "PascalCase（FireTimer、Tick、Interval）", "§2"),
-        ("private のフィールド", "_camelCase（_elapsed）。private は書かない（既定のまま）。static readonly は camelCase", "§2"),
-        ("ScriptableObject の調整値", "public のフィールドで camelCase（maxHp、moveSpeed）", "§2"),
+        ("名前空間", "PictoArcher.Core／PictoArcher.Game／PictoArcher.Editor／PictoArcher.Tests.EditMode／PictoArcher.Tests.PlayMode。フォルダで分けない", "§2"),
+        ("型・メソッド・プロパティ・イベント", "PascalCase（FireTimer、Tick、Interval）。interface は I ＋ PascalCase（ITickable）", "§2"),
+        ("private のフィールド", "_camelCase（_elapsed）。private は書かない（既定のまま）", "§2"),
+        ("const と static readonly", "PascalCase（TotalWaves）", "§2"),
+        ("ScriptableObject の調整値", "[SerializeField] の _camelCase と、読み取り専用のプロパティ（_moveSpeed／MoveSpeed）", "§2"),
+        ("イベント", "過去形で On を付けない（Died、WaveCleared）。受けるメソッドは Handle ＋ イベント名（HandleDied）", "§2"),
+        ("接尾辞", "Scene（SceneBase の子）／System（シーンが持つ処理）／View（プレハブに付く MonoBehaviour）／Definition（ScriptableObject）／Relay（Unity から来るものを受け取るだけ）／Extensions（拡張メソッド）／Id（種類の enum）", "§2"),
+        ("継承", "骨組み（SceneBase、DefinitionAsset<T>）だけ。ほかのクラスはすべて sealed", "§2"),
         ("テスト", "<クラス名>Tests.cs。メソッドは PascalCase、条件と結果を _ で区切ってよい（NoTarget_DoesNotFire）", "§2"),
         ("アセット", "プレハブは役割の名前（Player、Projectile、Chaser）。データは種類ごとのフォルダ（Data/Enemies、Data/Waves）", "§2"),
         ("ブランチ", "<担当>/t<Issue番号>-<短い英語>（例 a/t12-weapon-select）。文書だけなら <担当>/docs-<名前>", "§5"),
         ("Issue", "[作業工程の ID] タスク名（例 [P2-02] 強化の仕組み）", "§4"),
         ("コミット", "feat: / fix: / test: / docs: / chore: ＋ 英語の短い説明", "§6"),
     ])
+    s.heading("設計の規則（8項目）")
+    s.table(["項目", "ルール", "詳しくは"], [
+        ("層と依存の向き", "Core（純粋な C#）← Game ← Editor。Core で使ってよい UnityEngine のものは数学の型だけ", "設計書 2026-11-14 §5.1"),
+        ("実行順", "標準ライフサイクル（Update など）は Main だけ。Main → シーン（SceneBase）→ System の順に、ソースに書いた順で呼ぶ。Time. は Main だけ", "設計書 2026-11-14 §5.2"),
+        ("Unity が直接呼ぶもの", "当たり判定は CollisionRelay2D、ボタンは UiButtonRelay が記録するだけ。処理は Tick の中。入力は Tick の中で読む", "設計書 2026-11-14 §5.3"),
+        ("組み合わせで作る", "継承は骨組みだけ、ほかは sealed。敵は定義（ScriptableObject）と動く部品（普通の C#）の組み合わせ", "設計書 2026-11-14 §5.4"),
+        ("データと状態を分ける", "ScriptableObject は読み取り専用。実行中に変わる値は、データから作った普通の C# のオブジェクトが持つ", "設計書 2026-11-14 §5.5"),
+        ("やり取り", "参照は上から渡す。Find、Camera.main、シングルトン、static の書き換えられる値は禁止。下から上へはイベントか戻り値", "設計書 2026-11-14 §5.6"),
+        ("名前とフォルダ", "上の命名の表のとおり。1ファイルに1つの型", "設計書 2026-11-14 §5.7"),
+        ("今あるコード", "古い計画のコード（Update、OnTriggerEnter2D、static の EnemyRegistry、public のフィールド）は写さず読み替える", "設計書 2026-11-14 §5.8"),
+    ])
+    s.para("多くは ArchitectureGuardTests が自動で確かめる。例外を足すのは設計の変更なので、PR に理由を書く。お手本はスキル pictoarcher-coding-rules、落とし穴は docs/unity-pitfalls.md。")
     s.heading("構成（Unity の標準に合わせる）")
     s.bullets([
         "自分たちのものはすべて Assets/_Project の下。外部の素材は Assets/_Project/Art（取り込む前に文字がないか確かめる）",
         "ルールは Core（純粋な C#、テストする）、つなぎは Game（MonoBehaviour）、データは ScriptableObject",
         "数値はコードに書かず ScriptableObject の調整値にする",
-        "Run.unity は C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity",
+        "Boot.unity・Home.unity・Run.unity は C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity",
         "Core のルールは先に EditMode テストを書いて失敗を確かめてから作る",
     ])
     s.heading("Issue・ブランチ・PR・マージ")
@@ -1608,7 +1625,8 @@ def build_history(b):
     s = b.sheet("変更履歴", "変更履歴", None, [10, 14, 70, 16])
     s.table(["版", "日付", "変更", "書いた人"], [
         ("1.0", "2026-11-12", "初版。設計書 第3版、世界観 確定版、ロードマップ 第3版、計画1 を1冊にまとめ、スケジュール・作業工程・工数・チェックリストを足した", "C（Claude で作成）"),
-        (VERSION, BUILT, "ドット絵はキャラだけ（32×32）にし、カード・アイコン・ボタンは普通の2Dの UI の絵にした。カードは縦長。のちの iPad・iPhone への対応に備えて 9:16 で作ることと、UI の置き方（Canvas Scaler、画面の端を基準）を足した。ドット絵シートを絵の方針シートにした。ボスAのハッチを胸から背中にした。分担に名前を入れた。作業工程シートはタスク一覧を上に置き、固定を見出しの行までにした", "C（Claude で作成）"),
+        ("1.1", "2026-11-14", "ドット絵はキャラだけ（32×32）にし、カード・アイコン・ボタンは普通の2Dの UI の絵にした。カードは縦長。のちの iPad・iPhone への対応に備えて 9:16 で作ることと、UI の置き方（Canvas Scaler、画面の端を基準）を足した。ドット絵シートを絵の方針シートにした。ボスAのハッチを胸から背中にした。分担に名前を入れた。作業工程シートはタスク一覧を上に置き、固定を見出しの行までにした", "C（Claude で作成）"),
+        (VERSION, BUILT, "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
     ])
 
 
