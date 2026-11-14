@@ -74,29 +74,44 @@ Assets/_Project/
     Combat/                TargetSelector, FireTimer, Health, HitInvulnerability
     Movement/              MoveVectorResolver
     Waves/                 WaveLayout, WaveKind, WaveProgress, WaveSequence, WavePhase
+    Skills/                強化の計算（重ね取り、カードの抽選など）
     Extensions/            拡張メソッド（必要になったら作る）
   Scripts/Game/            PictoArcher.Game（MonoBehaviour と ScriptableObject）
     PictoArcher.Game.asmdef
     Main/                  Main, GameContext, GameClock, SceneId, OverlayId, SceneBase, SceneTransform
     Scenes/                RootScene, HomeScene, BattleScene, ResultScene, PauseScene
-      Sandbox/             各自の試し用のシーンのクラス（SandboxAScene など。最初に使う人が作る）
+      Sandbox/             各自の試し用のシーンのクラス（SandboxAScene など）
     Common/                CollisionRelay2D, UiButtonRelay, DefinitionAsset, Layers, IHittable
     Data/                  PlayerStats, EnemyDefinition, WaveDefinition, SpawnEntry, SkillId, SkillDefinition
-    Enemies/               EnemyRegistry
+    Enemies/               EnemyRegistry、敵の動く部品（Chaser、Shooter など）
+    Player/                プレイヤーの移動・射撃
+    Projectiles/           弾（Projectile、敵の弾）
+    Field/                 フィールド・障害物の配置
+    Run/                   1回のプレイの進行（ウェーブ、レベルアップ、経験値）
+    UI/                    HUD、カード選択、View
     Extensions/            拡張メソッド（必要になったら作る）
-    Player/ Run/ UI/       それぞれのタスクで足す
   Scripts/Editor/          PictoArcher.Editor（エディタ専用）
     PictoArcher.Editor.asmdef
     PixelArtImportPostprocessor.cs  ドット絵（キャラとフリー素材）の取り込み設定
   Tests/EditMode/          PictoArcher.Tests.EditMode（ArchitectureGuardTests を含む）
   Tests/PlayMode/          PictoArcher.Tests.PlayMode（Root → Home → Battle → Result と Pause の流れ）
-  Data/                    ScriptableObject のアセット（Enemies/, Waves/）
-  Prefabs/                 MainCamera（Player、Projectile などはそれぞれのタスクで足す）
+  Data/                    ScriptableObject のアセット
+    Player/                PlayerStats
+    Enemies/ Waves/ Skills/ Obstacles/   EnemyDefinition、WaveDefinition、SkillDefinition、ObstacleLayout
+  Prefabs/
+    System/                MainCamera
+    Player/ Enemies/ Projectiles/ Field/ UI/   それぞれのタスクで足す
   Scenes/Root.unity          消えない土台（Main、RootScene、カメラ、EventSystem）。Build の 0 番
   Scenes/Home.unity, Battle.unity, Result.unity, Pause.unity   Root に加算で読み込む。Cさんだけが編集する（Build Settings は Root から この順）
   Scenes/Sandbox/          Sandbox_A.unity, Sandbox_B.unity（各自の試し用、他の人は触らない）
   Fonts/                   数字と記号だけのフォント
-  Art/                     絵（フリー素材と、絵の担当から届いたキャラのスプライトシートと UI の絵）
+  Art/                     絵
+    Characters/            キャラのドット絵 32×32（プレイヤー、敵、中ボス、ボス。Point）
+    Tiles/                 床・壁・障害物のフリー素材
+    Effects/               エフェクト
+    UI/                    カード、アイコン、ボタン、ピクトグラム（ドット絵ではない。Bilinear）
+  Audio/
+    BGM/ SE/
 tools/run-editmode-tests.sh
 tools/run-playmode-tests.sh
 tools/spec/build_spec_xlsx.py  仕様書 .xlsx を作るスクリプト
@@ -111,9 +126,10 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 - `Scripts/Core` は純粋な C#。Unity の部品を使わない（使ってよいのは `Vector2`、`Mathf` などの数学の型だけ）。名前空間は `PictoArcher.Core`。
 - Unity の部品（`MonoBehaviour`、`ScriptableObject`）は `Scripts/Game` に置く。名前空間は `PictoArcher.Game`。
 - エディタ専用のコードは `Scripts/Editor` に置く。名前空間は `PictoArcher.Editor`。
+- 新しいファイルは上のどれかのフォルダに入れる。`Assets/_Project` や `Scripts/Game` の直下に直接置かない。合うフォルダがなければ人に聞く。空のフォルダには `.gitkeep` を入れて git に残す（中身ができたら消してよい）。
 - 名前空間はフォルダで分けない（`Scripts/Game/Main/` の中も `PictoArcher.Game`）。1ファイルに1つの型、ファイル名＝型名。
 - レイヤー：`Player`=6、`Enemy`=7、`PlayerShot`=8、`Wall`=9（障害物も `Wall`）。
-- `MainCamera.prefab` の位置は (0, 0, -10) から動かさない。カメラは動かない。
+- `Prefabs/System/MainCamera.prefab` の位置は (0, 0, -10) から動かさない。カメラは動かない。
 - 数値（HP、攻撃力、速度、出現数）は ScriptableObject の調整値にする。コードに直接書かない。
 
 ## テストの書き方

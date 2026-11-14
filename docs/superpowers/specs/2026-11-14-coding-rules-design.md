@@ -228,22 +228,27 @@ public abstract class SceneBase : MonoBehaviour
 
 ```
 Assets/_Project/
-  Resources/Main.prefab
   Scripts/Core/
-    Common/       ITickable, IFixedTickable, ILateTickable, TickList, SceneFlow
-    Combat/       TargetSelector, FireTimer, Health, HitInvulnerability（今あるものを移す）
-    Movement/     MoveVectorResolver（今あるものを移す）
-    Waves/        WaveLayout, WaveProgress, WaveSequence（今あるものを移す）
-    Extensions/
+    Common/       ITickable, IFixedTickable, ILateTickable, TickList, SceneFlow, SceneFlowPhase
+    Combat/       TargetSelector, FireTimer, Health, HitInvulnerability
+    Movement/     MoveVectorResolver
+    Waves/        WaveLayout, WaveKind, WaveProgress, WaveSequence, WavePhase
+    Skills/       強化の計算
+    Extensions/   （必要になったら作る）
   Scripts/Game/
-    Main/         Main, GameContext, GameClock, SceneId, SceneBase
-    Scenes/       BootScene, HomeScene, RunScene
+    Main/         Main, GameContext, GameClock, SceneId, OverlayId, SceneBase, SceneTransform
+    Scenes/       RootScene, HomeScene, BattleScene, ResultScene, PauseScene, Sandbox/
     Common/       CollisionRelay2D, UiButtonRelay, DefinitionAsset, Layers, IHittable
-    Extensions/
-    Data/         今あるデータ（PlayerStats, EnemyDefinition, WaveDefinition, SkillId, SkillDefinition）
-    Player/ Enemies/ Run/ UI/   それぞれのタスクで足す
+    Data/         PlayerStats, EnemyDefinition, WaveDefinition, SpawnEntry, SkillId, SkillDefinition
+    Enemies/ Player/ Projectiles/ Field/ Run/ UI/   それぞれのタスクで足す
+    Extensions/   （必要になったら作る）
   Scripts/Editor/
-  Scenes/Boot.unity, Home.unity, Run.unity, Sandbox/
+  Data/Player/ Enemies/ Waves/ Skills/ Obstacles/
+  Prefabs/System/（MainCamera） Player/ Enemies/ Projectiles/ Field/ UI/
+  Art/Characters/ Tiles/ Effects/ UI/
+  Audio/BGM/ SE/
+  Fonts/
+  Scenes/Root.unity, Home.unity, Battle.unity, Result.unity, Pause.unity, Sandbox/
 ```
 - 1ファイルに1つの型。ファイル名と型の名前を同じにする。
 - ファイルを移すときは `.meta` も一緒に移す（GUID を保つ）。
@@ -314,7 +319,7 @@ Assets/_Project/
 
 - `EnemyRegistry`：static をやめ、普通のクラスにする（`RunScene` が作って下に渡す）。`Game/Enemies` に移す。`DataFormatTests` の EnemyRegistry のテストは、重複登録のテストをインスタンスで書き直し、`ResetOnLoad` のテストは消す。
 - Data の ScriptableObject（`PlayerStats`、`EnemyDefinition`、`WaveDefinition` と `SpawnEntry`、`SkillDefinition`）：public のフィールドを `[SerializeField, FormerlySerializedAs("今の名前")] _camelCase` と読み取り専用のプロパティに変える。`DataFormatTests` はプロパティを使うように直す。
-  - 今あるデータのアセットは `Data/PlayerStats.asset` だけ。値が引き継がれることは、`PlayerStats.asset` を読み込んで値を確かめるテストを足して保証する。
+  - 今あるデータのアセットは `Data/Player/PlayerStats.asset` だけ。値が引き継がれることは、`PlayerStats.asset` を読み込んで値を確かめるテストを足して保証する。
 - Core の今あるファイルは中身を変えず、フォルダだけ移す（`.meta` ごと）。今の Core は `UnityEngine` から `Vector2` と `Mathf` しか使っていないので、ガードテストに引っかからない（`TargetSelector` と `MoveVectorResolver` の `using UnityEngine;` は数学の型のため）。
 - Editor の asmdef は Core と Game を参照している。テストの asmdef は Core・Game・Editor を参照している。どちらも変えない。
 - PR は1つ（Issue #4 の1タスク）。コミットは段階ごとに分ける。

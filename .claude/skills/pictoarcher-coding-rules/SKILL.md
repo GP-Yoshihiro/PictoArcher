@@ -16,7 +16,7 @@ description: Use before writing, fixing or reviewing PictoArcher C# in Assets/_P
 4. **組み合わせで作る**：継承してよいのは `SceneBase`、`DefinitionAsset<T>`、`DefinitionAsset<T>` を直接継承した役割ごとの抽象クラスだけ。ほかは `sealed`。敵は「定義（ScriptableObject）」と「動く部品（普通の C#）」の組み合わせで作る。interface は1役割に1つ。拡張メソッドは状態を持たない関数だけで `XxxExtensions` にまとめる。
 5. **データと状態を分ける**：ScriptableObject は読み取り専用。`[SerializeField] _camelCase` ＋ 読み取り専用のプロパティ。実行中に変わる値（今の HP など）は、データから作った普通の C# のオブジェクトが持つ。
 6. **やり取り**：参照は上から渡す（普通の C# はコンストラクター、MonoBehaviour は `Init(...)`、シーンの中はインスペクター）。`Find` 系・`Camera.main`・`SendMessage`・シングルトン・static の書き換えられる値は禁止。下から上へは C# の `event` か戻り値。イベントは `Init` で登録し `Dispose` で外す。
-7. **名前とフォルダ**：役割で名前を付ける（`Projectile`、`Chaser`）。接尾辞 `Scene` / `System` / `View` / `Definition` / `Relay` / `Extensions` / `Id`。1ファイルに1つの型、ファイル名＝型名。
+7. **名前とフォルダ**：役割で名前を付ける（`Projectile`、`Chaser`）。接尾辞 `Scene` / `System` / `View` / `Definition` / `Relay` / `Extensions` / `Id`。1ファイルに1つの型、ファイル名＝型名。ファイルは役割のフォルダ（Core は `Common` `Combat` `Movement` `Waves` `Skills`、Game は `Main` `Scenes` `Common` `Data` `Enemies` `Player` `Projectiles` `Field` `Run` `UI`）に入れ、`Scripts/Core` や `Scripts/Game` の直下に置かない（CLAUDE.md のフォルダ構成）。
 8. **今あるコード**：古い計画（計画1 のタスク8〜10 など）に載っているコードの `Update`、`OnTriggerEnter2D`、static の `EnemyRegistry`、public のフィールドは写さない。この規則に読み替える。
 
 ### 迷ったときの判断
@@ -68,7 +68,7 @@ public sealed class BattleScene : SceneBase
 
 - クラスは `Scripts/Game/Scenes/Sandbox/Sandbox<担当>Scene.cs`（例 `SandboxAScene`）。規則は本番のシーンと同じ。
 - シーンの一番上の階層に空の GameObject を1つ作り、このクラスを付ける。試したいプレハブはインスペクターでつなぐ。
-- `SceneId` には足さない（エディタで直接再生するだけ）。フォルダがなければ、最初に使う人が作る。
+- `SceneId` には足さない（エディタで直接再生するだけ）。
 
 ```csharp
 public sealed class SandboxAScene : SceneBase
