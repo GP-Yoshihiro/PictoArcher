@@ -32,7 +32,7 @@ namespace PictoArcher.Tests.EditMode
         [Test]
         public void PlayerStatsAsset_KeepsValuesAfterRename()
         {
-            var stats = AssetDatabase.LoadAssetAtPath<PlayerStats>("Assets/_Project/Data/PlayerStats.asset");
+            var stats = AssetDatabase.LoadAssetAtPath<PlayerStats>("Assets/_Project/Data/Player/PlayerStats.asset");
             Assert.IsNotNull(stats);
             Assert.AreEqual(100, stats.MaxHp);
             Assert.AreEqual(6f, stats.MoveSpeed);

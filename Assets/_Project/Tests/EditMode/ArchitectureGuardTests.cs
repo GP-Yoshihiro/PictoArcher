@@ -235,6 +235,27 @@ namespace PictoArcher.Tests.EditMode
             new[] { @"\b(MonoBehaviour|ScriptableObject|GameObject|Component|Transform|Rigidbody2D|Collider2D|Time|Physics2D|Input|Debug|Resources)\b" },
             "Core は純粋な C# です。Unity の部品を使う処理は Game に置き、Core には計算だけを残してください。");
 
+        // 種類ごとのフォルダの直下には、サブフォルダ（と .meta、.asmdef、.gitkeep）だけを置く。
+        [TestCase("")]
+        [TestCase("Scripts")]
+        [TestCase("Scripts/Core")]
+        [TestCase("Scripts/Game")]
+        [TestCase("Data")]
+        [TestCase("Prefabs")]
+        [TestCase("Art")]
+        [TestCase("Audio")]
+        public void NoFilesDirectlyUnderCategoryFolder(string folder)
+        {
+            var path = Path.Combine(Application.dataPath, "_Project", folder);
+            var violations = Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly)
+                .Where(f => !f.EndsWith(".meta", StringComparison.Ordinal)
+                    && !f.EndsWith(".asmdef", StringComparison.Ordinal)
+                    && Path.GetFileName(f) != ".gitkeep" && Path.GetFileName(f) != ".DS_Store")
+                .Select(Relative)
+                .ToList();
+            Report(violations, "直下に置かず、役割のフォルダに入れてください（CLAUDE.md のフォルダ構成。合うフォルダがなければ人に聞く）。移すときは git mv で .meta も一緒に。");
+        }
+
         [Test]
         public void FileNameMatchesTypeName()
         {

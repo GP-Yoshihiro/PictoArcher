@@ -41,7 +41,7 @@ namespace PictoArcher.Tests.EditMode
         [Test]
         public void MainCamera_IsPixelPerfect480x270()
         {
-            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/MainCamera.prefab");
+            var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/System/MainCamera.prefab");
             Assert.IsNotNull(go);
             Assert.IsTrue(go.GetComponent<Camera>().orthographic);
             var ppc = go.GetComponent<PixelPerfectCamera>();
