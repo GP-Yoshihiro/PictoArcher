@@ -64,7 +64,7 @@ public sealed class BattleScene : SceneBase
 
 `Scenes/Sandbox/Sandbox_<担当>.unity` にプレハブを置いて再生するだけでは、何も動かない。View は自分では動かず、`SceneTransform` は「SceneBase が 0 個」とエラーを1回出すだけだから。試し用のシーンにも、自分の `SceneBase` を1つ置く。
 
-再生すると `Main` が `Root.unity` を加算で足し、`RootScene` の `Init` のあとに Sandbox のシーンを中身として始める。カメラ・EventSystem・AudioListener は Root にあるので、Sandbox のシーンには置かない（2つになる）。
+再生すると `Main` が `Root.unity` を加算で足し、`RootScene` の `Init` のあとに Sandbox のシーンを中身として始める。Sandbox 以外のシーン（Home、Battle など）を開いて ▶ を押したときは、エディタの `PlayFromRootScene` が Root から始めるので、Home が出る。カメラ・EventSystem・AudioListener は Root にあるので、Sandbox のシーンには置かない（2つになる）。
 
 - クラスは `Scripts/Game/Scenes/Sandbox/Sandbox<担当>Scene.cs`（例 `SandboxAScene`）。規則は本番のシーンと同じ。
 - シーンの一番上の階層に空の GameObject を1つ作り、このクラスを付ける。試したいプレハブはインスペクターでつなぐ。

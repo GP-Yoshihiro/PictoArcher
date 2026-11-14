@@ -27,7 +27,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "docs", "PictoArcher_仕様書.xlsx")
 
-VERSION = "1.4"
+VERSION = "1.5"
 BUILT = "2026-11-14"
 PROJECT_START = datetime.date(2026, 10, 26)  # 1週目の月曜（スケジュールの入力セル）
 
@@ -937,13 +937,13 @@ def build_tech(b):
     s = b.sheet("技術方針", "技術方針【提案】", SPEC + " §12、CLAUDE.md、" + ROADMAP, [24, 70, 18])
     s.table(["項目", "方針", ""], [
         ("エンジン", "Unity 6000.5.10f1。URP 2D Renderer のテンプレート", ""),
-        ("ドット絵", "Pixel Perfect Camera（基準 270×480。計画2のタスク0で 480×270 から直す）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なし", ""),
+        ("ドット絵", "Pixel Perfect Camera（基準 270×480、Orthographic Size 15、Crop Frame は Windowbox）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なし", ""),
         ("UI", "uGUI の Canvas（Screen Space - Overlay）。Canvas Scaler は Scale With Screen Size、基準 1080×1920。UI の画像は Filter Mode を Bilinear。のちの iPad・iPhone に備えて、画面の端を基準に置き、端に余白をとる", ""),
         ("画面", "Player Settings で縦長のウィンドウ（540×960）。全画面では整数倍で拡大し、左右は黒い帯", ""),
         ("入力", "Input System。キーボードとマウスのドラッグを同じ「移動ベクトル」に変換する", ""),
         ("データ", "武器・強化・敵・ウェーブ・障害物のパターンは ScriptableObject。データを足すだけで増やせるようにする。数値はコードに直接書かない", ""),
         ("文字", "TextMeshPro、数字と記号だけのフォントのアセット（UI の絵に合う読みやすいフォント）", ""),
-        ("シーン", "Root Scene 方式。Root.unity（Main・RootScene・カメラ・EventSystem）は消えず、その上に Home／Battle／Result を加算で読み込んで入れ替え、Pause を重ねる。武器を選ぶ画面は Home の中。Battle はフィールド1つで、ウェーブはデータを順に読んで敵と障害物を出す。Result は 🏠 で Home、↻ で Battle", ""),
+        ("シーン", "Root Scene 方式。Root.unity（Main・RootScene・カメラ・EventSystem）は消えず、その上に Home／Battle／Result を加算で読み込んで入れ替え、Pause を重ねる。武器を選ぶ画面は Home の中。Battle はフィールド1つで、ウェーブはデータを順に読んで敵と障害物を出す。Result は 🏠 で Home、↻ で Battle。ビルドもエディタの ▶ も Root から始まる（Scenes/Sandbox のシーンだけは開いたシーンのまま）", ""),
         ("カメラ", "Prefabs/System/MainCamera.prefab の位置は (0, 0, -10) から動かさない。カメラは動かない", ""),
         ("共同作業", "シーンを同時に編集しない。Root・Home・Battle・Result・Pause の .unity を編集するのは C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity。UnityYAMLMerge を各自設定する", ""),
         ("ビルド", "Windows と Mac のスタンドアロン", ""),
@@ -1272,7 +1272,7 @@ TASKS = [
     ("P1-08", "計画1", "プレイヤーと弾", "A", "P1-00, P1-02〜06", 1, 2, 1.5, "未着手", "", ""),
     ("P1-09", "計画1", "追う敵（Chaser）と出現予兆", "B", "P1-00, P1-02, 03, 06", 1, 2, 2.25, "未着手", "", ""),
     ("P1-10", "計画1", "フィールド・ウェーブの流れ・HUD（HP と 1/50）", "C", "P1-00, P1-03, 07, 08, 09", 2, 2, 1.5, "未着手", "", ""),
-    ("P2-00", "計画2", "タスク0：第3版に合わせて直す（カメラ 270×480、Field_Test、Player Settings、WaveKind.Angel をなくす、SkillId を26枚に、CLAUDE.md）", "C", "計画1のマージ", 2, 2, 0.5, "未着手", "", "これが develop に入るまで、縦長を前提にしたプレハブを作らない"),
+    ("P2-00", "計画2", "タスク0：第3版に合わせて直す（Field_Test、WaveKind.Angel をなくす、SkillId を26枚に、CLAUDE.md）", "C", "計画1のマージ", 2, 2, 0.5, "未着手", "", "画面（カメラ 270×480、Player Settings 540×960）は P1-00 で済み"),
     ("P2-01", "計画2", "経験値とコインの落下と吸い寄せ", "A", "P2-00", 3, 3, 0.5, "未着手", "", ""),
     ("P2-02", "計画2", "強化の仕組み（カード、重ね取り、抽選、上限）", "A", "P2-00", 3, 3, 2, "未着手", "", "Core に置き、EditMode テストを書く"),
     ("P2-03", "計画2", "レベルアップとカード選択の画面", "C", "P2-02", 3, 3, 1, "未着手", "", ""),
@@ -1628,7 +1628,8 @@ def build_history(b):
         ("1.1", "2026-11-14", "ドット絵はキャラだけ（32×32）にし、カード・アイコン・ボタンは普通の2Dの UI の絵にした。カードは縦長。のちの iPad・iPhone への対応に備えて 9:16 で作ることと、UI の置き方（Canvas Scaler、画面の端を基準）を足した。ドット絵シートを絵の方針シートにした。ボスAのハッチを胸から背中にした。分担に名前を入れた。作業工程シートはタスク一覧を上に置き、固定を見出しの行までにした", "C（Claude で作成）"),
         ("1.2", "2026-11-14", "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
         ("1.3", "2026-11-14", "ブランチ運用を変えた：作業は develop から切って develop へ PR を出し、main はリリースのときだけにした。ブランチ名を <プレフィックス>/t<Issue番号>-<短い英語> にした", "C（Claude で作成）"),
-        (VERSION, BUILT, "シーンを Root Scene 方式にした：消えない Root.unity（Main・RootScene・カメラ・EventSystem）の上に Home／Battle／Result を加算で入れ替え、Pause を重ねる。Boot を Root に、Run を Battle にした。Result と Pause のシーンを足した", "C（Claude で作成）"),
+        ("1.4", "2026-11-14", "シーンを Root Scene 方式にした：消えない Root.unity（Main・RootScene・カメラ・EventSystem）の上に Home／Battle／Result を加算で入れ替え、Pause を重ねる。Boot を Root に、Run を Battle にした。Result と Pause のシーンを足した", "C（Claude で作成）"),
+        (VERSION, BUILT, "画面を縦長 9:16 にした（P2-00 のうち画面の部分を先に行った）：カメラの基準 270×480、Player Settings は 540×960 のウィンドウ、全画面は整数倍で拡大して黒い帯。エディタの ▶ は、Sandbox 以外のどのシーンを開いていても Root から始まるようにした", "C（Claude で作成）"),
     ])
 
 

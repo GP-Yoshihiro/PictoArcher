@@ -54,8 +54,8 @@ C# を書く・直す・レビューする前に、スキル `pictoarcher-coding
 | ウィンドウ・起動画面 | ウィンドウタイトルとアプリ名は OS が表示するもので画面内ではないため対象外。Unity のスプラッシュ画面は、出せない場合の扱いをチームで判断する |
 
 - 開発ビルドやデバッグ表示でも文字を出さない。ログはコンソールだけ。
-- 描画の基準解像度は 480×270。1ユニット＝16px（Assets PPU 16）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なしで取り込む。
-  - 注：設計書 第3版で画面は縦長（基準 270×480）に決まった。切り替えは計画2のタスク0（作業工程 `P2-00`、C さん）で行い、そのときこの行も直す。それが `develop` に入るまでは今の 480×270 のまま作業し、縦長を前提にしたプレハブを作らない。
+- 画面は縦長 9:16。描画の基準解像度は 270×480（Pixel Perfect Camera、Orthographic Size 15）。1ユニット＝16px（Assets PPU 16）。キャラとフリー素材の画像は Filter Mode を Point、圧縮なしで取り込む。
+  - Player Settings は 540×960 のウィンドウ（基準の2倍）。全画面では整数倍で拡大し、余りは黒い帯（Crop Frame は Windowbox）。エディタの Game ビューは各自で 540×960 か 9:16 を選ぶ（共有の設定ではない）。
 - ドット絵にするのはキャラクター（プレイヤー、敵、中ボス、ボス）だけ。すべて 32×32 で描く（2×2 ユニット）。フリー素材（タイル、障害物、エフェクト）は大きさを縛らない。
 - カード、アイコン、ボタン、ピクトグラムなどの UI は、ドット絵ではない普通の2Dの絵（Filter Mode は Bilinear）。カードは縦長。UI は uGUI の Canvas（Canvas Scaler は Scale With Screen Size、基準 1080×1920）に置く。
 - のちに iPad・iPhone へ対応させるので、画面は 9:16 で作り、UI は画面の端を基準に置いて端に余白をとる（対応そのものは8週間の範囲外）。
@@ -93,6 +93,7 @@ Assets/_Project/
   Scripts/Editor/          PictoArcher.Editor（エディタ専用）
     PictoArcher.Editor.asmdef
     PixelArtImportPostprocessor.cs  ドット絵（キャラとフリー素材）の取り込み設定
+    PlayFromRootScene.cs   エディタの ▶ を Root から始める（Sandbox のシーンは除く）
   Tests/EditMode/          PictoArcher.Tests.EditMode（ArchitectureGuardTests を含む）
   Tests/PlayMode/          PictoArcher.Tests.PlayMode（Root → Home → Battle → Result と Pause の流れ）
   Data/                    ScriptableObject のアセット
@@ -144,6 +145,7 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 ## シーンとブランチ
 
 - `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxAScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
+- エディタの ▶ は、どのシーンを開いていても `Root.unity`（Build の 0 番）から始まり、Home が出る（`PlayFromRootScene`）。ビルドも 0 番から始まる。例外は `Scenes/Sandbox/` のシーンで、開いたシーンのまま始まる（`Main` が Root を加算で足す）。
 - ブランチは `develop` から切り、PR も `develop` 向けに出す。`main` はリリースのときだけ `develop` から入れる（C さん）。
 - ブランチ名は `<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`）。作業の種類がわかるようにする。1タスク＝1 Issue＝1ブランチ。
   - `feature/` 新機能／`fix/`（または `bugfix/`）バグの修正／`hotfix/` 本番の緊急修正／`release/` リリースに向けた調整・バージョンアップ／`refactor/` 動きを変えずにコードを整理／`docs/` 文書の修正・追加

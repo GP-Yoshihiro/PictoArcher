@@ -83,7 +83,8 @@ Root（消えない）           … Main、RootScene、カメラ、EventSystem
 ### 4.6 エディタで Root 以外から再生したとき
 - `Main` の `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` が、Root が読み込まれていなければ Root を加算で読み込む。
 - どこから再生しても、最初に `RootScene.Init` が終わってから、ほかのシーンの `Init` が呼ばれる（必ず Root から始まる）。
-- Root の `SceneTransform` は、すでに開いているシーン（Home や `Sandbox_A` など）を中身のシーンとして始める。Root から再生したとき（ビルドも同じ）は Home を読み込む（最初のシーンは `RootScene` の `[SerializeField] SceneId _firstScene` で、既定は Home）。
+- エディタの ▶ は、`Scripts/Editor/PlayFromRootScene.cs` が `EditorSceneManager.playModeStartScene` を Root（Build の 0 番）にするので、どのシーンを開いていても Root から始まる。例外は `Scenes/Sandbox/` のシーンとテストの一時シーン（`InitTestScene…`、batch mode）で、これらは開いたシーンのまま始まる。（2026-11-14 追記）
+- Root の `SceneTransform` は、すでに開いているシーン（`Sandbox_A` など）を中身のシーンとして始める。Root から再生したとき（ビルドも同じ）は Home を読み込む（最初のシーンは `RootScene` の `[SerializeField] SceneId _firstScene` で、既定は Home）。
 - 再生中に外から（テストやエディタが）アクティブなシーンを変えたら、今の中身と重ねシーンを片付けて外し、新しいアクティブなシーンを中身として始める。保存していない無題のシーンで `SceneBase` がないときは警告だけ（今と同じ）。
 
 ### 4.7 シーンを作るときの規則
