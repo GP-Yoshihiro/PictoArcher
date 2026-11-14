@@ -27,7 +27,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "docs", "PictoArcher_仕様書.xlsx")
 
-VERSION = "1.2"
+VERSION = "1.3"
 BUILT = "2026-11-14"
 PROJECT_START = datetime.date(2026, 10, 26)  # 1週目の月曜（スケジュールの入力セル）
 
@@ -1272,7 +1272,7 @@ TASKS = [
     ("P1-08", "計画1", "プレイヤーと弾", "A", "P1-00, P1-02〜06", 1, 2, 1.5, "未着手", "", ""),
     ("P1-09", "計画1", "追う敵（Chaser）と出現予兆", "B", "P1-00, P1-02, 03, 06", 1, 2, 2.25, "未着手", "", ""),
     ("P1-10", "計画1", "フィールド・ウェーブの流れ・HUD（HP と 1/50）", "C", "P1-00, P1-03, 07, 08, 09", 2, 2, 1.5, "未着手", "", ""),
-    ("P2-00", "計画2", "タスク0：第3版に合わせて直す（カメラ 270×480、Field_Test、Player Settings、WaveKind.Angel をなくす、SkillId を26枚に、CLAUDE.md）", "C", "計画1のマージ", 2, 2, 0.5, "未着手", "", "これが main に入るまで、縦長を前提にしたプレハブを作らない"),
+    ("P2-00", "計画2", "タスク0：第3版に合わせて直す（カメラ 270×480、Field_Test、Player Settings、WaveKind.Angel をなくす、SkillId を26枚に、CLAUDE.md）", "C", "計画1のマージ", 2, 2, 0.5, "未着手", "", "これが develop に入るまで、縦長を前提にしたプレハブを作らない"),
     ("P2-01", "計画2", "経験値とコインの落下と吸い寄せ", "A", "P2-00", 3, 3, 0.5, "未着手", "", ""),
     ("P2-02", "計画2", "強化の仕組み（カード、重ね取り、抽選、上限）", "A", "P2-00", 3, 3, 2, "未着手", "", "Core に置き、EditMode テストを書く"),
     ("P2-03", "計画2", "レベルアップとカード選択の画面", "C", "P2-02", 3, 3, 1, "未着手", "", ""),
@@ -1526,7 +1526,7 @@ def build_rules(b):
         ("継承", "骨組み（SceneBase、DefinitionAsset<T>）だけ。ほかのクラスはすべて sealed", "§2"),
         ("テスト", "<クラス名>Tests.cs。メソッドは PascalCase、条件と結果を _ で区切ってよい（NoTarget_DoesNotFire）", "§2"),
         ("アセット", "プレハブは役割の名前（Player、Projectile、Chaser）。データは種類ごとのフォルダ（Data/Enemies、Data/Waves）", "§2"),
-        ("ブランチ", "<担当>/t<Issue番号>-<短い英語>（例 a/t12-weapon-select）。文書だけなら <担当>/docs-<名前>", "§5"),
+        ("ブランチ", "<プレフィックス>/t<Issue番号>-<短い英語>（例 feature/t12-weapon-select）。プレフィックスは feature/・fix/（bugfix/）・hotfix/・release/・refactor/・docs/", "§5"),
         ("Issue", "[作業工程の ID] タスク名（例 [P2-02] 強化の仕組み）", "§4"),
         ("コミット", "feat: / fix: / test: / docs: / chore: ＋ 英語の短い説明", "§6"),
     ])
@@ -1554,25 +1554,25 @@ def build_rules(b):
     s.table(["段階", "やること", "詳しくは"], [
         ("始める前", "gh で開いている Issue・PR・ブランチを見て、同じ作業がないか確かめる（Claude利用チェックリスト）", "§3"),
         ("Issue", "1タスク＝1 Issue。始める前に自分を担当（assignee）にする。ないときは Issue を作ってから始める", "§4"),
-        ("ブランチ", "main から切る。1タスク＝1ブランチ。main に直接コミットしない", "§5"),
+        ("ブランチ", "develop から切り、PR も develop 向け。1タスク＝1ブランチ。develop にも main にも直接コミットしない。main はリリースのときだけ develop から入れる（C さん）", "§5"),
         ("下書きの PR", "ブランチを作ったらすぐ下書きの PR を開き、本文に Closes #<Issue> と触るファイルを書く", "§7"),
         ("PR を出す", "全テスト（NoTextGuardTests を含む）が通ってから「レビュー待ち」にする。PR テンプレートの項目を埋める", "§7"),
         ("レビュー", "ほかの1人が読む。Claude が書いたコードも人が読む", "§8"),
-        ("マージ", "レビューで OK が出たら、書いた本人がマージする。マージのあとブランチを消す", "§8"),
+        ("マージ", "レビューで OK が出たら、書いた本人が develop へマージする。マージのあとブランチを消し、Issue を gh issue close で閉じる（develop へのマージでは自動で閉じない）", "§8"),
         ("仕様の変更", "設計書（.md）と tools/spec/build_spec_xlsx.py を同じ PR で直し、.xlsx を作り直す。編集は C さん", "§10"),
     ])
 
 
 CHECKLIST = [
-    ("始める前", "main を最新にした", "git switch main && git pull"),
+    ("始める前", "develop を最新にした", "git switch develop && git pull"),
     ("始める前", "開いている Issue を見て、同じ作業がないか確かめた", "gh issue list --state open"),
     ("始める前", "開いている PR（下書きを含む）を見て、同じファイルを触る PR がないか確かめた", "gh pr list --state open"),
     ("始める前", "同じ作業のブランチがないか確かめた", "git fetch --prune && git branch -r"),
     ("始める前", "自分のタスクの Issue があり、自分が担当になっている（なければ作って自分を担当にした）", "gh issue edit <番号> --add-assignee @me"),
     ("始める前", "Issue のタイトルが「[作業工程の ID] タスク名」になっている", "仕様書の作業工程シート"),
     ("始める前", "先に要るタスクがマージ済み", "作業工程シートの「先に要るもの」"),
-    ("始める前", "ブランチ名が <担当>/t<Issue番号>-<短い名前>", "git switch -c a/t12-weapon-select"),
-    ("始める前", "下書きの PR を開き、Closes #<Issue> と触るファイルを書いた", "gh pr create --draft"),
+    ("始める前", "develop から切り、ブランチ名が <プレフィックス>/t<Issue番号>-<短い英語>", "git switch -c feature/t12-weapon-select"),
+    ("始める前", "下書きの PR を開き、Closes #<Issue> と触るファイルを書いた", "gh pr create --draft --base develop"),
     ("始める前", "Claude に CLAUDE.md と自分の Issue を読ませ、担当外の作業をしないよう伝えた", "CLAUDE.md「作業を始める前に」"),
     ("作業中", "1セッション＝1タスク。別のタスクに移るときは /clear してから", ""),
     ("作業中", "計画が要る作業は Plan Mode で計画を作り、自分で読んでから進めた", "Shift+Tab で Plan Mode"),
@@ -1582,11 +1582,11 @@ CHECKLIST = [
     ("作業中", "Core は先にテストを書いて失敗を確かめてから作った", "tools/run-editmode-tests.sh"),
     ("作業中", "数値をコードに直接書いていない（ScriptableObject の調整値にした）", ""),
     ("PR を出す前", "全テストが通った（NoTextGuardTests を含む）", "tools/run-editmode-tests.sh"),
-    ("PR を出す前", "main を取り込んで、衝突がない", "git merge origin/main"),
+    ("PR を出す前", "develop を取り込んで、衝突がない（PR の向き先も develop）", "git merge origin/develop"),
     ("PR を出す前", "Claude が書いたコードを自分で全部読んだ", ""),
     ("PR を出す前", "画面と素材に文字がない。新しい素材は docs/assets-list.md に書いた", ""),
     ("PR を出す前", "PR テンプレートの項目を埋め、レビューする人を1人指定した", "gh pr ready"),
-    ("マージのあと", "Issue が閉じた", "gh issue view <番号>"),
+    ("マージのあと", "Issue を閉じた（develop へのマージでは自動で閉じない）", "gh issue close <番号>"),
     ("マージのあと", "ブランチを消した", "gh pr merge --delete-branch"),
     ("マージのあと", "かかった日数を Issue にコメントした（C さんが工数の実績に写す）", ""),
 ]
@@ -1608,7 +1608,7 @@ def build_checklist(b):
     s.heading("同じ作業が重なったとき")
     s.bullets([
         "先に Issue の担当になった人が続ける。あとから気づいた人は手を止め、Issue にコメントして別のタスクに移る",
-        "途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（main には入れない）",
+        "途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（develop には入れない）",
         "同じファイルを2人が直す必要があるときは、先に Issue で順番を決める。プレハブとシーンは同時に直さない",
     ])
     s.heading("Claude の動かし方（ハイブリッド運用）")
@@ -1626,7 +1626,8 @@ def build_history(b):
     s.table(["版", "日付", "変更", "書いた人"], [
         ("1.0", "2026-11-12", "初版。設計書 第3版、世界観 確定版、ロードマップ 第3版、計画1 を1冊にまとめ、スケジュール・作業工程・工数・チェックリストを足した", "C（Claude で作成）"),
         ("1.1", "2026-11-14", "ドット絵はキャラだけ（32×32）にし、カード・アイコン・ボタンは普通の2Dの UI の絵にした。カードは縦長。のちの iPad・iPhone への対応に備えて 9:16 で作ることと、UI の置き方（Canvas Scaler、画面の端を基準）を足した。ドット絵シートを絵の方針シートにした。ボスAのハッチを胸から背中にした。分担に名前を入れた。作業工程シートはタスク一覧を上に置き、固定を見出しの行までにした", "C（Claude で作成）"),
-        (VERSION, BUILT, "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
+        ("1.2", "2026-11-14", "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
+        (VERSION, BUILT, "ブランチ運用を変えた：作業は develop から切って develop へ PR を出し、main はリリースのときだけにした。ブランチ名を <プレフィックス>/t<Issue番号>-<短い英語> にした", "C（Claude で作成）"),
     ])
 
 

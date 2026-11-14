@@ -34,4 +34,4 @@ assignees: []
 
 - [ ] 開いている Issue・PR・ブランチを見て、同じ作業がない
 - [ ] 自分を担当（assignee）にした
-- [ ] ブランチ `<担当>/t<この Issue の番号>-<短い英語>` を作り、下書きの PR を開いた
+- [ ] `develop` からブランチ `<プレフィックス>/t<この Issue の番号>-<短い英語>`（例 `feature/t12-weapon-select`）を作り、`develop` 向けの下書きの PR を開いた

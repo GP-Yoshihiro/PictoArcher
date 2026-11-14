@@ -56,7 +56,7 @@
 3人とも Claude を使うので、同じタスクを2人（2つの Claude）が始める、同じファイルを別々に直す、ということが起きやすい。タスクを始めるたびに、次を上から確かめる。Claude にも同じ確認をさせる（`CLAUDE.md`「作業を始める前に」）。
 
 ```bash
-git switch main && git pull
+git switch develop && git pull
 gh issue list --state open
 gh pr list --state open
 git fetch --prune && git branch -r
@@ -71,7 +71,7 @@ git fetch --prune && git branch -r
 同じ作業が重なったとき：
 
 - 先に Issue の担当になった人が続ける。あとから気づいた人は手を止め、Issue にコメントして別のタスクに移る。
-- 途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（main には入れない）。
+- 途中までのコードが役に立つなら、その差分を Issue に貼るか、相手のブランチに PR を出す（develop には入れない）。
 - プレハブとシーンは2人で同時に直さない。
 
 ## §4 Issue
@@ -86,9 +86,21 @@ git fetch --prune && git branch -r
 
 ## §5 ブランチ
 
-- `main` から切る。1タスク＝1ブランチ。`main` に直接コミットしない。
-- 名前：`<担当>/t<Issue番号>-<短い英語>`（例 `a/t12-weapon-select`）。担当は `a`・`b`・`c`、絵の担当は `art`・`ui`。文書だけの変更は `<担当>/docs-<短い英語>`。
-- 長く持たない。2日に1回は `main` を取り込む（`git merge origin/main`）。
+- 日々の作業をまとめるのは `develop`。作業のブランチは `develop` から切り、PR も `develop` 向けに出す。
+- `main` はリリースした版だけを置く。`develop` から `main` へ入れるのはリリースのときだけで、C さんが `release/` のブランチで行う。
+- 1タスク＝1ブランチ。`develop` にも `main` にも直接コミットしない。
+- 名前：`<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`、`docs/t20-assets-list`）。名前でどんな作業かわかるようにする。
+
+| プレフィックス | 使うとき |
+|---|---|
+| `feature/` | 新機能の開発 |
+| `fix/`（または `bugfix/`） | バグの修正 |
+| `hotfix/` | 本番（リリースした版）の緊急修正。`main` から切り、`main` と `develop` の両方に入れる |
+| `release/` | リリースに向けた最終調整・バージョンアップ |
+| `refactor/` | 動きを変えずにコードを整理・改善 |
+| `docs/` | 文書の修正・追加 |
+
+- 長く持たない。2日に1回は `develop` を取り込む（`git merge origin/develop`）。
 
 ## §6 コミット
 
@@ -98,7 +110,7 @@ git fetch --prune && git branch -r
 
 ## §7 プルリクエスト
 
-- ブランチを作ったら、すぐ下書きの PR を開く：`gh pr create --draft`。本文に `Closes #<Issue番号>` と触るファイルを書く。これで、ほかの人と Claude に「この作業は進行中」と伝わる。
+- ブランチを作ったら、すぐ下書きの PR を開く：`gh pr create --draft --base develop`。本文に `Closes #<Issue番号>` と触るファイルを書く。これで、ほかの人と Claude に「この作業は進行中」と伝わる。
 - 本文は PR テンプレート（`.github/pull_request_template.md`）の項目を埋める。
 - 全テスト（`NoTextGuardTests` を含む）が通ってから「レビュー待ち」にする：`gh pr ready`。
 - レビューする人を1人指定する。
@@ -109,6 +121,7 @@ git fetch --prune && git branch -r
 - ほかの1人が読んで OK を出してからマージする。Claude が書いたコードも人が読む。
 - 見るところ：仕様に合っているか、文字が画面に出ないか、数値がコードに直接書かれていないか、担当外のファイルを触っていないか、テストがあるか。
 - マージは書いた本人が行う。方法は「Create a merge commit」。マージしたらブランチを消す：`gh pr merge --merge --delete-branch`。
+- GitHub は既定のブランチ（`main`）へのマージでしか `Closes #<番号>` の Issue を閉じない。`develop` へマージしたら、`gh issue close <番号>` で Issue を閉じる。
 - `Run.unity` を触る PR は C さんがレビューする。
 
 ## §9 Claude の使い方
