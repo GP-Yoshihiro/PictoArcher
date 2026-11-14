@@ -42,6 +42,11 @@ namespace PictoArcher.Game
 
         void LateUpdate() => _transform.LateTick(Time.deltaTime, Time.unscaledDeltaTime);
 
-        void OnDestroy() => _transform?.Dispose();
+        void OnDestroy()
+        {
+            _transform?.Dispose();
+            // Pause 中に再生を止めても、次の再生やテストに 0 を持ち越さない。
+            Time.timeScale = 1f;
+        }
     }
 }

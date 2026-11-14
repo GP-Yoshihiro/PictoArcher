@@ -217,6 +217,7 @@ public sealed class PauseScene : SceneBase
 
 // 下のシーン（BattleScene など）
 public override void OnOverlayClosed(OverlayId id, int result) { /* 閉じたあとの処理 */ }
+// 止まっている間に押されたボタンの記録は残る。開くボタンは OnOverlayClosed で ConsumeClicked して捨てる（BattleScene.cs が実物）。
 ```
 
 ### イベントの登録と解除

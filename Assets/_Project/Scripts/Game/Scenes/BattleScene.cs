@@ -33,6 +33,12 @@ namespace PictoArcher.Game
             //     _enemySystem.Tick(deltaTime);
         }
 
+        public override void OnOverlayClosed(OverlayId id, int result)
+        {
+            // 止まっている間（Pause の読み込み中）に ⏸ をもう一度押していても、閉じた直後に開き直さないよう捨てる。
+            _pauseButton.ConsumeClicked();
+        }
+
         public override void Dispose()
         {
             // 作った順の逆に片付ける。

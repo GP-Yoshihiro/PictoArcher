@@ -151,6 +151,41 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Battle_PauseDoubleClick_DoesNotReopenAfterResume()
+        {
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return WaitForActiveScene("Battle");
+
+            // 1回目で Pause を開く。読み込み中（Battle は Tick されない）にもう1回押す。
+            Click<BattleScene>("_pauseButton");
+            yield return null;
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+
+            Click<PauseScene>("_resumeButton");
+            yield return WaitForSceneCount(2);
+            for (int i = 0; i < 5; i++) yield return null;
+            CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames(), "閉じたあとに、止まっている間のクリックで Pause が開き直しています");
+        }
+
+        [UnityTest]
+        public IEnumerator MainDestroyedWhilePaused_RestoresTimeScale()
+        {
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return WaitForActiveScene("Battle");
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+            yield return null;
+            Assert.AreEqual(0f, Time.timeScale);
+
+            Object.Destroy(Object.FindAnyObjectByType<Main>().gameObject);
+            yield return null;
+            Assert.AreEqual(1f, Time.timeScale, "Main が消えたら Time.timeScale を 1 に戻すはずです（再生を止めたとき・次のテスト）");
+        }
+
+        [UnityTest]
         public IEnumerator HostOpensPause_StopsHostTicks_AndGetsResult()
         {
             yield return LoadRoot();
