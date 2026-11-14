@@ -122,7 +122,7 @@ git fetch --prune && git branch -r
 - 見るところ：仕様に合っているか、文字が画面に出ないか、数値がコードに直接書かれていないか、担当外のファイルを触っていないか、テストがあるか。
 - マージは書いた本人が行う。方法は「Create a merge commit」。マージしたらブランチを消す：`gh pr merge --merge --delete-branch`。
 - GitHub は既定のブランチ（`main`）へのマージでしか `Closes #<番号>` の Issue を閉じない。`develop` へマージしたら、`gh issue close <番号>` で Issue を閉じる。
-- `Run.unity` を触る PR は C さんがレビューする。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を触る PR は C さんがレビューする。
 
 ## §9 Claude の使い方
 

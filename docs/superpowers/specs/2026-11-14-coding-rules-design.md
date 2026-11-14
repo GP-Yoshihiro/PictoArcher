@@ -1,5 +1,7 @@
 # コーディング規則と実行順の土台 設計書
 
+> **注（2026-11-14）**：§5 のシーンの形（`Resources/Main.prefab`、`DontDestroyOnLoad`、Boot／Run、`LoadSceneAsync(Single)`）は、Root Scene 方式（`2026-11-14-root-scene-design.md`）に置き換えた。今は `Root.unity` の `Main` と `SceneTransform` が Home／Battle／Result を加算で入れ替え、Pause を重ねる。Boot は Root に、Run は Battle に名前を変えた。下の古い名前はその前の記録として残す。
+
 - 日付：2026-11-14
 - 作業工程：P1-00（Issue #4）
 - 担当：C（山田）
@@ -43,7 +45,7 @@ PictoArcher は3人のプログラマーで作る。山田さん以外の2人（
 
 - Unity 6000.5.10f1、URP 2D。asmdef は Core ← Game ← Editor（Tests は全部を参照）。
 - ドメインのリロードが無効（`EnterPlayModeOptions` = 1）。static の値が再生をまたいで残る。
-- `Run.unity` を編集するのは C さんだけ。ほかの人はプレハブと Sandbox シーンで作業する。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を編集するのは C さんだけ。ほかの人はプレハブと Sandbox シーンで作業する。
 - 数値は ScriptableObject の調整値にする。Core は純粋な C# で、先にテストを書く。
 - 文字ゼロのルール（画面に文字を出さない）。
 - テストは Unity のエディタを閉じて `tools/run-editmode-tests.sh` で回す。
@@ -185,7 +187,7 @@ public abstract class SceneBase : MonoBehaviour
 - シーンが System を作り、System が View を（プレハブから `Instantiate` して）持つ。
 - 片付けは持ち主が行う。View や Relay は `OnDestroy` を使えないので、持ち主の System が `Dispose` の中で、登録の解除（`UiButtonRelay.Dispose()` など）と `Destroy` を呼ぶ。
 - `GetComponent` は Init（作ったとき）に1回だけ呼び、結果を持っておく。
-- お手本のコードはスキル（§12）に置く。実物のお手本は `Main.cs`、`RunScene.cs`、`FireTimer.cs`、`CollisionRelay2D.cs`。
+- お手本のコードはスキル（§12）に置く。実物のお手本は `Main.cs`、`SceneTransform.cs`、`BattleScene.cs`、`FireTimer.cs`、`CollisionRelay2D.cs`。
 
 ## 8. 敵の組み合わせの考え方
 

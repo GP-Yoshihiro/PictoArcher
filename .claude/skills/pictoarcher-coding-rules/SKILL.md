@@ -28,13 +28,13 @@ description: Use before writing, fixing or reviewing PictoArcher C# in Assets/_P
 
 ## お手本
 
-実物のお手本：`Game/Main/Main.cs`、`Game/Scenes/RunScene.cs`、`Game/Scenes/HomeScene.cs`、`Core/Combat/FireTimer.cs`、`Game/Common/CollisionRelay2D.cs`。
+実物のお手本：`Game/Main/Main.cs`、`Game/Main/SceneTransform.cs`、`Game/Scenes/BattleScene.cs`、`Game/Scenes/PauseScene.cs`、`Game/Scenes/HomeScene.cs`、`Core/Combat/FireTimer.cs`、`Game/Common/CollisionRelay2D.cs`。
 下の `EnemySystem`、`EnemyView`、`MovementDefinition` などは**説明のための仮の名前**。本物の名前と形は、それぞれのタスクで決める。
 
-### シーン（`RunScene` の形）
+### シーン（`BattleScene` の形）
 
 ```csharp
-public sealed class RunScene : SceneBase
+public sealed class BattleScene : SceneBase
 {
     [SerializeField] EnemyView _enemyPrefab;   // シーンの中のものはインスペクターでつなぐ
 
@@ -62,7 +62,9 @@ public sealed class RunScene : SceneBase
 
 ### Sandbox のシーン（各自の試し用）
 
-`Scenes/Sandbox/Sandbox_<担当>.unity` にプレハブを置いて再生するだけでは、何も動かない。View は自分では動かず、`Main` は「SceneBase が 0 個」とエラーを1回出すだけだから。試し用のシーンにも、自分の `SceneBase` を1つ置く。
+`Scenes/Sandbox/Sandbox_<担当>.unity` にプレハブを置いて再生するだけでは、何も動かない。View は自分では動かず、`SceneTransform` は「SceneBase が 0 個」とエラーを1回出すだけだから。試し用のシーンにも、自分の `SceneBase` を1つ置く。
+
+再生すると `Main` が `Root.unity` を加算で足し、`RootScene` の `Init` のあとに Sandbox のシーンを中身として始める。カメラ・EventSystem・AudioListener は Root にあるので、Sandbox のシーンには置かない（2つになる）。
 
 - クラスは `Scripts/Game/Scenes/Sandbox/Sandbox<担当>Scene.cs`（例 `SandboxAScene`）。規則は本番のシーンと同じ。
 - シーンの一番上の階層に空の GameObject を1つ作り、このクラスを付ける。試したいプレハブはインスペクターでつなぐ。
@@ -182,8 +184,39 @@ public void Tick(float deltaTime)
 
 // ボタン：Init で Init、Tick で ConsumeClicked、Dispose で Dispose（HomeScene.cs が実物）
 _startButton.Init();
-if (_startButton.ConsumeClicked()) _context.RequestScene(SceneId.Run);
+if (_startButton.ConsumeClicked()) _context.RequestScene(SceneId.Battle);
 _startButton.Dispose();
+```
+
+### シーンの切り替えと重ねシーン（Root Scene 方式）
+
+`Root.unity`（Build の 0 番）は消えない土台で、`Main`、`RootScene`、カメラ、EventSystem が入っている。中身のシーン（`SceneId`：Home、Battle、Result）は加算で読み込んで入れ替え、その上に重ねシーン（`OverlayId`：Pause）を積む。シーンを読み込む・外すのは `SceneTransform` だけ（`SceneManager` を書いてよいのは `Main` と `SceneTransform` だけ）。
+
+- 入れ替え：`_context.RequestScene(SceneId.Result)`。開いている重ねシーンも全部閉じる。
+- 重ねる：`_context.OpenOverlay(OverlayId.Pause)`。下のシーンは消えず、止まる（Tick も FixedTick も呼ばれず、`Time.timeScale` は 0）。
+- 閉じる：重ねシーンの中から `_context.CloseOverlay(数字)`。すぐ下のシーンの `OnOverlayClosed(id, 数字)` が呼ばれる。
+- 重ねシーンの間も下を動かしたいときだけ、その重ねシーンで `KeepsBelowRunning` を `true` にする。
+- 依頼は1フレームに1つ。同じフレームの2つ目は `false` が返って無視される。
+- 新しいシーンを足すときは、`SceneId`／`OverlayId` に足し、同じ名前の `.unity` を作り、Build Settings に足す（並びは Root、`SceneId` の順、`OverlayId` の順）。カメラ・EventSystem・`Main` は置かない。重ねシーンの Canvas は Sort Order 100 以上にし、全面の板（Raycast Target）で下のボタンを押せないようにする。
+
+```csharp
+public sealed class PauseScene : SceneBase
+{
+    [SerializeField] UiButtonRelay _resumeButton;
+    GameContext _context;
+
+    public override void Init(GameContext context) { _context = context; _resumeButton.Init(); }
+
+    public override void Tick(float deltaTime)
+    {
+        if (_resumeButton.ConsumeClicked()) _context.CloseOverlay(0);   // 下のシーンの OnOverlayClosed に 0 が届く
+    }
+
+    public override void Dispose() => _resumeButton.Dispose();
+}
+
+// 下のシーン（BattleScene など）
+public override void OnOverlayClosed(OverlayId id, int result) { /* 閉じたあとの処理 */ }
 ```
 
 ### イベントの登録と解除

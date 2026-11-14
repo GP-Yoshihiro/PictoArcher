@@ -20,7 +20,7 @@
    - Issue がないなら、作ってよいか人に聞く。
 3. 自分の Issue の担当になってから、`develop` から `<プレフィックス>/t<Issue番号>-<短い英語>` のブランチを切り（下の「シーンとブランチ」）、下書きの PR（本文に `Closes #<番号>` と触るファイル）を開く。push と PR の作成は人の OK をもらってから。
 4. 仕様書「作業工程」シートの「先に要るもの」がマージ済みか確かめる。まだなら人に伝える。
-5. 作業中は Issue に書いてあること以外をしない。担当外のファイル（ほかの人のプレハブ、`Run.unity` など）を直したくなったら、直さずに人に伝える。
+5. 作業中は Issue に書いてあること以外をしない。担当外のファイル（ほかの人のプレハブ、`Battle.unity` など）を直したくなったら、直さずに人に伝える。
 
 1セッション＝1タスク。別のタスクに移るときは `/clear` してから。計画が要る作業は Plan Mode で計画を作り、人が読んでから進める。
 
@@ -29,7 +29,7 @@
 C# を書く・直す・レビューする前に、スキル `pictoarcher-coding-rules` を読む。正本は `docs/superpowers/specs/2026-11-14-coding-rules-design.md`。Unity の落とし穴は `docs/unity-pitfalls.md`。
 
 - Unity の標準ライフサイクル（`Awake`、`Start`、`Update`、`FixedUpdate`、`OnEnable`、`OnDestroy` など）を書くのは `Main` だけ。`Main` → シーン（`SceneBase` の `Init`／`Tick`／`FixedTick`／`LateTick`／`Dispose`）→ System の順に、ソースに書いた順で呼ぶ。
-- シーンはシーンの一番上の階層にちょうど1つ置く。System はシーンの `Init` で作り、`Tick` で1行ずつ呼び、`Dispose` で逆順に片付ける。
+- シーンはシーンの一番上の階層にちょうど1つ置く。`Root.unity` は消えない土台で、ほかのシーンは `SceneTransform` が加算で読み込む（入れ替えは `RequestScene`、重ねるのは `OpenOverlay`／`CloseOverlay`）。`SceneManager` を使ってよいのは `Main` と `SceneTransform` だけ。System はシーンの `Init` で作り、`Tick` で1行ずつ呼び、`Dispose` で逆順に片付ける。
 - 当たり判定は `CollisionRelay2D`、ボタンは `UiButtonRelay` が受け取るだけ。処理は Tick の中。入力は Tick の中で読む。
 - 禁止：`Find` 系、`Camera.main`、コルーチン、`Invoke`、`async`、シングルトン、static の書き換えられる値、インスペクターで onClick に関数をつなぐこと、`Time.` を `Main` 以外で読むこと。
 - 継承は骨組み（`SceneBase`、`DefinitionAsset<T>`）だけ。ほかは `sealed`。敵は定義（ScriptableObject）と動く部品の組み合わせで作る。
@@ -68,7 +68,6 @@ CLAUDE.md                  全員の Claude が読むルール
 .claude/                   共有の Claude 設定（settings.json、skills/、agents/）
 .github/                   PR と Issue のテンプレート
 Assets/_Project/
-  Resources/Main.prefab    Main（実行順の大もと。起動時に自動で作られる）
   Scripts/Core/            PictoArcher.Core（純粋な C#、テスト対象）
     PictoArcher.Core.asmdef
     Common/                ITickable, IFixedTickable, ILateTickable, TickList, SceneFlow, SceneFlowPhase
@@ -78,8 +77,8 @@ Assets/_Project/
     Extensions/            拡張メソッド（必要になったら作る）
   Scripts/Game/            PictoArcher.Game（MonoBehaviour と ScriptableObject）
     PictoArcher.Game.asmdef
-    Main/                  Main, GameContext, GameClock, SceneId, SceneBase
-    Scenes/                BootScene, HomeScene, RunScene
+    Main/                  Main, GameContext, GameClock, SceneId, OverlayId, SceneBase, SceneTransform
+    Scenes/                RootScene, HomeScene, BattleScene, ResultScene, PauseScene
       Sandbox/             各自の試し用のシーンのクラス（SandboxAScene など。最初に使う人が作る）
     Common/                CollisionRelay2D, UiButtonRelay, DefinitionAsset, Layers, IHittable
     Data/                  PlayerStats, EnemyDefinition, WaveDefinition, SpawnEntry, SkillId, SkillDefinition
@@ -90,10 +89,11 @@ Assets/_Project/
     PictoArcher.Editor.asmdef
     PixelArtImportPostprocessor.cs  ドット絵（キャラとフリー素材）の取り込み設定
   Tests/EditMode/          PictoArcher.Tests.EditMode（ArchitectureGuardTests を含む）
-  Tests/PlayMode/          PictoArcher.Tests.PlayMode（Boot → Home → Run の流れ）
+  Tests/PlayMode/          PictoArcher.Tests.PlayMode（Root → Home → Battle → Result と Pause の流れ）
   Data/                    ScriptableObject のアセット（Enemies/, Waves/）
   Prefabs/                 MainCamera（Player、Projectile などはそれぞれのタスクで足す）
-  Scenes/Boot.unity, Home.unity, Run.unity   Cさんだけが編集する（Build Settings も同じ順）
+  Scenes/Root.unity          消えない土台（Main、RootScene、カメラ、EventSystem）。Build の 0 番
+  Scenes/Home.unity, Battle.unity, Result.unity, Pause.unity   Root に加算で読み込む。Cさんだけが編集する（Build Settings は Root から この順）
   Scenes/Sandbox/          Sandbox_A.unity, Sandbox_B.unity（各自の試し用、他の人は触らない）
   Fonts/                   数字と記号だけのフォント
   Art/                     絵（フリー素材と、絵の担当から届いたキャラのスプライトシートと UI の絵）
@@ -121,13 +121,13 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 - `Core` のルールは、先に EditMode テストを書いて失敗を確認してから実装する。
 - NUnit を使う。置き場所は `Assets/_Project/Tests/EditMode/<クラス名>Tests.cs`。
 - 実行方法：Unity のエディタを閉じて、`tools/run-editmode-tests.sh`。失敗があると終了コードが 0 以外になる。結果は `Logs/editmode-results.xml`。
-- シーンの流れ（Boot → Home → Run）の確認は `tools/run-playmode-tests.sh`。結果は `Logs/playmode-results.xml`。シーンや `Main` を触ったときに実行する。
+- シーンの流れ（Root → Home → Battle → Result、Pause の開け閉め）の確認は `tools/run-playmode-tests.sh`。結果は `Logs/playmode-results.xml`。シーンや `Main` を触ったときに実行する。
 - `ArchitectureGuardTests` は実行順・やり取り・命名の規則を確かめる。落ちたらメッセージの直し方に従う。テストの例外を足して通さない（足すなら人に伝え、PR に理由を書く）。
 - `NoTextGuardTests` を含む全テストが通ってからプルリクエストを出す。
 
 ## シーンとブランチ
 
-- `Boot.unity`・`Home.unity`・`Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxAScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxAScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
 - ブランチは `develop` から切り、PR も `develop` 向けに出す。`main` はリリースのときだけ `develop` から入れる（C さん）。
 - ブランチ名は `<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`）。作業の種類がわかるようにする。1タスク＝1 Issue＝1ブランチ。
   - `feature/` 新機能／`fix/`（または `bugfix/`）バグの修正／`hotfix/` 本番の緊急修正／`release/` リリースに向けた調整・バージョンアップ／`refactor/` 動きを変えずにコードを整理／`docs/` 文書の修正・追加

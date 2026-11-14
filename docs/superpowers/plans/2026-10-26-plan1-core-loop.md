@@ -1,5 +1,7 @@
 # 計画1 コアループ 実装計画（第2版）
 
+> **注（2026-11-14）**：この計画の Boot／Run／`Resources/Main.prefab` は、Root Scene 方式（`docs/superpowers/specs/2026-11-14-root-scene-design.md`）で Root／Battle／`Root.unity` に変わった。今のコードはそちらに合わせる。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 1つのフィールドで数ウェーブ続けて遊べるようにする（赤い `!` 円 → 追う敵が出現 → 移動しながら自動射撃 → 全滅 → 約1.5秒の休みで `1/50` が `2/50` に変わる → 次のウェーブ）。

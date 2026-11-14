@@ -27,7 +27,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "docs", "PictoArcher_仕様書.xlsx")
 
-VERSION = "1.3"
+VERSION = "1.4"
 BUILT = "2026-11-14"
 PROJECT_START = datetime.date(2026, 10, 26)  # 1週目の月曜（スケジュールの入力セル）
 
@@ -943,9 +943,9 @@ def build_tech(b):
         ("入力", "Input System。キーボードとマウスのドラッグを同じ「移動ベクトル」に変換する", ""),
         ("データ", "武器・強化・敵・ウェーブ・障害物のパターンは ScriptableObject。データを足すだけで増やせるようにする。数値はコードに直接書かない", ""),
         ("文字", "TextMeshPro、数字と記号だけのフォントのアセット（UI の絵に合う読みやすいフォント）", ""),
-        ("シーン", "Boot／Home／Run の3つ。武器を選ぶ画面は Home の中。Run はフィールド1つで、ウェーブはデータを順に読んで敵と障害物を出す", ""),
+        ("シーン", "Root Scene 方式。Root.unity（Main・RootScene・カメラ・EventSystem）は消えず、その上に Home／Battle／Result を加算で読み込んで入れ替え、Pause を重ねる。武器を選ぶ画面は Home の中。Battle はフィールド1つで、ウェーブはデータを順に読んで敵と障害物を出す。Result は 🏠 で Home、↻ で Battle", ""),
         ("カメラ", "MainCamera.prefab の位置は (0, 0, -10) から動かさない。カメラは動かない", ""),
-        ("共同作業", "シーンを同時に編集しない。Run.unity を編集するのは C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity。UnityYAMLMerge を各自設定する", ""),
+        ("共同作業", "シーンを同時に編集しない。Root・Home・Battle・Result・Pause の .unity を編集するのは C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity。UnityYAMLMerge を各自設定する", ""),
         ("ビルド", "Windows と Mac のスタンドアロン", ""),
         ("テスト", "純粋なロジック（ダメージ計算、強化の重ね取り、カードの抽選、ウェーブの進行、障害物のパターンの選び方）は EditMode テスト", ""),
     ])
@@ -1261,7 +1261,7 @@ def build_schedule(b):
 
 TASKS = [
     # (ID, 計画, タスク, 担当, 先に要るもの, 開始週, 終了週, 見積もり, 状態, Issue, メモ)
-    ("P1-00", "計画1", "コーディング規則と実行順の土台（Main・SceneBase・ArchitectureGuardTests・スキル）", "C", "P1-01", 3, 3, 1, "作業中", "#4", "設計書 2026-11-14-coding-rules-design.md"),
+    ("P1-00", "計画1", "コーディング規則と実行順の土台（Main・SceneBase・SceneTransform・Root Scene 方式・ArchitectureGuardTests・スキル）", "C", "P1-01", 3, 3, 1, "作業中", "#4", "設計書 2026-11-14-coding-rules-design.md、2026-11-14-root-scene-design.md"),
     ("P1-01", "計画1", "土台と CLAUDE.md", "C", "", 1, 1, 0.75, "済み", "", "PR #1"),
     ("P1-02", "計画1", "データ形式と共通部品", "A", "P1-01", 1, 1, 0.5, "済み", "", "PR #1"),
     ("P1-03", "計画1", "文字ゼロとドット絵の取り込み（NoTextGuardTests、PixelArtImportPostprocessor）", "C", "P1-01", 1, 2, 0.75, "未着手", "", ""),
@@ -1286,7 +1286,7 @@ TASKS = [
     ("P3-02", "計画3", "障害物のパターン6つとウェーブごとの切り替え（ObstacleLayout）", "C", "P2-00", 4, 4, 1.5, "未着手", "", ""),
     ("P3-03", "計画3", "中ボス（分裂、Splitter）と ⚠", "B", "P2-06", 4, 4, 1.5, "未着手", "", ""),
     ("P3-04", "計画3", "ボスA（ウェーブ10の形）とボスの HP バー", "B", "P2-06", 4, 4, 2.5, "未着手", "", ""),
-    ("P3-05", "計画3", "Boot と Home、クリア画面と死亡画面", "C", "P2-00", 4, 4, 1, "未着手", "", "Boot と Home のシーンの骨組みは P1-00 で作った。ここでは画面を作る"),
+    ("P3-05", "計画3", "Root と Home、クリア画面と死亡画面", "C", "P2-00", 4, 4, 1, "未着手", "", "Root・Home・Result・Pause のシーンの骨組みは P1-00 で作った。ここでは画面を作る"),
     ("P3-06", "計画3", "武器を選ぶ画面", "C", "P2-05", 4, 4, 0.5, "未着手", "", ""),
     ("P3-07", "計画3", "保存（JSON。前回の武器を含む）", "C", "P3-05", 4, 4, 0.5, "未着手", "", ""),
     ("P3-08", "計画3", "一時停止メニュー", "C", "P3-05", 4, 4, 0.5, "未着手", "", ""),
@@ -1547,7 +1547,7 @@ def build_rules(b):
         "自分たちのものはすべて Assets/_Project の下。外部の素材は Assets/_Project/Art（取り込む前に文字がないか確かめる）",
         "ルールは Core（純粋な C#、テストする）、つなぎは Game（MonoBehaviour）、データは ScriptableObject",
         "数値はコードに書かず ScriptableObject の調整値にする",
-        "Boot.unity・Home.unity・Run.unity は C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity",
+        "Root.unity・Home.unity・Battle.unity・Result.unity・Pause.unity は C さんだけ。ほかの人はプレハブと Scenes/Sandbox/Sandbox_<担当>.unity",
         "Core のルールは先に EditMode テストを書いて失敗を確かめてから作る",
     ])
     s.heading("Issue・ブランチ・PR・マージ")
@@ -1577,7 +1577,7 @@ CHECKLIST = [
     ("作業中", "1セッション＝1タスク。別のタスクに移るときは /clear してから", ""),
     ("作業中", "計画が要る作業は Plan Mode で計画を作り、自分で読んでから進めた", "Shift+Tab で Plan Mode"),
     ("作業中", "サブエージェントは2〜3体まで（log-triage、transcriber、task-reviewer）", ".claude/agents"),
-    ("作業中", "担当外のファイル（ほかの人のプレハブ、Run.unity など）を触っていない。直したいときはその Issue にコメントした", ""),
+    ("作業中", "担当外のファイル（ほかの人のプレハブ、Battle.unity など）を触っていない。直したいときはその Issue にコメントした", ""),
     ("作業中", "仕様にないことを決めたら Issue に書いた（仕様書の更新は C さんに頼む）", ""),
     ("作業中", "Core は先にテストを書いて失敗を確かめてから作った", "tools/run-editmode-tests.sh"),
     ("作業中", "数値をコードに直接書いていない（ScriptableObject の調整値にした）", ""),
@@ -1627,7 +1627,8 @@ def build_history(b):
         ("1.0", "2026-11-12", "初版。設計書 第3版、世界観 確定版、ロードマップ 第3版、計画1 を1冊にまとめ、スケジュール・作業工程・工数・チェックリストを足した", "C（Claude で作成）"),
         ("1.1", "2026-11-14", "ドット絵はキャラだけ（32×32）にし、カード・アイコン・ボタンは普通の2Dの UI の絵にした。カードは縦長。のちの iPad・iPhone への対応に備えて 9:16 で作ることと、UI の置き方（Canvas Scaler、画面の端を基準）を足した。ドット絵シートを絵の方針シートにした。ボスAのハッチを胸から背中にした。分担に名前を入れた。作業工程シートはタスク一覧を上に置き、固定を見出しの行までにした", "C（Claude で作成）"),
         ("1.2", "2026-11-14", "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
-        (VERSION, BUILT, "ブランチ運用を変えた：作業は develop から切って develop へ PR を出し、main はリリースのときだけにした。ブランチ名を <プレフィックス>/t<Issue番号>-<短い英語> にした", "C（Claude で作成）"),
+        ("1.3", "2026-11-14", "ブランチ運用を変えた：作業は develop から切って develop へ PR を出し、main はリリースのときだけにした。ブランチ名を <プレフィックス>/t<Issue番号>-<短い英語> にした", "C（Claude で作成）"),
+        (VERSION, BUILT, "シーンを Root Scene 方式にした：消えない Root.unity（Main・RootScene・カメラ・EventSystem）の上に Home／Battle／Result を加算で入れ替え、Pause を重ねる。Boot を Root に、Run を Battle にした。Result と Pause のシーンを足した", "C（Claude で作成）"),
     ])
 
 

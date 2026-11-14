@@ -31,7 +31,7 @@ Unity を初めて使う人と、その人の Claude が勘違いしやすい所
 ## 6. シーンとプレハブは2人で同時に直すと衝突する
 - **何が起きるか**：同じシーンやプレハブを2人が直すと、マージで壊れたり片方の変更が消えたりする。
 - **なぜか**：中身は YAML だが、人が読んで直せる形ではなく、自動のマージがうまくいかないことが多い。
-- **ここではどうするか**：`Boot.unity`・`Home.unity`・`Run.unity` を直すのは C さんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。同じプレハブを触る PR が開いていたら作業を始めない。
+- **ここではどうするか**：`Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を直すのは C さんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。同じプレハブを触る PR が開いていたら作業を始めない。
 
 ## 7. 物理で動かすものは `Rigidbody2D` を使い、`FixedTick` で動かす
 - **何が起きるか**：`Rigidbody2D` を持つものを `transform.position` で動かすと、壁をすり抜けたりカクついたりする。
@@ -77,3 +77,8 @@ Unity を初めて使う人と、その人の Claude が勘違いしやすい所
 - **何が起きるか**：UI に TextMeshPro を足すと、最初から英字の「New Text」が入っていて画面に出る。
 - **なぜか**：Unity が見本の文字を入れて作る。
 - **ここではどうするか**：文字ゼロのルール（`CLAUDE.md`）のとおり、画面に出すのは数字と記号だけ。足したらすぐに中身を消すか、数字だけにする。ボタンに文字の子を付けない。
+
+## 16. シーンを加算で読み込むと、カメラや EventSystem が2つになる
+- **何が起きるか**：Root の上に Home や Battle を重ねたとき、そのシーンにもカメラ・AudioListener・EventSystem があると、警告が出たり、ボタンが二重に反応したり、画面が乱れたりする。
+- **なぜか**：加算（Additive）で読み込むと、前のシーンのものは消えずに残り、両方が動く。
+- **ここではどうするか**：カメラ・AudioListener・EventSystem・`Main` は `Root.unity` にだけ置く（`SceneSetupTests` が確かめる）。新しいシーンや Sandbox のシーンを作ったら、Unity が最初に入れる Main Camera を消す。シーンを読み込む・外すのは `SceneTransform` だけで、自分で `SceneManager` を呼ばない。

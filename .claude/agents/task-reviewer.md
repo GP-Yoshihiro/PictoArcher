@@ -15,7 +15,7 @@ effort: medium
 - 数値（HP、攻撃力、速度、出現数）をコードに直接書いていない。ScriptableObject の調整値にしている。
 - `Scripts/Core` が Unity の部品を使っていない（数学の型だけ）。名前空間と命名が §2 のとおり。
 - Core のルールに EditMode テストがある。
-- 担当外のファイル（`Boot.unity`・`Home.unity`・`Run.unity`、ほかの人のプレハブ）を触っていない。Issue の範囲を超えていない。
+- 担当外のファイル（`Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity`、ほかの人のプレハブ）を触っていない。Issue の範囲を超えていない。
 
 実行順と設計の規則（スキル `pictoarcher-coding-rules`、設計書 `docs/superpowers/specs/2026-11-14-coding-rules-design.md`）：
 - 実行順：標準ライフサイクルは `Main` だけ。新しい System はシーンの `Tick` に1行で呼ばれている。`Init` と `Dispose`（イベントの登録と解除、Relay の `Init`／`Dispose`、`Destroy`）が対になっている。`Time.` を読んでいない。

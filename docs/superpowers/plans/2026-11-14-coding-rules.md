@@ -1,5 +1,7 @@
 # コーディング規則と実行順の土台 実装計画
 
+> **注（2026-11-14）**：この計画の Boot／Run／`Resources/Main.prefab` は、Root Scene 方式（`docs/superpowers/specs/2026-11-14-root-scene-design.md`）で Root／Battle／`Root.unity` に変わった。今のコードはそちらに合わせる。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Main → SceneBase → 各シーン → 各クラスの実行順の土台（Boot → Home → Run の切り替えまで動く）と、規則を破ると落ちる ArchitectureGuardTests、Claude に読ませる規則の文書を、1つの PR で入れる。
