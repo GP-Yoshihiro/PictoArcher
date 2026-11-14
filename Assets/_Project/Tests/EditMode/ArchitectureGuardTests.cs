@@ -189,10 +189,10 @@ namespace PictoArcher.Tests.EditMode
             "コルーチン・async・文字列の Invoke は使えません。時間は Tick の deltaTime を足して数えてください（Core の FireTimer などを参考に）。");
 
         [Test]
-        public void SceneManagerOnlyInMain() => ReportSourceMatches(
-            AllSources(), new[] { "Main.cs" },
+        public void SceneManagerOnlyInMainAndSceneTransform() => ReportSourceMatches(
+            AllSources(), new[] { "Main.cs", "SceneTransform.cs" },
             SceneLoadPatterns,
-            "SceneManager を使えるのは Main だけです。シーンを替えるときは GameContext.RequestScene(SceneId.〇〇) を呼んでください（直接読み込むと前のシーンの Dispose が呼ばれません）。");
+            "SceneManager を使えるのは Main と SceneTransform だけです。シーンを替えるときは GameContext.RequestScene(SceneId.〇〇)、重ねるときは GameContext.OpenOverlay(OverlayId.〇〇) を呼んでください（直接読み込むと前のシーンの Dispose が呼ばれません）。");
 
         [Test]
         public void NoFindOrCameraMain() => ReportSourceMatches(
@@ -280,14 +280,14 @@ namespace PictoArcher.Tests.EditMode
         public void CoroutinePatterns_AllowGoodSample(string code) =>
             Assert.IsFalse(AnyMatch(code, CoroutinePatterns), "正しい書き方を止めています: " + code);
 
-        [TestCase("SceneManager.LoadScene(\"Run\");")]
+        [TestCase("SceneManager.LoadScene(\"Battle\");")]
         [TestCase("UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(1);")]
         [TestCase("var scene = SceneManager.GetActiveScene();")]
         public void SceneLoadPatterns_CatchBadSample(string code) =>
             Assert.IsTrue(AnyMatch(code, SceneLoadPatterns), "見つけるべき書き方を見逃しています: " + code);
 
-        [TestCase("_context.RequestScene(SceneId.Run);")]
-        [TestCase("// SceneManager.LoadScene(\"Run\");")]
+        [TestCase("_context.RequestScene(SceneId.Battle);")]
+        [TestCase("// SceneManager.LoadScene(\"Battle\");")]
         public void SceneLoadPatterns_AllowGoodSample(string code) =>
             Assert.IsFalse(AnyMatch(code, SceneLoadPatterns), "正しい書き方を止めています: " + code);
 
@@ -299,7 +299,7 @@ namespace PictoArcher.Tests.EditMode
 
         // ---- 下ごしらえ ----
 
-        static Assembly CoreAssembly => typeof(SceneFlow<>).Assembly;
+        static Assembly CoreAssembly => typeof(SceneFlow<,>).Assembly;
         static Assembly GameAssembly => typeof(Main).Assembly;
         static string CoreFolder => Path.Combine(Application.dataPath, "_Project/Scripts/Core");
         static string GameFolder => Path.Combine(Application.dataPath, "_Project/Scripts/Game");

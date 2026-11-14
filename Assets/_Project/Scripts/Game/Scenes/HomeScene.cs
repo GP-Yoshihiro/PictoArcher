@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PictoArcher.Game
 {
-    /// <summary>ホームのシーン。今は開始ボタン（▶）だけ。押されたら Run へ進む。</summary>
+    /// <summary>ホームのシーン。今は開始ボタン（▶）だけ。押されたら Battle へ進む。</summary>
     public sealed class HomeScene : SceneBase
     {
         [SerializeField] UiButtonRelay _startButton;
@@ -17,7 +17,7 @@ namespace PictoArcher.Game
 
         public override void Tick(float deltaTime)
         {
-            if (_startButton.ConsumeClicked()) _context.RequestScene(SceneId.Run);
+            if (_startButton.ConsumeClicked()) _context.RequestScene(SceneId.Battle);
         }
 
         public override void Dispose()

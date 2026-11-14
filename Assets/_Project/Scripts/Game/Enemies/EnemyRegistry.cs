@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PictoArcher.Game
 {
-    /// <summary>今いる敵の一覧。RunScene が1つ作って、使う System に渡す（static にしない）。</summary>
+    /// <summary>今いる敵の一覧。BattleScene が1つ作って、使う System に渡す（static にしない）。</summary>
     public sealed class EnemyRegistry
     {
         readonly List<Transform> _active = new List<Transform>();

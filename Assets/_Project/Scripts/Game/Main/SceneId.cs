@@ -1,5 +1,5 @@
 namespace PictoArcher.Game
 {
-    /// <summary>シーンのファイル名と同じ名前。Build Settings もこの順（Boot、Home、Run）。</summary>
-    public enum SceneId { Boot, Home, Run }
+    /// <summary>中身のシーン（入れ替えるもの）のファイル名と同じ名前。Build Settings では Root のあとにこの順で並べる。</summary>
+    public enum SceneId { Home, Battle, Result }
 }
