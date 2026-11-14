@@ -172,15 +172,27 @@ namespace PictoArcher.Tests.EditMode
 
         // ---- ソースの文字列の規則 ----
 
+        static readonly string[] CoroutinePatterns =
+        {
+            @"\bStartCoroutine\b", @"\bStopCoroutine\b", @"\bStopAllCoroutines\b", @"\bWaitForSeconds\w*",
+            @"\basync\b", @"\bawait\b", @"\bInvokeRepeating\b", @"\bCancelInvoke\b", @"\bIsInvoking\b",
+            // MonoBehaviour.Invoke("名前", 秒) だけを止める。デリゲートの x.Invoke(...) や x?.Invoke(...) は止めない。
+            @"(?<![\w.])Invoke\s*\(\s*(nameof\b|"")", @"\bthis\s*\.\s*Invoke\s*\(\s*(nameof\b|"")",
+        };
+
+        static readonly string[] SceneLoadPatterns = { @"\bSceneManager\b" };
+
         [Test]
         public void NoCoroutinesOrAsync() => ReportSourceMatches(
             AllSources(), new string[0],
-            new[]
-            {
-                @"\bStartCoroutine\b", @"\bStopCoroutine\b", @"\bStopAllCoroutines\b", @"\bWaitForSeconds\w*",
-                @"\basync\b", @"\bawait\b", @"\bInvokeRepeating\b", @"\bInvoke\s*\(\s*(nameof\b|"")",
-            },
+            CoroutinePatterns,
             "コルーチン・async・文字列の Invoke は使えません。時間は Tick の deltaTime を足して数えてください（Core の FireTimer などを参考に）。");
+
+        [Test]
+        public void SceneManagerOnlyInMain() => ReportSourceMatches(
+            AllSources(), new[] { "Main.cs" },
+            SceneLoadPatterns,
+            "SceneManager を使えるのは Main だけです。シーンを替えるときは GameContext.RequestScene(SceneId.〇〇) を呼んでください（直接読み込むと前のシーンの Dispose が呼ばれません）。");
 
         [Test]
         public void NoFindOrCameraMain() => ReportSourceMatches(
@@ -246,6 +258,43 @@ namespace PictoArcher.Tests.EditMode
                     violations.Add(Relative(path) + ":" + LineOf(text, match.Index));
             }
             Report(violations, "インスペクターで UnityEvent（ボタンの OnClick など）に関数をつながないでください。UiButtonRelay を付けて、シーンの Tick で ConsumeClicked を見てください。");
+        }
+
+        // ---- ガードの正規表現そのもののテスト（見つけるべき書き方と、見逃すべき書き方） ----
+
+        [TestCase("Invoke(\"Fire\", 2f);")]
+        [TestCase("this.Invoke(\"Fire\", 2f);")]
+        [TestCase("Invoke(nameof(Fire), 2f);")]
+        [TestCase("InvokeRepeating(\"Fire\", 0f, 1f);")]
+        [TestCase("CancelInvoke();")]
+        [TestCase("if (IsInvoking()) { }")]
+        [TestCase("StartCoroutine(Fire());")]
+        public void CoroutinePatterns_CatchBadSample(string code) =>
+            Assert.IsTrue(AnyMatch(code, CoroutinePatterns), "見つけるべき書き方を見逃しています: " + code);
+
+        [TestCase("Died?.Invoke(this);")]
+        [TestCase("_hit.Invoke(target);")]
+        [TestCase("handler.Invoke(\"text\");")]
+        [TestCase("// Invoke(\"Fire\", 2f);")]
+        [TestCase("var s = \"Invoke(Fire)\";")]
+        public void CoroutinePatterns_AllowGoodSample(string code) =>
+            Assert.IsFalse(AnyMatch(code, CoroutinePatterns), "正しい書き方を止めています: " + code);
+
+        [TestCase("SceneManager.LoadScene(\"Run\");")]
+        [TestCase("UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(1);")]
+        [TestCase("var scene = SceneManager.GetActiveScene();")]
+        public void SceneLoadPatterns_CatchBadSample(string code) =>
+            Assert.IsTrue(AnyMatch(code, SceneLoadPatterns), "見つけるべき書き方を見逃しています: " + code);
+
+        [TestCase("_context.RequestScene(SceneId.Run);")]
+        [TestCase("// SceneManager.LoadScene(\"Run\");")]
+        public void SceneLoadPatterns_AllowGoodSample(string code) =>
+            Assert.IsFalse(AnyMatch(code, SceneLoadPatterns), "正しい書き方を止めています: " + code);
+
+        static bool AnyMatch(string code, string[] patterns)
+        {
+            var stripped = StripCommentsAndStrings(code);
+            return patterns.Any(p => Regex.IsMatch(stripped, p));
         }
 
         // ---- 下ごしらえ ----

@@ -80,6 +80,7 @@ Assets/_Project/
     PictoArcher.Game.asmdef
     Main/                  Main, GameContext, GameClock, SceneId, SceneBase
     Scenes/                BootScene, HomeScene, RunScene
+      Sandbox/             各自の試し用のシーンのクラス（SandboxAScene など。最初に使う人が作る）
     Common/                CollisionRelay2D, UiButtonRelay, DefinitionAsset, Layers, IHittable
     Data/                  PlayerStats, EnemyDefinition, WaveDefinition, SpawnEntry, SkillId, SkillDefinition
     Enemies/               EnemyRegistry
@@ -126,7 +127,7 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 
 ## シーンとブランチ
 
-- `Boot.unity`・`Home.unity`・`Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。
+- `Boot.unity`・`Home.unity`・`Run.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxAScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
 - ブランチ名は `<担当>/t<Issue番号>-<短い名前>`（例 `a/t12-weapon-select`）。1タスク＝1 Issue＝1ブランチ。
 - `main` へは直接入れない。ほかの1人が確認してからマージする。
 - Claude が書いたコードも、マージ前に人が読む。

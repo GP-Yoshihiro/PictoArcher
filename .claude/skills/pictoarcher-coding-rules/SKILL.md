@@ -60,6 +60,29 @@ public sealed class RunScene : SceneBase
 }
 ```
 
+### Sandbox のシーン（各自の試し用）
+
+`Scenes/Sandbox/Sandbox_<担当>.unity` にプレハブを置いて再生するだけでは、何も動かない。View は自分では動かず、`Main` は「SceneBase が 0 個」とエラーを1回出すだけだから。試し用のシーンにも、自分の `SceneBase` を1つ置く。
+
+- クラスは `Scripts/Game/Scenes/Sandbox/Sandbox<担当>Scene.cs`（例 `SandboxAScene`）。規則は本番のシーンと同じ。
+- シーンの一番上の階層に空の GameObject を1つ作り、このクラスを付ける。試したいプレハブはインスペクターでつなぐ。
+- `SceneId` には足さない（エディタで直接再生するだけ）。フォルダがなければ、最初に使う人が作る。
+
+```csharp
+public sealed class SandboxAScene : SceneBase
+{
+    [SerializeField] EnemyView _enemyPrefab;   // 試したいものをつなぐ
+
+    EnemySystem _enemySystem;
+
+    public override void Init(GameContext context) => _enemySystem = new EnemySystem(new EnemyRegistry(), _enemyPrefab);
+
+    public override void Tick(float deltaTime) => _enemySystem.Tick(deltaTime);
+
+    public override void Dispose() => _enemySystem.Dispose();
+}
+```
+
 ### System（普通の C#）
 
 ```csharp

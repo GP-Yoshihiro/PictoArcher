@@ -74,11 +74,16 @@ namespace PictoArcher.Game
                 _scene.Tick(Time.deltaTime);
 
             // 4. 切り替えの依頼があれば、今のシーンを片付けて読み込みを始める
+            //    Dispose が例外を出しても読み込みは必ず始める（止めると、どのシーンにも進めなくなる）。
             if (_flow.TryBeginLoad(out var next))
             {
-                if (_scene != null) _scene.Dispose();
-                _scene = null;
+                DisposeActiveScene();
                 _loading = SceneManager.LoadSceneAsync(next.ToString(), LoadSceneMode.Single);
+                if (_loading == null)
+                {
+                    Debug.LogError("[Main] シーン「" + next + "」を読み込めません。Build Settings に入っているか確かめてください。今のシーンをやり直します。");
+                    StartActiveScene();
+                }
             }
 
             // 5. 時間の倍率
@@ -99,8 +104,22 @@ namespace PictoArcher.Game
 
         void OnDestroy()
         {
-            if (_flow != null && _flow.Phase == SceneFlowPhase.Running && _scene != null)
-                _scene.Dispose();
+            if (_flow != null && _flow.Phase == SceneFlowPhase.Running) DisposeActiveScene();
+        }
+
+        void DisposeActiveScene()
+        {
+            var scene = _scene;
+            _scene = null;
+            if (scene == null) return;
+            try
+            {
+                scene.Dispose();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
 
         void StartActiveScene()
