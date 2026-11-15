@@ -27,8 +27,8 @@ from openpyxl.worksheet.datavalidation import DataValidation
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "docs", "PictoArcher_仕様書.xlsx")
 
-VERSION = "1.5"
-BUILT = "2026-11-14"
+VERSION = "1.6"
+BUILT = "2026-11-16"
 PROJECT_START = datetime.date(2026, 10, 26)  # 1週目の月曜（スケジュールの入力セル）
 
 FONT = "Yu Gothic"
@@ -890,7 +890,7 @@ def build_art(b):
         "絵が届くまでは、プログラマーは仮の図形で作り、届いたら差し替える",
         "全員の素材について、間に合わない場合の代わり（仮の図形、既存の絵の流用）を先に決めておく",
         "背景とエフェクトはフリー素材。キャラの絵柄と合うかを1週目に確かめる。合わない場合は素材側の色をプログラマーが合わせる",
-        "フリー素材は CC0 を優先する。CC-BY はクレジットをゲームの外（README と配布ページ）に書けば使ってよい。素材を買う予算は無い",
+        "フリー素材は、表記（クレジット）の要らないもの（CC0、OFL のフォントなど）だけを使う。クレジットは作らないので、CC-BY など表記が要る素材は使わない。素材を買う予算は無い",
         "SF の素材には文字が入りやすい（画面の表示、警告の看板、機体の番号など）。取り込む前に確認して消す。docs/assets-list.md に記録する",
     ])
     s.heading("フリー素材（担当：C さん、約3人日。仮アイコンの 0.5 を含む）")
@@ -1629,7 +1629,8 @@ def build_history(b):
         ("1.2", "2026-11-14", "コーディング規則と実行順の土台（P1-00）を作業工程と開発ルールに足した", "C（Claude で作成）"),
         ("1.3", "2026-11-14", "ブランチ運用を変えた：作業は develop から切って develop へ PR を出し、main はリリースのときだけにした。ブランチ名を <プレフィックス>/t<Issue番号>-<短い英語> にした", "C（Claude で作成）"),
         ("1.4", "2026-11-14", "シーンを Root Scene 方式にした：消えない Root.unity（Main・RootScene・カメラ・EventSystem）の上に Home／Battle／Result を加算で入れ替え、Pause を重ねる。Boot を Root に、Run を Battle にした。Result と Pause のシーンを足した", "C（Claude で作成）"),
-        (VERSION, BUILT, "画面を縦長 9:16 にした（P2-00 のうち画面の部分を先に行った）：カメラの基準 270×480、Player Settings は 540×960 のウィンドウ、全画面は整数倍で拡大して黒い帯。エディタの ▶ は、Sandbox 以外のどのシーンを開いていても Root から始まるようにした", "C（Claude で作成）"),
+        ("1.5", "2026-11-14", "画面を縦長 9:16 にした（P2-00 のうち画面の部分を先に行った）：カメラの基準 270×480、Player Settings は 540×960 のウィンドウ、全画面は整数倍で拡大して黒い帯。エディタの ▶ は、Sandbox 以外のどのシーンを開いていても Root から始まるようにした", "C（Claude で作成）"),
+        (VERSION, BUILT, "クレジットは作らないことにした：フリー素材は表記の要らないもの（CC0、OFL のフォントなど）だけを使い、CC-BY など表記が要る素材は使わない", "C（Claude で作成）"),
     ])
 
 
