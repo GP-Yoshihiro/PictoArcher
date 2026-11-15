@@ -33,7 +33,7 @@
 - 1ファイルに1つの型。ファイル名と型の名前を同じにする。
 - 接尾辞：`XxxScene`（`SceneBase` の子）、`XxxSystem`（シーンが持つ処理、普通の C#）、`XxxView`（プレハブに付く MonoBehaviour）、`XxxDefinition`（ScriptableObject のデータ）、`XxxRelay`（Unity から来るものを受け取るだけ）、`XxxExtensions`（拡張メソッド）、`XxxId`（種類の enum）。
 - テスト：`Assets/_Project/Tests/EditMode/<クラス名>Tests.cs`。メソッドは PascalCase で、条件と結果を `_` で区切ってよい（`NoTarget_DoesNotFire`）。
-- アセット：プレハブは役割の名前（`Player`、`Projectile`、`Chaser`）。データは種類ごとのフォルダ（`Data/Player`、`Data/Enemies`、`Data/Waves`、`Data/Skills`、`Data/Obstacles`）。プレハブも種類ごと（`Prefabs/System`、`Prefabs/Player`、`Prefabs/Enemies` など）。絵は `Art/Characters`・`Art/Tiles`・`Art/Effects`・`Art/UI`、音は `Audio/BGM`・`Audio/SE`。直下に直接置かない。シーンの試し用は `Scenes/Sandbox/Sandbox_<担当>.unity`。
+- アセット：プレハブは役割の名前（`Player`、`Projectile`、`Chaser`）。データは種類ごとのフォルダ（`Data/Player`、`Data/Enemies`、`Data/Waves`、`Data/Skills`、`Data/Obstacles`、見た目の表は `Data/Visuals`）。プレハブも種類ごと（`Prefabs/System`、`Prefabs/Player`、`Prefabs/Enemies` など）。絵は `Art/Characters`・`Art/Tiles`・`Art/Effects`・`Art/UI`（仮の絵は `Art/Placeholder`）、音は `Audio/BGM`・`Audio/SE`。直下に直接置かない。シーンの試し用は `Scenes/Sandbox/Sandbox_<担当>.unity`。
 - 構成は Unity の標準に合わせる。自分たちのものはすべて `Assets/_Project` の下。ルールは Core（テストする）、つなぎは Game、数値は ScriptableObject。
 
 ## §2.1 設計の規則（8項目）
@@ -77,7 +77,8 @@ git fetch --prune && git branch -r
 ## §4 Issue
 
 - 1タスク＝1 Issue。仕様書「作業工程」シートの1行が1 Issue になる。
-- タイトル：`[作業工程の ID] タスク名`（例 `[P2-02] 強化の仕組み`）。
+- タイトル：`<担当>-<作業順> [作業工程の ID] タスク名`（例 `A-03 [P2-02] 強化の仕組み`。`A-03` は A さんの3番目の作業。作業順は仕様書「作業工程」シートの「作業順」の列）。だれの何番目の作業かが一目でわかるようにする。タスクが増えたら、その人の最後の番号の次を付ける。
+- 進める順は、作業工程シートの優先度（最優先→優先→通常）。最優先は、ほかの人の作業が待っているタスク。
 - 本文は Issue テンプレート（`.github/ISSUE_TEMPLATE/task.md`）を使う。触る予定のファイルを書く。
 - 始める前に自分を担当にする：`gh issue edit <番号> --add-assignee @me`。
 - 担当になったら、終わるか手放すまで持つ。手放すときは担当を外してコメントを残す。
