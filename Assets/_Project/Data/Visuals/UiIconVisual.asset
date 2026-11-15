@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bed6ff16e87b4ec398342d651fb0787, type: 3}
+  m_Name: UiIconVisual
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.UiIconVisual
+  _play: {fileID: 21300000, guid: 88fc64911ef694aaab735bbb981adc47, type: 3}
+  _pause: {fileID: 21300000, guid: 5f5fbd664c7074478bd5940cd8376edc, type: 3}
+  _retry: {fileID: 21300000, guid: d900fd66189ed46e18bf36cf5010788f, type: 3}
+  _home: {fileID: 21300000, guid: 8f9215b8290fb414187660602f78c692, type: 3}
+  _settings: {fileID: 21300000, guid: e149707ae117a458f8f135fbcf90cb42, type: 3}
+  _locked: {fileID: 21300000, guid: 5a6f24ba6278942c689911c3ef79fd86, type: 3}
+  _volume: {fileID: 21300000, guid: 1a1723b8aa3ab41cbb31802b3731a89e, type: 3}
+  _health: {fileID: 21300000, guid: 932e38209c90a47cdb0a8048c79a0419, type: 3}
+  _coin: {fileID: 21300000, guid: 07d74c4994fb049b288ec045a88fb212, type: 3}
+  _experience: {fileID: 21300000, guid: 6449e5b73f3784e8faff6cc58896a502, type: 3}
+  _level: {fileID: 21300000, guid: 4420b0fe0d3e841e08ed0d286cb2922b, type: 3}
+  _timer: {fileID: 21300000, guid: 9ffa6898d6f8e4992a1e26340d65819a, type: 3}
+  _boss: {fileID: 21300000, guid: 83d9639c7da254d9ca329f01ea54acbf, type: 3}
+  _warning: {fileID: 21300000, guid: 50fc91607e247475595b259677847e35, type: 3}
+  _weaponGun: {fileID: 21300000, guid: 28cbf6d73b0a54238a15471527194046, type: 3}
+  _weaponLaser: {fileID: 21300000, guid: 0cfceb2adc929440fbef64cc928e264a, type: 3}
+  _weaponLauncher: {fileID: 21300000, guid: ac7b79f5c0764479b99c54399981aab2, type: 3}
+  _cardFrame: {fileID: 21300000, guid: 329b1bbd6f5ea46b58b26a3371b670a0, type: 3}

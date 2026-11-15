@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53baf27bb79cc415e99b9c13036642e5, type: 3}
+  m_Name: FieldVisual
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.FieldVisual
+  _floor: {fileID: 21300000, guid: 9659b446982d14768b28534a60480538, type: 3}
+  _wall: {fileID: 21300000, guid: ea4226bdeb0c1477bb6c71bb703fdbbc, type: 3}
+  _decorations:
+  - {fileID: 21300000, guid: 2613612ac0b6d406ba29773fbb32b6f7, type: 3}
+  _lighting:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
