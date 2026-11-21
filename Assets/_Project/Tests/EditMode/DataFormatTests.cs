@@ -18,8 +18,17 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test]
-        public void SkillId_HasTwelveSkills() =>
-            Assert.AreEqual(12, System.Enum.GetValues(typeof(SkillId)).Length);
+        public void SkillId_MatchesDesignSection9() =>
+            CollectionAssert.AreEqual(new[]
+            {
+                "Heal", "MaxHpUp", "AttackUp", "MoveSpeedUp", "AttackSpeedUp",
+                "FrontShot", "DiagonalShot", "SideShot", "RearShot", "MultiShot",
+                "WallBounce", "EnemyBounce", "Pierce",
+                "Fire", "Ice", "Lightning", "Poison",
+                "AreaUp", "Shrink",
+                "DeathBlastVertical", "DeathBlastHorizontal", "DeathBlastRing",
+                "DeathPull", "ExpGainUp", "Orbiter", "Wildcard",
+            }, System.Enum.GetNames(typeof(SkillId)));
 
         [Test]
         public void WaveDefinition_DefaultsToTelegraph08()
