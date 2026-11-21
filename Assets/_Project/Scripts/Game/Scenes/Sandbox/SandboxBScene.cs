@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace PictoArcher.Game
 {
     /// <summary>
-    /// B さんの試し用のシーン。矢印キーで仮のプレイヤーを動かし、一定の間隔で予兆→追う敵を出す。
+    /// B さんの試し用のシーン。矢印キーで仮のプレイヤーを動かし、一定の間隔で予兆→敵（_enemyKinds を順に）を出す。
     /// マウスの左クリックで、プレイヤーに一番近い敵にダメージ 10（弾の代わり）。結果はコンソールに出る。
     /// </summary>
     public sealed class SandboxBScene : SceneBase
@@ -13,7 +13,9 @@ namespace PictoArcher.Game
         [SerializeField] Rigidbody2D _playerBody;
         [SerializeField] SpawnTelegraphView _telegraphPrefab;
         [SerializeField] SpawnTelegraphSettings _telegraphSettings;
-        [SerializeField] EnemyDefinition _enemy;
+        [SerializeField] AttackTelegraphView _attackTelegraphPrefab;
+        [SerializeField, Tooltip("出す敵を順に使う")] EnemyDefinition[] _enemyKinds;
+        [SerializeField, Tooltip("これだけ敵がいるときは新しく出さない")] int _maxEnemies = 3;
         [SerializeField] Vector2[] _spawnPoints;
         [SerializeField] float _spawnInterval = 3f;
         [SerializeField] float _telegraphSeconds = 0.8f;
@@ -24,7 +26,9 @@ namespace PictoArcher.Game
 
         EnemyRegistry _registry;
         SandboxPlayer _player;
+        EnemyProjectileSystem _projectiles;
         EnemySystem _enemies;
+        int _nextKind;
         float _spawnTimer;
         int _nextSpawnPoint;
 
@@ -32,7 +36,8 @@ namespace PictoArcher.Game
         {
             _registry = new EnemyRegistry();
             _player = new SandboxPlayer(_playerBody, _playerMaxHp, _playerInvulnerableSeconds, _playerSpeed);
-            _enemies = new EnemySystem(_registry, _telegraphPrefab, _telegraphSettings, _player, _player);
+            _projectiles = new EnemyProjectileSystem(_player);
+            _enemies = new EnemySystem(_registry, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _projectiles, _player, _player);
             _enemies.Spawned += OnSpawned;
             _enemies.Damaged += OnDamaged;
             _enemies.Died += OnDied;
@@ -45,6 +50,7 @@ namespace PictoArcher.Game
             TickSpawn(deltaTime);
             TickTestShot();
             _enemies.Tick(deltaTime);
+            _projectiles.Tick(deltaTime);
         }
 
         public override void Dispose()
@@ -53,6 +59,7 @@ namespace PictoArcher.Game
             _enemies.Damaged -= OnDamaged;
             _enemies.Spawned -= OnSpawned;
             _enemies.Dispose();
+            _projectiles.Dispose();
             _registry.Clear();
         }
 
@@ -67,11 +74,13 @@ namespace PictoArcher.Game
 
         void TickSpawn(float deltaTime)
         {
-            if (_spawnPoints.Length == 0) return;
+            if (_spawnPoints.Length == 0 || _enemyKinds.Length == 0) return;
             _spawnTimer -= deltaTime;
             if (_spawnTimer > 0f) return;
             _spawnTimer = _spawnInterval;
-            _enemies.Spawn(_enemy, _spawnPoints[_nextSpawnPoint], _telegraphSeconds);
+            if (_registry.Active.Count + _enemies.PendingCount >= _maxEnemies) return;
+            _enemies.Spawn(_enemyKinds[_nextKind], _spawnPoints[_nextSpawnPoint], _telegraphSeconds);
+            _nextKind = (_nextKind + 1) % _enemyKinds.Length;
             _nextSpawnPoint = (_nextSpawnPoint + 1) % _spawnPoints.Length;
         }
 

@@ -6,31 +6,43 @@ using UnityEngine;
 namespace PictoArcher.Game
 {
     /// <summary>
-    /// 敵1体の実行時の状態（HP、動き、アニメ）。定義（EnemyDefinition）からは値を読むだけで、書き換えない。
+    /// 敵1体の実行時の状態（HP、動き、アニメ、予兆）。定義（EnemyDefinition）からは値を読むだけで、書き換えない。
     /// EnemySystem が作って Tick を呼ぶ。弾などは IHittable.TakeHit で当てる。
+    /// 動きと攻撃は IEnemyBehavior（定義から作る）に任せ、その予兆と攻撃はこのクラスが IEnemyAttackPort として受ける。
     /// </summary>
-    public sealed class EnemyUnit : IEnemyTarget
+    public sealed class EnemyUnit : IEnemyTarget, IEnemyAttackPort
     {
         const float FaceThreshold = 0.01f;
 
         readonly EnemyDefinition _definition;
         readonly EnemyView _view;
         readonly Health _health;
-        readonly ChaseMovement _movement;
+        readonly IEnemyBehavior _behavior;
         readonly CharacterSpriteAnimator _animator;
         readonly ITarget _player;
         readonly IHittable _playerBody;
+        readonly AttackTelegraphView _telegraphPrefab;
+        readonly EnemyProjectileSystem _projectiles;
         readonly List<Collider2D> _enteredScratch = new List<Collider2D>();
+        readonly List<AttackTelegraphView> _lineViews = new List<AttackTelegraphView>();
+        AttackTelegraphView _circleView;
+        int _linesUsed;
+        bool _circleUsed;
         bool _deathRaised;
 
-        public EnemyUnit(EnemyDefinition definition, EnemyView view, ITarget player, IHittable playerBody)
+        public EnemyUnit(EnemyDefinition definition, EnemyView view, ITarget player, IHittable playerBody,
+            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles)
         {
+            if (definition.Behavior == null) throw new ArgumentException(definition.name + " に動きと攻撃（Behavior）が入っていません。", nameof(definition));
+            if (definition.MoveSpeed < 0f) throw new ArgumentOutOfRangeException(nameof(definition), definition.name + " の速度が負です。");
             _definition = definition;
             _view = view;
             _player = player;
             _playerBody = playerBody;
+            _telegraphPrefab = telegraphPrefab;
+            _projectiles = projectiles;
             _health = new Health(definition.MaxHp);
-            _movement = new ChaseMovement(definition.MoveSpeed);
+            _behavior = definition.Behavior.Create();
             _animator = new CharacterSpriteAnimator(view.Sprite, definition.Visual);
         }
 
@@ -61,31 +73,59 @@ namespace PictoArcher.Game
 
         public void Tick(float deltaTime)
         {
-            if (IsAlive) TickAlive();
+            if (IsAlive) TickAlive(deltaTime);
             _animator.Tick(deltaTime);
         }
 
-        void TickAlive()
+        /// <summary>予兆の見た目を片付ける（EnemySystem が敵を消すときに呼ぶ）。</summary>
+        public void ReleaseTelegraphs()
         {
+            for (int i = 0; i < _lineViews.Count; i++) DestroyView(_lineViews[i]);
+            _lineViews.Clear();
+            DestroyView(_circleView);
+            _circleView = null;
+        }
+
+        void TickAlive(float deltaTime)
+        {
+            _linesUsed = 0;
+            _circleUsed = false;
+            var velocity = Vector2.zero;
             if (_player.IsAlive)
             {
-                var velocity = _movement.Velocity(Position, _player.Position);
-                _view.SetVelocity(velocity);
-                if (Mathf.Abs(velocity.x) > FaceThreshold) _animator.SetFacingLeft(velocity.x < 0f);
-                _animator.Play(CharacterPose.Move);
+                var context = new EnemyContext(Position, _player.Position, _definition.MoveSpeed);
+                velocity = _behavior.Tick(deltaTime, context, this);
             }
-            else
-            {
-                _view.SetVelocity(Vector2.zero);
-                _animator.Play(CharacterPose.Idle);
-            }
+            if (!IsAlive) return;   // 自爆したときは、このあとの動きや見た目を更新しない
+            HideUnusedTelegraphs();
 
-            // 「入ってきた」記録は使わないが、溜まり続けないよう毎回捨てる
+            _view.SetVelocity(velocity);
+            UpdateAppearance(velocity);
+            DiscardEntered();
+            HitPlayerOnContact();
+        }
+
+        void UpdateAppearance(Vector2 velocity)
+        {
+            float faceX = Mathf.Abs(velocity.x) > FaceThreshold ? velocity.x : _player.Position.x - Position.x;
+            if (Mathf.Abs(faceX) > FaceThreshold) _animator.SetFacingLeft(faceX < 0f);
+
+            bool telegraphing = _linesUsed > 0 || _circleUsed;
+            var pose = telegraphing ? CharacterPose.Attack : velocity != Vector2.zero ? CharacterPose.Move : CharacterPose.Idle;
+            if (_animator.Pose != pose) _animator.Play(pose);
+        }
+
+        // 「入ってきた」記録は使わないが、溜まり続けないよう毎回捨てる
+        void DiscardEntered()
+        {
             _enteredScratch.Clear();
             _view.Relay.DrainEntered(_enteredScratch);
             _enteredScratch.Clear();
+        }
 
-            // 触れている間は毎フレーム当てる。続けて減らないのはプレイヤー側の無敵時間で防ぐ
+        // 触れている間は毎フレーム当てる。続けて減らないのはプレイヤー側の無敵時間で防ぐ
+        void HitPlayerOnContact()
+        {
             if (!_player.IsAlive) return;
             foreach (var other in _view.Relay.Touching)
             {
@@ -100,8 +140,57 @@ namespace PictoArcher.Game
             if (_deathRaised) return;
             _deathRaised = true;
             _view.Freeze();
+            ReleaseTelegraphs();
             _animator.Play(CharacterPose.Death);
             Died?.Invoke(this, new EnemyDeath(_definition, Position, _definition.XpReward, _definition.CoinReward));
+        }
+
+        // ---- IEnemyAttackPort ----
+
+        public void ShowLine(int slot, Vector2 origin, Vector2 direction, float length, float width, float progress)
+        {
+            while (_lineViews.Count <= slot) _lineViews.Add(NewTelegraph());
+            _lineViews[slot].ShowLine(origin, direction, length, width, progress);
+            if (slot + 1 > _linesUsed) _linesUsed = slot + 1;
+        }
+
+        public void ShowCircle(Vector2 center, float radius, float progress)
+        {
+            if (_circleView == null) _circleView = NewTelegraph();
+            _circleView.ShowCircle(center, radius, progress);
+            _circleUsed = true;
+        }
+
+        public void Shoot(EnemyProjectileDefinition projectile, Vector2 direction) => _projectiles.Fire(projectile, Position, direction);
+
+        public void SelfDestruct(float radius, int damage)
+        {
+            if (!IsAlive) return;
+            if (_player.IsAlive && (_player.Position - Position).sqrMagnitude <= radius * radius)
+            {
+                _playerBody.TakeHit(new Damage(damage, DamageKind.Explosion));
+            }
+            _health.ApplyDamage(_health.Max);
+            Die();
+        }
+
+        AttackTelegraphView NewTelegraph()
+        {
+            var view = UnityEngine.Object.Instantiate(_telegraphPrefab);
+            view.Init();
+            return view;
+        }
+
+        // その Tick に出さなかった予兆は消す
+        void HideUnusedTelegraphs()
+        {
+            for (int i = _linesUsed; i < _lineViews.Count; i++) _lineViews[i].Hide();
+            if (!_circleUsed && _circleView != null) _circleView.Hide();
+        }
+
+        static void DestroyView(AttackTelegraphView view)
+        {
+            if (view != null) UnityEngine.Object.Destroy(view.gameObject);
         }
     }
 }

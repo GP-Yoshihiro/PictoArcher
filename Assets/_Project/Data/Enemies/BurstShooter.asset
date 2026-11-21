@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 444efc9fd945c40f2aaa462f43393ff2, type: 3}
-  m_Name: Gunner
+  m_Name: BurstShooter
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.EnemyDefinition
   _prefab: {fileID: 8054780223071104109, guid: a175ff45ee64d354bb000bafeb825716, type: 3}
-  _maxHp: 20
+  _maxHp: 30
   _moveSpeed: 1
   _contactDamage: 5
-  _xpReward: 1
+  _xpReward: 2
   _coinReward: 1
-  _visual: {fileID: 11400000, guid: db3e3f2a787e24acd8c51ea33b5ea439, type: 2}
+  _visual: {fileID: 11400000, guid: 66230dc3609414793bed5a278f2c532e, type: 2}
+  _behavior: {fileID: 11400000, guid: a5ff6022167271749a4b6572dae470e7, type: 2}

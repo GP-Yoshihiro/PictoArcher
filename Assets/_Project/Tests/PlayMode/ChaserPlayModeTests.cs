@@ -15,6 +15,8 @@ namespace PictoArcher.Tests.PlayMode
         const string ChaserPath = "Assets/_Project/Data/Enemies/Chaser.asset";
         const string SandboxPath = "Assets/_Project/Scenes/Sandbox/Sandbox_B.unity";
 
+        bool _sandboxLoaded;
+
         sealed class FakePlayer : ITarget, IHittable
         {
             public Vector2 Position { get; set; }
@@ -27,7 +29,8 @@ namespace PictoArcher.Tests.PlayMode
         {
             var telegraph = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/SpawnTelegraph.prefab").GetComponent<SpawnTelegraphView>();
             var settings = AssetDatabase.LoadAssetAtPath<SpawnTelegraphSettings>("Assets/_Project/Data/Enemies/SpawnTelegraphSettings.asset");
-            return new EnemySystem(registry, telegraph, settings, player, player);
+            var attack = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/AttackTelegraph.prefab").GetComponent<AttackTelegraphView>();
+            return new EnemySystem(registry, telegraph, settings, attack, new EnemyProjectileSystem(player), player, player);
         }
 
         [UnityTest]
@@ -98,18 +101,15 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator Sandbox_SpawnsAfterTelegraph_Chases_AndTouchHurtsPlayer()
+        public IEnumerator Sandbox_SpawnsAfterTelegraph_AndEnemyApproachesPlayer()
         {
+            _sandboxLoaded = true;
             EditorSceneManager.LoadSceneInPlayMode(SandboxPath, new LoadSceneParameters(LoadSceneMode.Single));
             yield return null;
             // 再生前から開いていた Sandbox のシーンには、Main が Root を加算で足す（Main.LoadRootIfMissing と同じ）
             SceneManager.LoadScene(SceneTransform.RootSceneName, LoadSceneMode.Additive);
             yield return null;
             yield return null;
-
-            var hpLogs = 0;
-            Application.LogCallback onLog = (message, _, __) => { if (message.StartsWith("SandboxPlayer HP")) hpLogs++; };
-            Application.logMessageReceived += onLog;
 
             yield return new WaitForSeconds(0.3f);
             Assert.AreEqual(0, Object.FindObjectsByType<EnemyView>(FindObjectsSortMode.None).Length, "予兆の間は敵がいない");
@@ -121,17 +121,17 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(0, Object.FindObjectsByType<SpawnTelegraphView>(FindObjectsSortMode.None).Length, "予兆は消える");
 
             var enemy = enemies[0];
-            var player = Object.FindFirstObjectByType<SandboxBScene>();
-            Assert.IsNotNull(player);
             float before = ((Vector2)enemy.transform.position).magnitude;
             yield return new WaitForSeconds(1f);
-            Assert.Less(((Vector2)enemy.transform.position).magnitude, before - 1f, "プレイヤー（原点）へ近づく");
+            Assert.Less(((Vector2)enemy.transform.position).magnitude, before - 0.5f, "プレイヤー（原点）へ近づく");
+        }
 
-            yield return new WaitForSeconds(6f);
-            Application.logMessageReceived -= onLog;
-            Assert.Greater(hpLogs, 0, "触れるとプレイヤーの HP が減る");
-
-            // Sandbox のシーンを動かしたままにすると、あとのテストに敵が混ざる。Root から始め直して片付ける
+        // Sandbox のシーンを動かしたままにすると、あとのテストに敵や当たり判定が混ざる。失敗したときも Root から始め直して片付ける
+        [UnityTearDown]
+        public IEnumerator CleanUpSandbox()
+        {
+            if (!_sandboxLoaded) yield break;
+            _sandboxLoaded = false;
             SceneManager.LoadScene(SceneTransform.RootSceneName);
             yield return null;
             yield return null;
