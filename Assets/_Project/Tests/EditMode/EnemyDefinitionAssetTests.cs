@@ -7,13 +7,14 @@ using UnityEngine;
 
 namespace PictoArcher.Tests.EditMode
 {
-    /// <summary>仮の敵の定義13種（敵10種・中ボス1種・ボス2種）が揃っていて、WaveDefinition から指せる形になっているか。</summary>
+    /// <summary>仮の敵の定義13種（敵10種・中ボス1種・ボス2種）と、分裂で出る敵が揃っていて、WaveDefinition から指せる形になっているか。</summary>
     public class EnemyDefinitionAssetTests
     {
         static readonly string[] ExpectedNames =
         {
             "Shooter", "Lobber", "SpreadShooter", "BurstShooter", "Chaser", "Bomber", "Burner", "Striker", "Hammerer", "TimeLimiter",
             "Splitter", "BossA", "FinalBoss",
+            "SplitterMini",   // 中ボスの分裂で出る敵（ウェーブには入れない）
         };
 
         static List<EnemyDefinition> LoadAll()
@@ -23,7 +24,7 @@ namespace PictoArcher.Tests.EditMode
                 .ToList();
         }
 
-        [Test] public void ThirteenDefinitionsExist_WithExpectedNames()
+        [Test] public void ThirteenWaveDefinitionsAndSplitChildExist_WithExpectedNames()
         {
             var names = LoadAll().Select(d => d.name).OrderBy(n => n).ToArray();
             CollectionAssert.AreEqual(ExpectedNames.OrderBy(n => n).ToArray(), names);

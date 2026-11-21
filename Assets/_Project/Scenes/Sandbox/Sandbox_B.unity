@@ -313,7 +313,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2a2b127bc0f388b4385a4d2f56d4bfee, type: 2}
   - {fileID: 11400000, guid: cd6c5d0dce22bf24daeb3cf89590b32e, type: 2}
   - {fileID: 11400000, guid: 4c8bb2b00a2d7b144ab67362418d8ed0, type: 2}
-  _maxEnemies: 3
+  - {fileID: 11400000, guid: 80a62c05797fe2a4c8354ac26afe97c4, type: 2}
+  _maxEnemies: 6
   _spawnPoints:
   - {x: -8, y: 6}
   - {x: 8, y: 6}
@@ -324,7 +325,7 @@ MonoBehaviour:
   _playerMaxHp: 100
   _playerInvulnerableSeconds: 0.6
   _playerSpeed: 4
-  _testShotDamage: 10
+  _testShotDamage: 30
 --- !u!4 &231682034
 Transform:
   m_ObjectHideFlags: 0

@@ -17,6 +17,7 @@ namespace PictoArcher.Game
             public TelegraphTimer Timer;
             public EnemyDefinition Definition;
             public Vector2 Position;
+            public int Tier;
         }
 
         readonly EnemyRegistry _registry;
@@ -28,6 +29,7 @@ namespace PictoArcher.Game
         readonly IHittable _playerBody;
         readonly List<Pending> _pending = new List<Pending>();
         readonly List<EnemyUnit> _units = new List<EnemyUnit>();
+        readonly List<KeyValuePair<EnemyUnit, int>> _splits = new List<KeyValuePair<EnemyUnit, int>>();
 
         public EnemySystem(EnemyRegistry registry, SpawnTelegraphView telegraphPrefab, SpawnTelegraphSettings telegraphSettings,
             AttackTelegraphView attackTelegraphPrefab, EnemyProjectileSystem projectiles, ITarget player, IHittable playerBody)
@@ -50,11 +52,12 @@ namespace PictoArcher.Game
         public int PendingCount => _pending.Count;
 
         /// <summary>position に予兆を出し、seconds 秒あとにそこへ敵を出す。</summary>
-        public void Spawn(EnemyDefinition definition, Vector2 position, float seconds)
+        /// <summary>tier は何回目の登場か（0 が最初）。中ボスなどは tier が上がるほど HP・速さ・分裂の数が増える。定義に予兆の絵があれば、ふつうの予兆の代わりにそれを出す。</summary>
+        public void Spawn(EnemyDefinition definition, Vector2 position, float seconds, int tier = 0)
         {
             // 時間が正しくないとタイマーが例外を出す。見た目を作る前に作って、予兆が管理されずに残るのを防ぐ
             var timer = new TelegraphTimer(seconds, _telegraphSettings.BlinksPerSecond);
-            var view = UnityEngine.Object.Instantiate(_telegraphPrefab);
+            var view = UnityEngine.Object.Instantiate(definition.SpawnTelegraph != null ? definition.SpawnTelegraph : _telegraphPrefab);
             view.Init(position, _telegraphSettings.EndScale);
             view.Apply(0f, true);
             _pending.Add(new Pending
@@ -63,11 +66,13 @@ namespace PictoArcher.Game
                 Timer = timer,
                 Definition = definition,
                 Position = position,
+                Tier = tier,
             });
         }
 
         public void Tick(float deltaTime)
         {
+            SpawnSplitChildren();
             TickPending(deltaTime);
             TickUnits(deltaTime);
         }
@@ -85,11 +90,11 @@ namespace PictoArcher.Game
                 }
                 _pending.RemoveAt(i);
                 UnityEngine.Object.Destroy(pending.View.gameObject);
-                SpawnEnemy(pending.Definition, pending.Position);
+                SpawnEnemy(pending.Definition, pending.Position, pending.Tier);
             }
         }
 
-        void SpawnEnemy(EnemyDefinition definition, Vector2 position)
+        void SpawnEnemy(EnemyDefinition definition, Vector2 position, int tier)
         {
             var instance = UnityEngine.Object.Instantiate(definition.Prefab);
             EnemyUnit unit;
@@ -97,7 +102,7 @@ namespace PictoArcher.Game
             {
                 var view = instance.GetComponent<EnemyView>();
                 view.Init(position);
-                unit = new EnemyUnit(definition, view, _player, _playerBody, _attackTelegraphPrefab, _projectiles);
+                unit = new EnemyUnit(definition, view, _player, _playerBody, _attackTelegraphPrefab, _projectiles, tier);
             }
             catch
             {
@@ -107,6 +112,7 @@ namespace PictoArcher.Game
             }
             unit.Damaged += OnUnitDamaged;
             unit.Died += OnUnitDied;
+            unit.SplitRequested += OnUnitSplitRequested;
             _units.Add(unit);
             _registry.Register(unit, unit.Body);
             Spawned?.Invoke(unit);
@@ -126,6 +132,30 @@ namespace PictoArcher.Game
 
         void OnUnitDamaged(DamageReport report) => Damaged?.Invoke(report);
 
+        // 当てた側の処理の途中で敵を増やさないよう、分裂は次の Tick の始めに出す
+        void OnUnitSplitRequested(EnemyUnit unit, int count) => _splits.Add(new KeyValuePair<EnemyUnit, int>(unit, count));
+
+        void SpawnSplitChildren()
+        {
+            if (_splits.Count == 0) return;
+            var requests = _splits.ToArray();
+            _splits.Clear();
+            for (int r = 0; r < requests.Length; r++)
+            {
+                var parent = requests[r].Key;
+                if (parent.View == null) continue;   // 先に片付いていたら出さない
+                int count = requests[r].Value;
+                var split = parent.Definition.Split;
+                var origin = parent.Position;
+                for (int i = 0; i < count; i++)
+                {
+                    float angle = Mathf.PI * 2f * i / count;
+                    var offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * split.SpawnRadius;
+                    SpawnEnemy(split.Child, origin + offset, 0);
+                }
+            }
+        }
+
         void OnUnitDied(EnemyUnit unit, EnemyDeath death)
         {
             Died?.Invoke(death);
@@ -137,6 +167,7 @@ namespace PictoArcher.Game
         {
             unit.Damaged -= OnUnitDamaged;
             unit.Died -= OnUnitDied;
+            unit.SplitRequested -= OnUnitSplitRequested;
             unit.ReleaseTelegraphs();
             _registry.Unregister(unit);
             DestroyIfAlive(unit.View);
@@ -152,6 +183,7 @@ namespace PictoArcher.Game
         {
             for (int i = 0; i < _pending.Count; i++) DestroyIfAlive(_pending[i].View);
             _pending.Clear();
+            _splits.Clear();
             for (int i = 0; i < _units.Count; i++) Release(_units[i]);
             _units.Clear();
         }
