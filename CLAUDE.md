@@ -14,7 +14,7 @@
    gh pr list --state open
    git branch -r
    ```
-2. 頼まれた作業の Issue を探す（タイトルは `[作業工程の ID] タスク名`）。
+2. 頼まれた作業の Issue を探す（タイトルは `<担当>-<作業順> [作業工程の ID] タスク名`（例 `A-03 [P2-02] 強化の仕組み`。`A-03` は A さんの3番目の作業。作業順は仕様書「作業工程」シートの「作業順」の列））。
    - Issue の担当（assignee）がほかの人なら、作業を始めずに人に伝える。
    - 同じファイルを触る PR（下書きを含む）が開いているなら、作業を始めずに人に伝える。
    - Issue がないなら、作ってよいか人に聞く。
@@ -99,6 +99,7 @@ Assets/_Project/
   Data/                    ScriptableObject のアセット
     Player/                PlayerStats
     Enemies/ Waves/ Skills/ Obstacles/   EnemyDefinition、WaveDefinition、SkillDefinition、ObstacleLayout
+    Visuals/               見た目の表（CharacterVisual など。絵は表の枠にアタッチするだけ）
   Prefabs/
     System/                MainCamera
     Player/ Enemies/ Projectiles/ Field/ UI/   それぞれのタスクで足す
@@ -111,6 +112,7 @@ Assets/_Project/
     Tiles/                 床・壁・障害物のフリー素材
     Effects/               エフェクト
     UI/                    カード、アイコン、ボタン、ピクトグラム（ドット絵ではない。Bilinear）
+    Placeholder/           仮の絵（円や四角）。本番の絵が届くまで見た目の表に入れておく
   Audio/
     BGM/ SE/
 tools/run-editmode-tests.sh

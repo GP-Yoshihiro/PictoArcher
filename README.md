@@ -74,7 +74,3 @@ python3 tools/spec/build_spec_xlsx.py
 ## Claude Code の準備
 
 `.claude/settings.json` で `superpowers` プラグインを有効にしている。初めてのときは Claude Code で `/plugin` を開き、`claude-plugins-official` から `superpowers` を入れる。スキル（`.claude/skills/`）とサブエージェント（`.claude/agents/`）はリポジトリに入っているので、そのまま使える。フックは共有しない。
-
-## クレジット（CC-BY など）
-
-（まだなし）
