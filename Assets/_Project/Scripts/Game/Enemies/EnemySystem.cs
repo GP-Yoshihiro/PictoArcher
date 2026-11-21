@@ -30,6 +30,7 @@ namespace PictoArcher.Game
         readonly List<Pending> _pending = new List<Pending>();
         readonly List<EnemyUnit> _units = new List<EnemyUnit>();
         readonly List<KeyValuePair<EnemyUnit, int>> _splits = new List<KeyValuePair<EnemyUnit, int>>();
+        readonly List<EnemyDeath> _deferredDeaths = new List<EnemyDeath>();
 
         public EnemySystem(EnemyRegistry registry, SpawnTelegraphView telegraphPrefab, SpawnTelegraphSettings telegraphSettings,
             AttackTelegraphView attackTelegraphPrefab, EnemyProjectileSystem projectiles, ITarget player, IHittable playerBody)
@@ -137,7 +138,12 @@ namespace PictoArcher.Game
 
         void SpawnSplitChildren()
         {
-            if (_splits.Count == 0) return;
+            if (_splits.Count > 0) SpawnRequestedChildren();
+            FlushDeferredDeaths();
+        }
+
+        void SpawnRequestedChildren()
+        {
             var requests = _splits.ToArray();
             _splits.Clear();
             for (int r = 0; r < requests.Length; r++)
@@ -156,9 +162,28 @@ namespace PictoArcher.Game
             }
         }
 
+        bool HasPendingSplit(EnemyUnit unit)
+        {
+            for (int i = 0; i < _splits.Count; i++)
+            {
+                if (_splits[i].Key == unit) return true;
+            }
+            return false;
+        }
+
+        void FlushDeferredDeaths()
+        {
+            if (_deferredDeaths.Count == 0) return;
+            var deaths = _deferredDeaths.ToArray();
+            _deferredDeaths.Clear();
+            for (int i = 0; i < deaths.Length; i++) Died?.Invoke(deaths[i]);
+        }
+
         void OnUnitDied(EnemyUnit unit, EnemyDeath death)
         {
-            Died?.Invoke(death);
+            // 分裂の子がまだ出ていない敵が死んだら、Died は子を出したあとに届ける（先に届くと、ウェーブが「敵が0体」と見てクリアにしてしまう）
+            if (HasPendingSplit(unit)) _deferredDeaths.Add(death);
+            else Died?.Invoke(death);
             // 死んだ敵は、Died を出したあとで Registry から外す（IEnemyEvents の約束）
             _registry.Unregister(unit);
         }
@@ -184,6 +209,7 @@ namespace PictoArcher.Game
             for (int i = 0; i < _pending.Count; i++) DestroyIfAlive(_pending[i].View);
             _pending.Clear();
             _splits.Clear();
+            _deferredDeaths.Clear();
             for (int i = 0; i < _units.Count; i++) Release(_units[i]);
             _units.Clear();
         }

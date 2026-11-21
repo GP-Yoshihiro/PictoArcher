@@ -113,34 +113,77 @@ namespace PictoArcher.Tests.PlayMode
             yield return null;
         }
 
+        /// <summary>ウェーブの数え方を、本番と同じ形（Spawned で登録、Died で減らす）でつなぐ。Died は位置から対応する敵を探す。</summary>
+        sealed class WaveWiring
+        {
+            readonly WaveProgress _progress = new WaveProgress();
+            readonly Dictionary<IEnemyTarget, int> _ids = new Dictionary<IEnemyTarget, int>();
+            public int ClearedCount;
+
+            public WaveWiring(EnemySystem system)
+            {
+                _progress.Cleared += () => ClearedCount++;
+                system.Spawned += enemy =>
+                {
+                    _ids[enemy] = _ids.Count;
+                    _progress.RegisterEnemy(_ids[enemy]);
+                };
+                system.Died += death =>
+                {
+                    foreach (var pair in _ids)
+                    {
+                        if (pair.Key.IsAlive || pair.Key.Position != death.Position) continue;
+                        _progress.MarkKilled(pair.Value);
+                    }
+                };
+            }
+
+            public WaveProgress Progress => _progress;
+            public List<IEnemyTarget> All => _ids.Keys.ToList();
+        }
+
         [UnityTest]
         public IEnumerator Wave_EndsOnlyAfterEveryEnemyIncludingSplitChildrenIsDead()
         {
-            var progress = new WaveProgress();
-            var ids = new Dictionary<IEnemyTarget, int>();
-            _system.Spawned += e =>
-            {
-                ids[e] = ids.Count;
-                progress.RegisterEnemy(ids[e]);   // ウェーブの数え方：出たものを全部登録（分裂した小さい敵も）
-            };
-
+            var wave = new WaveWiring(_system);
             var boss = SpawnNow("Splitter");
             boss.TakeHit(new Damage(110));
             _system.Tick(0.016f);
-            progress.FinishSpawning();
-            Assert.AreEqual(3, progress.AliveCount, "本体と分裂2体");
+            wave.Progress.FinishSpawning();
+            Assert.AreEqual(3, wave.Progress.AliveCount, "本体と分裂2体");
 
-            var all = ids.Keys.ToList();
-            for (int i = 0; i < all.Count; i++)
+            foreach (var enemy in wave.All)
             {
-                Assert.IsFalse(progress.IsCleared, "全部倒すまで終わらない");
-                all[i].TakeHit(new Damage(10000));
-                progress.MarkKilled(ids[all[i]]);
+                Assert.AreEqual(0, wave.ClearedCount, "全部倒すまで終わらない");
+                enemy.TakeHit(new Damage(10000));
             }
 
-            Assert.IsTrue(progress.IsCleared);
+            Assert.AreEqual(1, wave.ClearedCount, "全部倒すとちょうど1回だけ終わる");
             Assert.AreEqual(3, _died, "本体と分裂2体で Died が3回");
             Assert.AreEqual(0, _registry.Active.Count, "全部倒すと Registry は空");
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_DoesNotClear_WhenSplitterDiesRightAfterSplitRequest_BeforeNextTick()
+        {
+            var wave = new WaveWiring(_system);
+            var boss = SpawnNow("Splitter");
+            wave.Progress.FinishSpawning();
+
+            boss.TakeHit(new Damage(110));    // 分裂を要求（子はまだ出ていない）
+            boss.TakeHit(new Damage(1000));   // 次の Tick より前に本体が死ぬ
+            Assert.AreEqual(0, _died, "子が出るまで本体の Died は保留される");
+            Assert.AreEqual(0, wave.ClearedCount, "子が出る前にウェーブが終わってはいけない");
+
+            _system.Tick(0.016f);   // 子が出て、そのあとで保留の Died が届く
+            Assert.AreEqual(3, wave.All.Count, "本体 + 分裂2体");
+            Assert.AreEqual(1, _died);
+            Assert.AreEqual(0, wave.ClearedCount, "子が生きているのでまだ終わらない");
+            Assert.AreEqual(2, wave.Progress.AliveCount);
+
+            foreach (var enemy in wave.All.Where(e => e.IsAlive).ToList()) enemy.TakeHit(new Damage(10000));
+            Assert.AreEqual(1, wave.ClearedCount, "子を全部倒したら終わる");
             yield return null;
         }
 
