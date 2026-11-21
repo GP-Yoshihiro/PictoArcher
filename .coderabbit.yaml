@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit（PR の自動レビュー）の設定。
+# 人のレビューの代わりではない。マージ前に人が読む決まり（CLAUDE.md「シーンとブランチ」）はそのまま。
+
+language: ja-JP
+early_access: false
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - develop
+      - main
+
+  # レビューしても意味の薄いもの（Unity が作るファイル、絵・音・フォント、作り直す .xlsx）を外す。
+  path_filters:
+    - "!**/*.meta"
+    - "!**/*.unity"
+    - "!**/*.prefab"
+    - "!**/*.anim"
+    - "!**/*.controller"
+    - "!**/*.mat"
+    - "!**/*.png"
+    - "!**/*.psd"
+    - "!**/*.aseprite"
+    - "!**/*.wav"
+    - "!**/*.ogg"
+    - "!**/*.mp3"
+    - "!**/*.ttf"
+    - "!**/*.otf"
+    - "!**/*.xlsx"
+    - "!Library/**"
+    - "!Temp/**"
+    - "!Logs/**"
+    - "!UserSettings/**"
+    - "!Packages/packages-lock.json"
+
+  path_instructions:
+    - path: "Assets/_Project/Scripts/**/*.cs"
+      instructions: |
+        docs/superpowers/specs/2026-11-14-coding-rules-design.md と CLAUDE.md の「実行順と設計の規則」に合っているかを見る。
+        - Unity の標準ライフサイクル（Awake、Start、Update、FixedUpdate、OnEnable、OnDestroy など）を書いてよいのは Main だけ。
+          ほかは SceneBase の Init／Tick／FixedTick／LateTick／Dispose と System の Tick で動かす。
+        - 禁止：Find 系、Camera.main、コルーチン、Invoke、async、シングルトン、static の書き換えられる値、
+          インスペクターで onClick に関数をつなぐこと、Main 以外で Time. を読むこと、Main と SceneTransform 以外で SceneManager を使うこと。
+        - 当たり判定は CollisionRelay2D、ボタンは UiButtonRelay が受け取るだけで、処理は Tick の中。入力も Tick の中で読む。
+        - 継承は骨組み（SceneBase、DefinitionAsset<T>）だけ。ほかのクラスは sealed。
+        - HP・攻撃力・速度・出現数などの数値をコードに直接書かず、ScriptableObject の調整値にする。
+        - 1ファイルに1つの型で、ファイル名＝型名。名前は世界観ではなく役割で付ける（Projectile、Chaser など）。
+        - 画面に文字を出さない（CLAUDE.md「文字ゼロのルール」）。開発用・デバッグ用の表示も同じ。ログはコンソールだけ。
+    - path: "Assets/_Project/Scripts/Core/**/*.cs"
+      instructions: |
+        純粋な C#。UnityEngine の部品（MonoBehaviour、ScriptableObject、GameObject など）を使っていないか見る。
+        使ってよいのは Vector2、Mathf などの数学の型だけ。名前空間は PictoArcher.Core。
+        ルールを足したら Assets/_Project/Tests/EditMode/<クラス名>Tests.cs に NUnit のテストがあるか見る。
+    - path: "Assets/_Project/Scripts/Game/**/*.cs"
+      instructions: |
+        名前空間は PictoArcher.Game（フォルダで分けない）。
+        ScriptableObject は [SerializeField] private の _camelCase と読み取り専用のプロパティで、実行中に書き換えていないか見る。
+        public のフィールドを使っていないか見る。
+    - path: "Assets/_Project/Scripts/Editor/**/*.cs"
+      instructions: "エディタ専用。名前空間は PictoArcher.Editor。"
+    - path: "Assets/_Project/Tests/**/*.cs"
+      instructions: |
+        ArchitectureGuardTests・NoTextGuardTests に例外を足して通していないか見る。
+        足している場合は、PR に理由が書かれているかを確かめるよう指摘する。
+    - path: "docs/**/*.md"
+      instructions: |
+        仕様を変える文書の変更なら、同じ PR で tools/spec/build_spec_xlsx.py も直して .xlsx を作り直しているか見る
+        （docs/development-rules.md §10）。
+
+  tools:
+    gitleaks:
+      enabled: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "CLAUDE.md"
+      - "docs/development-rules.md"
+      - "docs/unity-pitfalls.md"
+      - "docs/superpowers/specs/2026-11-14-coding-rules-design.md"
