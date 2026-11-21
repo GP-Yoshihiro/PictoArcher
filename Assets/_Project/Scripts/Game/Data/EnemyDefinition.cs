@@ -13,6 +13,7 @@ namespace PictoArcher.Game
         [SerializeField, FormerlySerializedAs("contactDamage")] int _contactDamage;
         [SerializeField, FormerlySerializedAs("xpReward")] int _xpReward;
         [SerializeField, FormerlySerializedAs("coinReward")] int _coinReward;
+        [SerializeField, Tooltip("見た目の表（Data/Visuals/Characters）。同じモデルの敵は同じ表を指してよい")] CharacterVisual _visual;
 
         public GameObject Prefab => _prefab;
         public int MaxHp => _maxHp;
@@ -20,5 +21,6 @@ namespace PictoArcher.Game
         public int ContactDamage => _contactDamage;
         public int XpReward => _xpReward;
         public int CoinReward => _coinReward;
+        public CharacterVisual Visual => _visual;
     }
 }
