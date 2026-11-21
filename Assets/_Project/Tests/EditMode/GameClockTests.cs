@@ -31,5 +31,51 @@ namespace PictoArcher.Tests.EditMode
 
         [Test] public void NegativeScale_Throws() =>
             Assert.Throws<ArgumentOutOfRangeException>(() => new GameClock().Scale = -1f);
+
+        [Test] public void HitStop_StopsTimeUntilItsSecondsPassInUnscaledTime()
+        {
+            var clock = new GameClock { Scale = 2f };
+            clock.RequestHitStop(0.1f);
+            Assert.IsTrue(clock.IsHitStopped);
+            Assert.AreEqual(0f, clock.EffectiveTimeScale);
+
+            clock.Advance(0.06f);
+            Assert.IsTrue(clock.IsHitStopped, "0.1 秒のうち 0.06 秒しかたっていません");
+
+            clock.Advance(0.06f);
+            Assert.IsFalse(clock.IsHitStopped);
+            Assert.AreEqual(2f, clock.EffectiveTimeScale);
+        }
+
+        [Test] public void HitStop_ShorterRequestDoesNotCutLongerOne()
+        {
+            var clock = new GameClock();
+            clock.RequestHitStop(0.2f);
+            clock.RequestHitStop(0.05f);
+            clock.Advance(0.1f);
+            Assert.IsTrue(clock.IsHitStopped, "短い依頼で長いほうが縮まないはずです");
+        }
+
+        [Test] public void HitStop_LongerRequestExtends()
+        {
+            var clock = new GameClock();
+            clock.RequestHitStop(0.05f);
+            clock.RequestHitStop(0.2f);
+            clock.Advance(0.1f);
+            Assert.IsTrue(clock.IsHitStopped);
+        }
+
+        [Test] public void HitStop_DoesNotCountDownWhilePaused()
+        {
+            var clock = new GameClock();
+            clock.RequestHitStop(0.1f);
+            clock.Paused = true;
+            clock.Advance(0.5f);
+            clock.Paused = false;
+            Assert.IsTrue(clock.IsHitStopped, "一時停止の間にヒットストップを使い切らないはずです");
+        }
+
+        [Test] public void HitStop_NegativeSecondsThrows() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() => new GameClock().RequestHitStop(-0.1f));
     }
 }
