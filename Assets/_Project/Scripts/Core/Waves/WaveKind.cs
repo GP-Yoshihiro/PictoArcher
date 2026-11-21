@@ -1,4 +1,4 @@
 namespace PictoArcher.Core
 {
-    public enum WaveKind { Tutorial, Combat, MiniBoss, Boss, FinalBoss, Angel }
+    public enum WaveKind { Tutorial, Combat, MiniBoss, Boss, FinalBoss }
 }

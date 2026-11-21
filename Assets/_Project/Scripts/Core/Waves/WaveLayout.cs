@@ -13,7 +13,6 @@ namespace PictoArcher.Core
             if (wave == TotalWaves) return WaveKind.FinalBoss;
             if (wave % 10 == 5) return WaveKind.MiniBoss;
             if (wave % 10 == 0) return WaveKind.Boss;
-            if (wave % 10 == 1 && wave >= 11) return WaveKind.Angel;
             return WaveKind.Combat;
         }
     }
