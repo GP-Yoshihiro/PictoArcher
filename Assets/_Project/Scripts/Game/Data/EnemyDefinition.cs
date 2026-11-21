@@ -15,6 +15,8 @@ namespace PictoArcher.Game
         [SerializeField, FormerlySerializedAs("coinReward")] int _coinReward;
         [SerializeField, Tooltip("見た目の表（Data/Visuals/Characters）。同じモデルの敵は同じ表を指してよい")] CharacterVisual _visual;
 
+        [SerializeField, Tooltip("動きと攻撃の種類（Data/Enemies の ...Behavior アセット）")] EnemyBehaviorDefinition _behavior;
+        public EnemyBehaviorDefinition Behavior => _behavior;
         public GameObject Prefab => _prefab;
         public int MaxHp => _maxHp;
         public float MoveSpeed => _moveSpeed;

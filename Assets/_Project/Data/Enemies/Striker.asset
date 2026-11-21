@@ -19,3 +19,4 @@ MonoBehaviour:
   _xpReward: 3
   _coinReward: 2
   _visual: {fileID: 11400000, guid: 4dc9e0884a78145e290d83412e4ee76c, type: 2}
+  _behavior: {fileID: 11400000, guid: a5ff6022167271749a4b6572dae470e7, type: 2}

@@ -12,7 +12,7 @@ namespace PictoArcher.Tests.EditMode
     {
         static readonly string[] ExpectedNames =
         {
-            "Gunner", "Blaster", "FanGunner", "BurstGunner", "Chaser", "Bomber", "Burner", "Striker", "Hammerer", "TimeLimiter",
+            "Shooter", "Lobber", "SpreadShooter", "BurstShooter", "Chaser", "Bomber", "Burner", "Striker", "Hammerer", "TimeLimiter",
             "Splitter", "BossA", "FinalBoss",
         };
 
@@ -39,6 +39,7 @@ namespace PictoArcher.Tests.EditMode
                 Assert.GreaterOrEqual(definition.XpReward, 0, definition.name + " の経験値");
                 Assert.GreaterOrEqual(definition.CoinReward, 0, definition.name + " のコイン");
                 Assert.IsNotNull(definition.Visual, definition.name + " の見た目の表");
+                Assert.IsNotNull(definition.Behavior, definition.name + " の動きと攻撃（Behavior）");
                 Assert.IsNotNull(definition.Prefab, definition.name + " のプレハブ");
                 Assert.IsNotNull(definition.Prefab.GetComponent<EnemyView>(), definition.name + " のプレハブに EnemyView がない");
             }

@@ -1,0 +1,20 @@
+using UnityEngine;
+
+namespace PictoArcher.Game
+{
+    /// <summary>敵の動く部品が、予兆を出したり攻撃したりするための口。EnemyUnit が実装する。</summary>
+    public interface IEnemyAttackPort
+    {
+        /// <summary>赤い線を出す。slot は 0 から続けて使う（扇形なら弾の数だけ）。</summary>
+        void ShowLine(int slot, Vector2 origin, Vector2 direction, float length, float width, float progress);
+
+        /// <summary>赤い円を出す。progress が 0 から 1 になるにつれて radius まで広がる。</summary>
+        void ShowCircle(Vector2 center, float radius, float progress);
+
+        /// <summary>自分の足元から direction へ弾を1発撃つ。</summary>
+        void Shoot(EnemyProjectileDefinition projectile, Vector2 direction);
+
+        /// <summary>自爆する。自分の足元から radius 以内にプレイヤーがいれば damage を与え、自分は倒れる。</summary>
+        void SelfDestruct(float radius, int damage);
+    }
+}

@@ -22,16 +22,21 @@ namespace PictoArcher.Game
         readonly EnemyRegistry _registry;
         readonly SpawnTelegraphView _telegraphPrefab;
         readonly SpawnTelegraphSettings _telegraphSettings;
+        readonly AttackTelegraphView _attackTelegraphPrefab;
+        readonly EnemyProjectileSystem _projectiles;
         readonly ITarget _player;
         readonly IHittable _playerBody;
         readonly List<Pending> _pending = new List<Pending>();
         readonly List<EnemyUnit> _units = new List<EnemyUnit>();
 
-        public EnemySystem(EnemyRegistry registry, SpawnTelegraphView telegraphPrefab, SpawnTelegraphSettings telegraphSettings, ITarget player, IHittable playerBody)
+        public EnemySystem(EnemyRegistry registry, SpawnTelegraphView telegraphPrefab, SpawnTelegraphSettings telegraphSettings,
+            AttackTelegraphView attackTelegraphPrefab, EnemyProjectileSystem projectiles, ITarget player, IHittable playerBody)
         {
             _registry = registry;
             _telegraphPrefab = telegraphPrefab;
             _telegraphSettings = telegraphSettings;
+            _attackTelegraphPrefab = attackTelegraphPrefab;
+            _projectiles = projectiles;
             _player = player;
             _playerBody = playerBody;
         }
@@ -92,7 +97,7 @@ namespace PictoArcher.Game
             {
                 var view = instance.GetComponent<EnemyView>();
                 view.Init(position);
-                unit = new EnemyUnit(definition, view, _player, _playerBody);
+                unit = new EnemyUnit(definition, view, _player, _playerBody, _attackTelegraphPrefab, _projectiles);
             }
             catch
             {
@@ -132,6 +137,7 @@ namespace PictoArcher.Game
         {
             unit.Damaged -= OnUnitDamaged;
             unit.Died -= OnUnitDied;
+            unit.ReleaseTelegraphs();
             _registry.Unregister(unit);
             DestroyIfAlive(unit.View);
         }
