@@ -48,7 +48,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SpawnTelegraphView
   _circle: {fileID: 2171119821666823004}
   _mark: {fileID: 677552619787209293}
-  _endScale: 1.3
 --- !u!1 &7588797299818450408
 GameObject:
   m_ObjectHideFlags: 0

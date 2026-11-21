@@ -23,13 +23,54 @@ namespace PictoArcher.Tests.PlayMode
             public void TakeHit(Damage damage) => Hits++;
         }
 
+        static EnemySystem NewSystem(EnemyRegistry registry, FakePlayer player)
+        {
+            var telegraph = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/SpawnTelegraph.prefab").GetComponent<SpawnTelegraphView>();
+            var settings = AssetDatabase.LoadAssetAtPath<SpawnTelegraphSettings>("Assets/_Project/Data/Enemies/SpawnTelegraphSettings.asset");
+            return new EnemySystem(registry, telegraph, settings, player, player);
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_WithZeroSeconds_Throws_AndLeavesNoTelegraph()
+        {
+            var definition = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(ChaserPath);
+            var system = NewSystem(new EnemyRegistry(), new FakePlayer());
+
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => system.Spawn(definition, Vector2.zero, 0f));
+
+            Assert.AreEqual(0, system.PendingCount);
+            Assert.AreEqual(0, Object.FindObjectsByType<SpawnTelegraphView>(FindObjectsSortMode.None).Length, "例外のあとに予兆が残らない");
+            system.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Spawn_WithBrokenDefinition_Throws_AndLeavesNoEnemyObject()
+        {
+            var broken = Object.Instantiate(AssetDatabase.LoadAssetAtPath<EnemyDefinition>(ChaserPath));
+            var serialized = new SerializedObject(broken);
+            serialized.FindProperty("_moveSpeed").floatValue = -1f;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var registry = new EnemyRegistry();
+            var system = NewSystem(registry, new FakePlayer());
+
+            system.Spawn(broken, Vector2.zero, 0.1f);
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => system.Tick(0.2f));
+            yield return null;   // Destroy は次のフレームで反映される
+
+            Assert.AreEqual(0, Object.FindObjectsByType<EnemyView>(FindObjectsSortMode.None).Length, "作れなかった敵のオブジェクトが残らない");
+            Assert.AreEqual(0, registry.Active.Count);
+            system.Dispose();
+            Object.DestroyImmediate(broken);
+        }
+
         [UnityTest]
         public IEnumerator Chaser_DiesAfterThreeHits_AndRaisesDiedOnce_EvenWithSimultaneousHits()
         {
             var definition = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(ChaserPath);
             var registry = new EnemyRegistry();
             var player = new FakePlayer { Position = new Vector2(50f, 0f) };
-            var system = new EnemySystem(registry, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/SpawnTelegraph.prefab").GetComponent<SpawnTelegraphView>(), player, player);
+            var system = NewSystem(registry, player);
             int damaged = 0, died = 0;
             IEnemyTarget spawned = null;
             system.Damaged += _ => damaged++;
@@ -89,6 +130,11 @@ namespace PictoArcher.Tests.PlayMode
             yield return new WaitForSeconds(6f);
             Application.logMessageReceived -= onLog;
             Assert.Greater(hpLogs, 0, "触れるとプレイヤーの HP が減る");
+
+            // Sandbox のシーンを動かしたままにすると、あとのテストに敵が混ざる。Root から始め直して片付ける
+            SceneManager.LoadScene(SceneTransform.RootSceneName);
+            yield return null;
+            yield return null;
         }
     }
 }

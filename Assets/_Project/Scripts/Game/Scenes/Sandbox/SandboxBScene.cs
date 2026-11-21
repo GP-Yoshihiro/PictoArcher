@@ -12,6 +12,7 @@ namespace PictoArcher.Game
     {
         [SerializeField] Rigidbody2D _playerBody;
         [SerializeField] SpawnTelegraphView _telegraphPrefab;
+        [SerializeField] SpawnTelegraphSettings _telegraphSettings;
         [SerializeField] EnemyDefinition _enemy;
         [SerializeField] Vector2[] _spawnPoints;
         [SerializeField] float _spawnInterval = 3f;
@@ -31,7 +32,7 @@ namespace PictoArcher.Game
         {
             _registry = new EnemyRegistry();
             _player = new SandboxPlayer(_playerBody, _playerMaxHp, _playerInvulnerableSeconds, _playerSpeed);
-            _enemies = new EnemySystem(_registry, _telegraphPrefab, _player, _player);
+            _enemies = new EnemySystem(_registry, _telegraphPrefab, _telegraphSettings, _player, _player);
             _enemies.Spawned += OnSpawned;
             _enemies.Damaged += OnDamaged;
             _enemies.Died += OnDied;

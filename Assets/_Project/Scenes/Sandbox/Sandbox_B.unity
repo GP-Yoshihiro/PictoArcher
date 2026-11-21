@@ -307,6 +307,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SandboxBScene
   _playerBody: {fileID: 31822986}
   _telegraphPrefab: {fileID: 1891142686598356304, guid: 201e1abf8f05547488f66701483e613b, type: 3}
+  _telegraphSettings: {fileID: 11400000, guid: b3aad67d230c43c4380cb5b762e76ed8, type: 2}
   _enemy: {fileID: 11400000, guid: d29a2102cc5f28e45a74ac8d82e9eb02, type: 2}
   _spawnPoints:
   - {x: -8, y: 6}

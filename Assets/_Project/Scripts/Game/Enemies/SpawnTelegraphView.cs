@@ -10,14 +10,16 @@ namespace PictoArcher.Game
     {
         [SerializeField] SpriteRenderer _circle;
         [SerializeField] SpriteRenderer _mark;
-        [SerializeField, Tooltip("予兆の終わりでの大きさ（始めを 1 とした倍率）")] float _endScale = 1.3f;
 
         Transform _transform;
+        float _endScale;
 
-        public void Init(Vector2 position)
+        /// <summary>endScale は予兆の終わりでの大きさ（始めを 1 とした倍率。SpawnTelegraphSettings の値）。</summary>
+        public void Init(Vector2 position, float endScale)
         {
             _transform = transform;
             _transform.position = position;
+            _endScale = endScale;
         }
 
         /// <summary>progress は 0〜1。点滅しながら少しずつ大きくなる。</summary>
