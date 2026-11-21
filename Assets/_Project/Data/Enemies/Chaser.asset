@@ -18,4 +18,4 @@ MonoBehaviour:
   _contactDamage: 10
   _xpReward: 1
   _coinReward: 1
-  _visual: {fileID: 11400000, guid: db3e3f2a787e24acd8c51ea33b5ea439, type: 2}
+  _visual: {fileID: 11400000, guid: 9976f4089f5b74d41a134e6403ce973b, type: 2}
