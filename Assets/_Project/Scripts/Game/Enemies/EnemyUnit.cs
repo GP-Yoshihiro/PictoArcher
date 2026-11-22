@@ -28,10 +28,12 @@ namespace PictoArcher.Game
         AttackTelegraphView _circleView;
         int _linesUsed;
         bool _circleUsed;
+        readonly SplitTracker _splitTracker;
+        readonly float _moveSpeed;
         bool _deathRaised;
 
         public EnemyUnit(EnemyDefinition definition, EnemyView view, ITarget player, IHittable playerBody,
-            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles)
+            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles, int tier = 0)
         {
             if (definition.Behavior == null) throw new ArgumentException(definition.name + " に動きと攻撃（Behavior）が入っていません。", nameof(definition));
             if (definition.MoveSpeed < 0f) throw new ArgumentOutOfRangeException(nameof(definition), definition.name + " の速度が負です。");
@@ -41,7 +43,10 @@ namespace PictoArcher.Game
             _playerBody = playerBody;
             _telegraphPrefab = telegraphPrefab;
             _projectiles = projectiles;
-            _health = new Health(definition.MaxHp);
+            Tier = tier;
+            _health = new Health(TierScaling.Scale(definition.MaxHp, definition.HpGrowthPerTier, tier));
+            _moveSpeed = TierScaling.Scale(definition.MoveSpeed, definition.SpeedGrowthPerTier, tier);
+            _splitTracker = definition.Split == null ? null : new SplitTracker(definition.Split.HpThresholds);
             _behavior = definition.Behavior.Create();
             _animator = new CharacterSpriteAnimator(view.Sprite, definition.Visual);
         }
@@ -50,6 +55,11 @@ namespace PictoArcher.Game
         /// <summary>死んだとき1回だけ。EnemySystem が自分を渡して受け取り、Registry から外す。</summary>
         public event Action<EnemyUnit, EnemyDeath> Died;
 
+        /// <summary>HP が減って分裂するとき、出す数。EnemySystem が受け取って、次の Tick で出す。</summary>
+        public event Action<EnemyUnit, int> SplitRequested;
+
+        /// <summary>何回目の登場か（0 が最初）。HP・速さ・分裂の数がこれで増える。</summary>
+        public int Tier { get; }
         public EnemyDefinition Definition => _definition;
         public EnemyView View => _view;
         public Collider2D Body => _view.Body;
@@ -66,6 +76,7 @@ namespace PictoArcher.Game
             bool killed = _health.IsDead;
             Damaged?.Invoke(new DamageReport(this, Position, dealt, damage.Kind, killed));
             if (killed) Die();
+            else RequestSplit();
         }
 
         /// <summary>状態異常は、炎・氷・毒の強化を作るタスクで足す。今は何も起こらない。</summary>
@@ -93,7 +104,7 @@ namespace PictoArcher.Game
             var velocity = Vector2.zero;
             if (_player.IsAlive)
             {
-                var context = new EnemyContext(Position, _player.Position, _definition.MoveSpeed);
+                var context = new EnemyContext(Position, _player.Position, _moveSpeed);
                 velocity = _behavior.Tick(deltaTime, context, this);
             }
             if (!IsAlive) return;   // 自爆したときは、このあとの動きや見た目を更新しない
@@ -133,6 +144,16 @@ namespace PictoArcher.Game
                 _playerBody.TakeHit(new Damage(_definition.ContactDamage));
                 break;
             }
+        }
+
+        void RequestSplit()
+        {
+            if (_splitTracker == null) return;
+            int crossed = _splitTracker.Update(_health.Current, _health.Max);
+            if (crossed <= 0) return;
+            var split = _definition.Split;
+            int perSplit = TierScaling.AddPerTier(split.ChildrenPerSplit, split.ExtraChildrenPerTier, Tier);
+            SplitRequested?.Invoke(this, crossed * perSplit);
         }
 
         void Die()
