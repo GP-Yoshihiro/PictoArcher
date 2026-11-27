@@ -1,5 +1,14 @@
 {
   "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
+    "superpowers@claude-plugins-official": true,
+    "operates24h-unity@operates24h": true
+  },
+  "extraKnownMarketplaces": {
+    "operates24h": {
+      "source": {
+        "source": "github",
+        "repo": "GP-Yoshihiro/operates24h-skills"
+      }
+    }
   }
 }
