@@ -32,3 +32,6 @@ MonoBehaviour:
   _cardFrame: {fileID: 21300000, guid: 329b1bbd6f5ea46b58b26a3371b670a0, type: 3}
   _trophy: {fileID: 21300000, guid: 871e9da5ec47442fe8124c496fed39c1, type: 3}
   _defeat: {fileID: 21300000, guid: 83d9639c7da254d9ca329f01ea54acbf, type: 3}
+  _guideArrowKey: {fileID: 21300000, guid: d648fbe7147c47d1b9fdfc8c92971316, type: 3}
+  _guideMouse: {fileID: 21300000, guid: 2be3dcb5596d4de1a8bf7fc6d0806a87, type: 3}
+  _guideHand: {fileID: 21300000, guid: c855676cecde43d48cd1a3a9400ad5b3, type: 3}
