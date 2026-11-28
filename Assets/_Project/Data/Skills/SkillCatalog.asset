@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f66a04400a4d842b6a7ea8e6af3225ed, type: 3}
+  m_Name: SkillCatalog
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillCatalog
+  _skills:
+  - {fileID: 11400000, guid: 821a05e09d4de4f80bbc7e9c469e5c01, type: 2}
+  - {fileID: 11400000, guid: 995c23c8bdfd44755a42e69c7daac34c, type: 2}
+  - {fileID: 11400000, guid: 0cfe3d33381004ca4aaa80af396c110e, type: 2}
+  - {fileID: 11400000, guid: 7b35086b9dbb14a84ba1e0f81b199031, type: 2}
+  - {fileID: 11400000, guid: 384a2890fe0734de9bc3ef124addbd0c, type: 2}
+  - {fileID: 11400000, guid: 62dd8eb429c644b0ab1d9be5f3d0dd51, type: 2}
+  - {fileID: 11400000, guid: f751bc2e7b52c4895966f2ff9378dd55, type: 2}
+  - {fileID: 11400000, guid: 035d5aa261da844a48dc0e1b41bcddc1, type: 2}
+  - {fileID: 11400000, guid: b964cd89e222e4ec3be1a5c73c2a08c8, type: 2}
+  - {fileID: 11400000, guid: 1fe8c3a30eb794405ba3d26cce38936a, type: 2}
+  - {fileID: 11400000, guid: e22213c42f07c4f4683bd7e24add58f9, type: 2}
+  - {fileID: 11400000, guid: c13cc6bc458b242118d334ebfba0ace9, type: 2}
+  - {fileID: 11400000, guid: 58186a32c461b4dd483fb585884fa96a, type: 2}
+  - {fileID: 11400000, guid: ecec5ce485cb540be9621352db5bfd95, type: 2}
+  - {fileID: 11400000, guid: faecaea95b6424372bddb8b143dc68bb, type: 2}
+  - {fileID: 11400000, guid: 447bac9619a9044c8bfb4169d6a2af60, type: 2}
+  - {fileID: 11400000, guid: cc8b47d92f1a8499782f0b57124e6b9c, type: 2}
+  - {fileID: 11400000, guid: 1ddd23509fc654c4e8650dc17e1b0a95, type: 2}
+  - {fileID: 11400000, guid: a7007edc3aaac47e8a22b5cf52047cb5, type: 2}
+  - {fileID: 11400000, guid: 3bf76bb168a624abe90f0857dc06fa10, type: 2}
+  - {fileID: 11400000, guid: c00a2cf45c5874c61869dee7eece25f6, type: 2}
+  - {fileID: 11400000, guid: ca586467a9ca04282a9ccce7f3eba0ad, type: 2}
+  - {fileID: 11400000, guid: 450c8c493b1ee4e21a979b7cacdea9d8, type: 2}
+  - {fileID: 11400000, guid: 6c6cdfdc3243c462793a8b842030dea4, type: 2}
+  - {fileID: 11400000, guid: 1b5dd76a8923541379613d81ee5a67cb, type: 2}
+  - {fileID: 11400000, guid: 1e44112bf528c426f9c25c1a8df5f1cd, type: 2}
