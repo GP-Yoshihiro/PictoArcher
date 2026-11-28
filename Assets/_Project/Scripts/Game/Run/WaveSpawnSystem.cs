@@ -34,6 +34,7 @@ namespace PictoArcher.Game
 
         public void Begin(WaveDefinition wave)
         {
+            if (_waitingForSpawns) throw new InvalidOperationException("前のウェーブを出し終わる前に、次のウェーブは始められません");
             if (_progress != null) _progress.Cleared -= HandleCleared;
             _alive.Clear();
             _progress = new WaveProgress();
@@ -69,16 +70,29 @@ namespace PictoArcher.Game
 
         // EnemyDeath は敵そのものを持たないので、死んでいて同じ位置にいる1体を探す
         // （分裂する敵は子を出すまで Died が遅れて届くので、IsAlive だけで探すと早くクリアになる）
+        // EnemyDeath に敵の参照がないので、死んでいて位置が同じ敵で数える。
+        // まだ数えていない死んだ敵は、Died がこれから届く敵だけ（分裂の親も、子を出した次の Tick の始めに届き、見た目はまだ消えていない）
         void HandleDied(EnemyDeath death)
         {
+            int fallback = -1;
             for (int i = 0; i < _alive.Count; i++)
             {
                 var tracked = _alive[i];
-                if (tracked.Enemy.IsAlive || tracked.Enemy.Position != death.Position) continue;
-                _alive.RemoveAt(i);
-                _progress.MarkKilled(tracked.Id);
+                if (tracked.Enemy.IsAlive) continue;
+                if (fallback < 0) fallback = i;
+                if (tracked.Enemy.Position != death.Position) continue;
+                MarkKilledAt(i);
                 return;
             }
+            // 位置が食い違っても、ウェーブが終わらなくならないよう、先頭の死んだ敵で数える
+            if (fallback >= 0) MarkKilledAt(fallback);
+        }
+
+        void MarkKilledAt(int index)
+        {
+            var tracked = _alive[index];
+            _alive.RemoveAt(index);
+            _progress.MarkKilled(tracked.Id);
         }
 
         void HandleCleared() => Cleared?.Invoke();

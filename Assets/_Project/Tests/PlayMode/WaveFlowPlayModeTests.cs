@@ -157,6 +157,48 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator SplitterWave_ClearsOnlyAfterChildrenDie_EvenWhenParentDiesBeforeSplitting()
+        {
+            var wave = ScriptableObject.CreateInstance<WaveDefinition>();
+            var so = new SerializedObject(wave);
+            var spawns = so.FindProperty("_spawns");
+            spawns.arraySize = 1;
+            spawns.GetArrayElementAtIndex(0).FindPropertyRelative("_enemy").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Splitter.asset");
+            spawns.GetArrayElementAtIndex(0).FindPropertyRelative("_position").vector2Value = Vector2.zero;
+            so.FindProperty("_telegraphSeconds").floatValue = 0.3f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var rig = new Rig(1);
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(1.6f);   // 2ウェーブ目の予兆が出ている（使わない）
+            var spawner = new WaveSpawnSystem(rig.Enemies);
+            var spawned = new List<IEnemyTarget>();
+            rig.Enemies.Spawned += e => spawned.Add(e);
+            int cleared = 0;
+            spawner.Cleared += () => cleared++;
+            spawner.Begin(wave);
+            for (int i = 0; i < 10; i++) { rig.Enemies.Tick(Step); spawner.Tick(Step); }
+            var boss = spawned.Find(e => e.Position == Vector2.zero);
+            Assert.IsNotNull(boss, "中ボスが出る");
+
+            boss.TakeHit(new Damage(110));    // 分裂を頼む（子はまだ出ていない）
+            boss.TakeHit(new Damage(1000));   // 次の Tick より前に本体が死ぬ
+            for (int i = 0; i < 3; i++) { rig.Enemies.Tick(Step); spawner.Tick(Step); }
+            Assert.AreEqual(0, cleared, "子が生きている間はクリアにならない");
+
+            foreach (var e in spawned.FindAll(e => e.IsAlive)) e.TakeHit(new Damage(10000));
+            rig.Enemies.Tick(Step);
+            spawner.Tick(Step);
+            Assert.AreEqual(1, cleared, "子も全部倒すとクリア");
+
+            spawner.Dispose();
+            rig.Dispose();
+            Object.DestroyImmediate(wave);
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator Battle_ShowsWaveAndHeadHp_AndSpawnsTheFirstWave()
         {
             _battleLoaded = true;
