@@ -120,6 +120,37 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test]
+        public void SkillDefinition_DefaultsToWeight10()
+        {
+            var def = ScriptableObject.CreateInstance<SkillDefinition>();
+            Assert.AreEqual(10, def.Weight);
+            Object.DestroyImmediate(def);
+        }
+
+        [Test]
+        public void SkillCatalogAsset_HasAll26CardsInOrder_WithDesignStackLimits()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<SkillCatalog>("Assets/_Project/Data/Skills/SkillCatalog.asset");
+            Assert.IsNotNull(catalog);
+            // 設計書 §9 の重ね取りの上限（0 は上限なし＝HP回復）
+            var max = new[] { 0, 5, 5, 3, 5, 3, 2, 1, 1, 2, 2, 2, 1, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 3, 3, 1 };
+            var ids = (SkillId[])System.Enum.GetValues(typeof(SkillId));
+            Assert.AreEqual(ids.Length, catalog.Skills.Count);
+            for (int i = 0; i < ids.Length; i++)
+            {
+                var def = catalog.Skills[i];
+                Assert.IsNotNull(def, ids[i].ToString());
+                Assert.AreEqual(ids[i], def.Id);
+                Assert.AreEqual(max[i], def.MaxStacks, ids[i].ToString());
+                Assert.AreSame(def, catalog.DefinitionOf(ids[i]));
+                // ネタ系は中身が【仮】なので抽選に出さない
+                if (ids[i] == SkillId.Wildcard) Assert.AreEqual(0, def.Weight);
+                else Assert.Greater(def.Weight, 0, ids[i].ToString());
+            }
+            Assert.AreEqual(26, catalog.BuildCandidates().Length);
+        }
+
+        [Test]
         public void ObstaclePlacement_BoundsFollowSpriteAndScale()
         {
             var texture = new Texture2D(32, 16);
