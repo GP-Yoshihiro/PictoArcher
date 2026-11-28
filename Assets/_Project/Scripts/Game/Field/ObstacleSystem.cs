@@ -31,6 +31,19 @@ namespace PictoArcher.Game
 
         public ObstacleLayout Current { get; private set; }
 
+        /// <summary>当たりのある障害物の並びが変わるたびに増える。敵の道を作り直すかの目印。</summary>
+        public int SolidVersion { get; private set; }
+
+        /// <summary>当たりのある（現れた）障害物の範囲を list に入れる。list は先に空にする。</summary>
+        public void CollectSolidRects(List<Rect> list)
+        {
+            list.Clear();
+            for (int i = 0; i < _views.Count; i++)
+            {
+                if (_shownStates[i] == ObstacleSlotState.Shown) list.Add(_rects[i]);
+            }
+        }
+
         /// <summary>現れていない障害物がある間 true。</summary>
         public bool IsSwitching => _swap != null && !_swap.IsFinished;
 
@@ -58,7 +71,11 @@ namespace PictoArcher.Game
                 var state = _swap.StateAt(i);
                 if (state == _shownStates[i]) continue;
                 // Shadow と Blocked はどちらも影の見た目。現れたときだけ当たりを入れる
-                if (state == ObstacleSlotState.Shown) _views[i].ShowSolid();
+                if (state == ObstacleSlotState.Shown)
+                {
+                    _views[i].ShowSolid();
+                    SolidVersion++;
+                }
                 _shownStates[i] = state;
             }
         }
@@ -97,6 +114,7 @@ namespace PictoArcher.Game
                 _views[i].gameObject.SetActive(false);
                 Object.Destroy(_views[i].gameObject);
             }
+            if (_views.Count > 0) SolidVersion++;
             _views.Clear();
             _rects.Clear();
         }

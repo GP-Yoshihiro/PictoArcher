@@ -30,13 +30,15 @@ namespace PictoArcher.Game
         readonly EnemyProjectileSystem _projectiles;
         readonly ITarget _player;
         readonly IHittable _playerBody;
+        readonly IChaseRoute _route;
         readonly List<Pending> _pending = new List<Pending>();
         readonly List<EnemyUnit> _units = new List<EnemyUnit>();
         readonly List<KeyValuePair<EnemyUnit, int>> _splits = new List<KeyValuePair<EnemyUnit, int>>();
         readonly List<EnemyDeath> _deferredDeaths = new List<EnemyDeath>();
 
         public EnemySystem(EnemyRegistry registry, SpawnTelegraphView telegraphPrefab, SpawnTelegraphSettings telegraphSettings,
-            AttackTelegraphView attackTelegraphPrefab, EnemyProjectileSystem projectiles, ITarget player, IHittable playerBody)
+            AttackTelegraphView attackTelegraphPrefab, EnemyProjectileSystem projectiles, ITarget player, IHittable playerBody,
+            IChaseRoute route = null)
         {
             _registry = registry;
             _telegraphPrefab = telegraphPrefab;
@@ -45,6 +47,7 @@ namespace PictoArcher.Game
             _projectiles = projectiles;
             _player = player;
             _playerBody = playerBody;
+            _route = route;
         }
 
         public event Action<DamageReport> Damaged;
@@ -109,7 +112,7 @@ namespace PictoArcher.Game
             {
                 var view = instance.GetComponent<EnemyView>();
                 view.Init(position);
-                unit = new EnemyUnit(definition, view, _player, _playerBody, _attackTelegraphPrefab, _projectiles, tier);
+                unit = new EnemyUnit(definition, view, _player, _playerBody, _attackTelegraphPrefab, _projectiles, tier, _route);
             }
             catch
             {

@@ -29,7 +29,7 @@ namespace PictoArcher.Game
                 {
                     _cycle.Reset();
                     if (_movement == null) _movement = new ChaseMovement(context.MoveSpeed);
-                    return _movement.Velocity(context.Position, context.TargetPosition);
+                    return _movement.Velocity(context.Position, context.ChasePoint);
                 }
                 if (toTarget.sqrMagnitude > 1e-8f) _aim = toTarget.normalized;   // 予兆が始まる瞬間まで狙い直し、始まったら固定する
             }

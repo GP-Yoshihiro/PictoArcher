@@ -23,7 +23,7 @@ namespace PictoArcher.Game
             if (!_triggered)
             {
                 if (_movement == null) _movement = new ChaseMovement(context.MoveSpeed);
-                return _movement.Velocity(context.Position, context.TargetPosition);
+                return _movement.Velocity(context.Position, context.ChasePoint);
             }
 
             if (_fuse.Tick(deltaTime)) attacks.SelfDestruct(_definition.BlastRadius, _definition.BlastDamage);
