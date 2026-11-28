@@ -96,6 +96,30 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test]
+        public void PickupSettings_DefaultsBuildAValidTuning()
+        {
+            var settings = ScriptableObject.CreateInstance<PickupSettings>();
+            var tuning = settings.Tuning;
+            Assert.AreEqual(2.5f, tuning.MagnetRadius);
+            Assert.AreEqual(0.5f, tuning.CollectRadius);
+            Assert.AreEqual(4f, tuning.StartSpeed);
+            Assert.AreEqual(30f, tuning.Acceleration);
+            Assert.AreEqual(20f, tuning.MaxSpeed);
+            Assert.AreEqual(0.3f, settings.DropSpread);
+            Object.DestroyImmediate(settings);
+        }
+
+        [Test]
+        public void PickupSettingsAsset_HasBothVisuals()
+        {
+            var settings = AssetDatabase.LoadAssetAtPath<PickupSettings>("Assets/_Project/Data/Player/PickupSettings.asset");
+            Assert.IsNotNull(settings);
+            Assert.IsNotNull(settings.VisualFor(PickupKind.Experience));
+            Assert.IsNotNull(settings.VisualFor(PickupKind.Coin));
+            Assert.AreNotSame(settings.VisualFor(PickupKind.Experience), settings.VisualFor(PickupKind.Coin), "経験値とコインは形で見分ける");
+        }
+
+        [Test]
         public void ObstaclePlacement_BoundsFollowSpriteAndScale()
         {
             var texture = new Texture2D(32, 16);
