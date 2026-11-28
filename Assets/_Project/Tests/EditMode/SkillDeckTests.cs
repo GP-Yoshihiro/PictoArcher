@@ -22,12 +22,10 @@ namespace PictoArcher.Tests.EditMode
         [Test]
         public void Draw_ReturnsRequestedCount_WithoutDuplicates()
         {
-            var deck = NewDeck();
             var result = new List<int>();
             for (int seed = 0; seed < 200; seed++)
             {
-                deck = NewDeck(seed);
-                deck.Draw(3, null, result);
+                NewDeck(seed).Draw(3, null, result);
                 Assert.AreEqual(3, result.Count);
                 CollectionAssert.AllItemsAreUnique(result);
             }
