@@ -76,5 +76,51 @@ namespace PictoArcher.Tests.EditMode
             Assert.AreEqual(new Vector2(1, 2), entry.Position);
             Assert.IsNull(entry.Enemy);
         }
+
+        [Test]
+        public void WaveDefinition_HasNoObstacleLayoutByDefault()
+        {
+            var wave = ScriptableObject.CreateInstance<WaveDefinition>();
+            Assert.IsNull(wave.ObstacleLayout);
+            Object.DestroyImmediate(wave);
+        }
+
+        [Test]
+        public void ObstacleSwitchSettings_DefaultsMatchSpec()
+        {
+            var settings = ScriptableObject.CreateInstance<ObstacleSwitchSettings>();
+            Assert.AreEqual(0.5f, settings.ShadowSeconds);
+            Assert.AreEqual(new Color(0f, 0f, 0f, 0.35f), settings.ShadowColor);
+            Assert.AreEqual(0.6f, settings.PlayerRadius);
+            Object.DestroyImmediate(settings);
+        }
+
+        [Test]
+        public void ObstaclePlacement_BoundsFollowSpriteAndScale()
+        {
+            var texture = new Texture2D(32, 16);
+            var sprite = Sprite.Create(texture, new Rect(0f, 0f, 32f, 16f), new Vector2(0.5f, 0.5f), 16f);
+            var visual = ScriptableObject.CreateInstance<SpriteVisual>();
+            var so = new SerializedObject(visual);
+            var frames = so.FindProperty("_clip._frames");
+            frames.arraySize = 1;
+            frames.GetArrayElementAtIndex(0).objectReferenceValue = sprite;
+            so.FindProperty("_scale").floatValue = 2f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var bounds = new ObstaclePlacement(visual, new Vector2(3f, 4f)).Bounds;
+            Assert.AreEqual(1f, bounds.x, 1e-4f);
+            Assert.AreEqual(3f, bounds.y, 1e-4f);
+            Assert.AreEqual(4f, bounds.width, 1e-4f);
+            Assert.AreEqual(2f, bounds.height, 1e-4f);
+
+            Object.DestroyImmediate(visual);
+            Object.DestroyImmediate(sprite);
+            Object.DestroyImmediate(texture);
+        }
+
+        [Test]
+        public void ObstaclePlacement_WithoutSprite_HasEmptyBounds()
+            => Assert.AreEqual(Vector2.zero, new ObstaclePlacement(null, new Vector2(3f, 4f)).Bounds.size);
     }
 }

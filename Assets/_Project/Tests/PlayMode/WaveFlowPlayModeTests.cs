@@ -121,6 +121,36 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator WaveCleared_RaisesRestStartedWithTheNextWave()
+        {
+            var rig = new Rig(1);
+            var rests = new List<int>();
+            rig.Run.RestStarted += n => rests.Add(n);
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            CollectionAssert.AreEqual(new[] { 2 }, rests, "休みに入ると次のウェーブの番号が1回だけ届く");
+            rig.Tick(1.6f);
+            CollectionAssert.AreEqual(new[] { 2 }, rests, "休みが終わっても増えない");
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ClearingWave50_DoesNotRaiseRestStarted()
+        {
+            var rig = new Rig(50);
+            int rests = 0;
+            rig.Run.RestStarted += n => rests++;
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            Assert.AreEqual(0, rests, "最後のウェーブのあとは休まない");
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator PlayerDeathDuringRest_StopsTheNextWave_AndEndsAfterDelay()
         {
             var rig = new Rig(1);
@@ -217,6 +247,7 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(1, Object.FindObjectsByType<PlayerView>(FindObjectsSortMode.None).Length, "プレイヤーが1人");
             Assert.AreEqual(1, Object.FindObjectsByType<HeadHpView>(FindObjectsSortMode.None).Length, "頭上の HP");
             Assert.GreaterOrEqual(Object.FindObjectsByType<EnemyView>(FindObjectsSortMode.None).Length, 1, "最初のウェーブの敵が出る");
+            Assert.AreEqual(4, Object.FindObjectsByType<ObstacleView>(FindObjectsSortMode.None).Length, "1ウェーブ目の障害物（四隅）が出る");
             var hud = Object.FindAnyObjectByType<HudView>();
             // テストの asmdef は TextMeshPro を参照しないので、文字はリフレクションで読む
             var wave = (Component)typeof(HudView).GetField("_wave", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(hud);

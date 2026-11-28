@@ -176,6 +176,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ad1ef7c01677c45b994bf01e9ca8f598, type: 3}
+--- !u!4 &336319369 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8137067110285591932, guid: ad1ef7c01677c45b994bf01e9ca8f598, type: 3}
+  m_PrefabInstance: {fileID: 336319368}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &419819291
 GameObject:
   m_ObjectHideFlags: 0
@@ -742,6 +747,9 @@ MonoBehaviour:
   _attackTelegraphPrefab: {fileID: 7629994177825324415, guid: e496519642238ab4ba512a07c6c8ead0, type: 3}
   _hud: {fileID: 1010889622}
   _headHpPrefab: {fileID: 2473682468616647909, guid: bc203e7dd1b0e4d399258ed66b79c36f, type: 3}
+  _obstaclePrefab: {fileID: 4739000793829335648, guid: 846634499c41c490ba028003c39be17d, type: 3}
+  _obstacleSettings: {fileID: 11400000, guid: 248c1c03477cd40d3a10a55008de532f, type: 2}
+  _obstacleRoot: {fileID: 336319369}
 --- !u!4 &1537391863
 Transform:
   m_ObjectHideFlags: 0
