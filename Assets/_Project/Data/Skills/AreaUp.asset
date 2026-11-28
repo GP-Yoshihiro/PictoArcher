@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: AreaUp
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 17
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 36cd2bfa3e5864e1491f448a36ceb6f0, type: 3}
   _maxStacks: 3
   _weight: 10

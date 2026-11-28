@@ -151,6 +151,28 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test]
+        public void LevelUpSettings_DefaultsMatchSpec()
+        {
+            var settings = ScriptableObject.CreateInstance<LevelUpSettings>();
+            Assert.AreEqual(3, settings.FirstLevelExperience);
+            Assert.AreEqual(4, settings.ExperiencePerLevel);
+            Assert.AreEqual(3, settings.CardCount);
+            Assert.AreEqual(20, settings.CoinCardAmount);
+            Object.DestroyImmediate(settings);
+        }
+
+        [Test]
+        public void LevelUpSettingsAsset_Exists()
+            => Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<LevelUpSettings>("Assets/_Project/Data/Player/LevelUpSettings.asset"));
+
+        [Test]
+        public void SkillCatalogAsset_EveryCardHasAnIcon()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<SkillCatalog>("Assets/_Project/Data/Skills/SkillCatalog.asset");
+            foreach (var def in catalog.Skills) Assert.IsNotNull(def.Icon, def.Id.ToString());
+        }
+
+        [Test]
         public void ObstaclePlacement_BoundsFollowSpriteAndScale()
         {
             var texture = new Texture2D(32, 16);

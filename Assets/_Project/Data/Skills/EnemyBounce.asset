@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: EnemyBounce
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 11
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 1a75fe81d5a1949c5bb5443a2a73123e, type: 3}
   _maxStacks: 2
   _weight: 10

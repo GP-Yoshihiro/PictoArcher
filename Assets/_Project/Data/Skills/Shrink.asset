@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Shrink
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 18
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 1c4e38d62e8704be08d7324a68bcfe2e, type: 3}
   _maxStacks: 2
   _weight: 10

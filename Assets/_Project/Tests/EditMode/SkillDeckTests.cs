@@ -151,5 +151,14 @@ namespace PictoArcher.Tests.EditMode
         [Test]
         public void Draw_NegativeCount_Throws()
             => Assert.Throws<ArgumentOutOfRangeException>(() => NewDeck().Draw(-1, null, new List<int>()));
+
+        [Test]
+        public void MaxStacksOf_ReturnsTheLimit()
+        {
+            var deck = new SkillDeck(new[] { new SkillCandidate(4, 0, 1), new SkillCandidate(5, 3, 1) }, new Random(1));
+            Assert.AreEqual(0, deck.MaxStacksOf(4));
+            Assert.AreEqual(3, deck.MaxStacksOf(5));
+            Assert.Throws<ArgumentException>(() => deck.MaxStacksOf(6));
+        }
     }
 }

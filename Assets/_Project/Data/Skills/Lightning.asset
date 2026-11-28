@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Lightning
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 15
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 52cf48773c9b94221a6228d99cecd5a0, type: 3}
   _maxStacks: 3
   _weight: 10
