@@ -22,7 +22,7 @@ MonoBehaviour:
     _frames:
     - {fileID: 8935478911845060018, guid: bb97d43e81583484f8310cc7a327e623, type: 3}
     - {fileID: 6985015237767039016, guid: bb97d43e81583484f8310cc7a327e623, type: 3}
-    _framesPerSecond: 6
+    _framesPerSecond: 4
     _loops: 1
   _attack:
     _frames:

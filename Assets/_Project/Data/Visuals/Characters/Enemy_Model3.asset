@@ -16,13 +16,13 @@ MonoBehaviour:
     _frames:
     - {fileID: -6948386368880857841, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
     - {fileID: 7242581846442534782, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
-    _framesPerSecond: 3
+    _framesPerSecond: 2
     _loops: 1
   _move:
     _frames:
     - {fileID: -6948386368880857841, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
     - {fileID: 7242581846442534782, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
-    _framesPerSecond: 6
+    _framesPerSecond: 4
     _loops: 1
   _attack:
     _frames:

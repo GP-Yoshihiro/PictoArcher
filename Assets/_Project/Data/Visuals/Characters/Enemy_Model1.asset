@@ -22,7 +22,7 @@ MonoBehaviour:
     _frames:
     - {fileID: 3151731804538833934, guid: 9b5415d49fb10469b9f47b877da186a7, type: 3}
     - {fileID: 282299451239032398, guid: 9b5415d49fb10469b9f47b877da186a7, type: 3}
-    _framesPerSecond: 6
+    _framesPerSecond: 4
     _loops: 1
   _attack:
     _frames:
@@ -34,5 +34,5 @@ MonoBehaviour:
     - {fileID: -46579215867523626, guid: 9b5415d49fb10469b9f47b877da186a7, type: 3}
     _framesPerSecond: 8
     _loops: 0
-  _scale: 1
+  _scale: 1.25
   _footOffset: {x: 0, y: -1}
