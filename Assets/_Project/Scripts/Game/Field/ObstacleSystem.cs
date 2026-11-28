@@ -91,7 +91,12 @@ namespace PictoArcher.Game
         void Clear()
         {
             for (int i = 0; i < _views.Count; i++)
-                if (_views[i] != null) Object.Destroy(_views[i].gameObject);
+            {
+                if (_views[i] == null) continue;
+                // Destroy はフレームの終わりまで遅れるので、先に隠して同じフレームの当たり判定を切る
+                _views[i].gameObject.SetActive(false);
+                Object.Destroy(_views[i].gameObject);
+            }
             _views.Clear();
             _rects.Clear();
         }

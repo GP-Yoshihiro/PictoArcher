@@ -121,6 +121,36 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator WaveCleared_RaisesRestStartedWithTheNextWave()
+        {
+            var rig = new Rig(1);
+            var rests = new List<int>();
+            rig.Run.RestStarted += n => rests.Add(n);
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            CollectionAssert.AreEqual(new[] { 2 }, rests, "休みに入ると次のウェーブの番号が1回だけ届く");
+            rig.Tick(1.6f);
+            CollectionAssert.AreEqual(new[] { 2 }, rests, "休みが終わっても増えない");
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ClearingWave50_DoesNotRaiseRestStarted()
+        {
+            var rig = new Rig(50);
+            int rests = 0;
+            rig.Run.RestStarted += n => rests++;
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            Assert.AreEqual(0, rests, "最後のウェーブのあとは休まない");
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator PlayerDeathDuringRest_StopsTheNextWave_AndEndsAfterDelay()
         {
             var rig = new Rig(1);
