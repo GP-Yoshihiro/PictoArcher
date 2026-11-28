@@ -58,6 +58,9 @@ namespace PictoArcher.Game
         /// <summary>HP が減って分裂するとき、出す数。EnemySystem が受け取って、次の Tick で出す。</summary>
         public event Action<EnemyUnit, int> SplitRequested;
 
+        /// <summary>雑魚を呼ぶとき（呼んだ敵、呼ぶ敵、位置、予兆の秒数）。EnemySystem が受け取って予兆を出す。</summary>
+        public event Action<EnemyUnit, EnemyDefinition, Vector2, float> SummonRequested;
+
         /// <summary>何回目の登場か（0 が最初）。HP・速さ・分裂の数がこれで増える。</summary>
         public int Tier { get; }
         public EnemyDefinition Definition => _definition;
@@ -65,6 +68,8 @@ namespace PictoArcher.Game
         public Collider2D Body => _view.Body;
         public Vector2 Position => _view.Position;
         public bool IsAlive => !_health.IsDead;
+        public int Hp => _health.Current;
+        public int MaxHp => _health.Max;
 
         /// <summary>死んで、やられのアニメも終わった。EnemySystem が片付けてよい。</summary>
         public bool IsRemovable => _health.IsDead && _animator.IsFinished;
@@ -193,6 +198,11 @@ namespace PictoArcher.Game
             }
             _health.ApplyDamage(_health.Max);
             Die();
+        }
+
+        public void Summon(EnemyDefinition enemy, Vector2 position, float seconds)
+        {
+            if (IsAlive) SummonRequested?.Invoke(this, enemy, position, seconds);
         }
 
         AttackTelegraphView NewTelegraph()

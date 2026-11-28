@@ -20,3 +20,8 @@ MonoBehaviour:
   _coinReward: 60
   _visual: {fileID: 11400000, guid: 0c55ec3ec4bb24ffeac52fa7158c5e43, type: 2}
   _behavior: {fileID: 11400000, guid: a5ff6022167271749a4b6572dae470e7, type: 2}
+  _split: {fileID: 0}
+  _hpGrowthPerTier: 0
+  _speedGrowthPerTier: 0
+  _spawnTelegraph: {fileID: 0}
+  _showsBossBar: 1

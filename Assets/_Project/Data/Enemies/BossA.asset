@@ -19,4 +19,9 @@ MonoBehaviour:
   _xpReward: 50
   _coinReward: 30
   _visual: {fileID: 11400000, guid: 1c15116c8358c40e2ae4b1158400526d, type: 2}
-  _behavior: {fileID: 11400000, guid: a5ff6022167271749a4b6572dae470e7, type: 2}
+  _behavior: {fileID: 11400000, guid: 38a696709414c4d029bcea53d86aa41e, type: 2}
+  _split: {fileID: 0}
+  _hpGrowthPerTier: 0.5
+  _speedGrowthPerTier: 0.1
+  _spawnTelegraph: {fileID: 0}
+  _showsBossBar: 1

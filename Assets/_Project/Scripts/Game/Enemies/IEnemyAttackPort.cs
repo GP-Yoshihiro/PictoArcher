@@ -16,5 +16,8 @@ namespace PictoArcher.Game
 
         /// <summary>自爆する。自分の足元から radius 以内にプレイヤーがいれば damage を与え、自分は倒れる。</summary>
         void SelfDestruct(float radius, int damage);
+
+        /// <summary>position に予兆を出し、seconds 秒あとにそこへ enemy を出す（ボスの雑魚呼び）。呼んだ敵が先に死んだら出さない。</summary>
+        void Summon(EnemyDefinition enemy, Vector2 position, float seconds);
     }
 }
