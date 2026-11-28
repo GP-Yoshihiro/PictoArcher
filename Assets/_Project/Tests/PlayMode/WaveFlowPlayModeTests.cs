@@ -35,19 +35,13 @@ namespace PictoArcher.Tests.PlayMode
             public WaveSpawnSystem Waves;
             public RunSystem Run;
             RunDefinition _definition;
+            readonly bool _ownsDefinition;
 
-            public Rig(int startWave)
+            // definition を渡すとそのアセットで回す（渡さなければ試しの2ウェーブ）
+            public Rig(int startWave, RunDefinition definition = null)
             {
-                _definition = ScriptableObject.CreateInstance<RunDefinition>();
-                var so = new SerializedObject(_definition);
-                var waves = so.FindProperty("_waves");
-                waves.arraySize = 2;
-                waves.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_A.asset");
-                waves.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_B.asset");
-                so.FindProperty("_startWave").intValue = startWave;
-                so.FindProperty("_restSeconds").floatValue = 1.5f;
-                so.FindProperty("_endDelaySeconds").floatValue = 0.5f;
-                so.ApplyModifiedPropertiesWithoutUndo();
+                _ownsDefinition = definition == null;
+                _definition = _ownsDefinition ? NewTestDefinition(startWave) : definition;
 
                 var telegraph = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/SpawnTelegraph.prefab").GetComponent<SpawnTelegraphView>();
                 var settings = AssetDatabase.LoadAssetAtPath<SpawnTelegraphSettings>("Assets/_Project/Data/Enemies/SpawnTelegraphSettings.asset");
@@ -57,6 +51,21 @@ namespace PictoArcher.Tests.PlayMode
                 Waves = new WaveSpawnSystem(Enemies);
                 Run = new RunSystem(_definition, Waves, Player);
                 Run.Begin();
+            }
+
+            static RunDefinition NewTestDefinition(int startWave)
+            {
+                var definition = ScriptableObject.CreateInstance<RunDefinition>();
+                var so = new SerializedObject(definition);
+                var waves = so.FindProperty("_waves");
+                waves.arraySize = 2;
+                waves.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_A.asset");
+                waves.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_B.asset");
+                so.FindProperty("_startWave").intValue = startWave;
+                so.FindProperty("_restSeconds").floatValue = 1.5f;
+                so.FindProperty("_endDelaySeconds").floatValue = 0.5f;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                return definition;
             }
 
             // BattleScene と同じ順に回す
@@ -70,12 +79,12 @@ namespace PictoArcher.Tests.PlayMode
                 }
             }
 
-            public void KillAll()
+            public void KillAll(int damage = 1000)
             {
                 var alive = new List<IEnemyTarget>(Registry.Active);
-                for (int i = 0; i < alive.Count; i++) alive[i].TakeHit(new Damage(1000));
+                for (int i = 0; i < alive.Count; i++) alive[i].TakeHit(new Damage(damage));
                 // 最後の1体に2発同時に当たっても、ウェーブは1つだけ進む
-                if (alive.Count > 0) alive[alive.Count - 1].TakeHit(new Damage(1000));
+                if (alive.Count > 0) alive[alive.Count - 1].TakeHit(new Damage(damage));
             }
 
             public void Dispose()
@@ -84,7 +93,7 @@ namespace PictoArcher.Tests.PlayMode
                 Waves.Dispose();
                 Enemies.Dispose();
                 Registry.Clear();
-                Object.DestroyImmediate(_definition);
+                if (_ownsDefinition) Object.DestroyImmediate(_definition);
             }
         }
 
@@ -185,6 +194,57 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(50, rig.Run.CurrentWave);
             Assert.AreEqual(1f, rig.Run.ElapsedSeconds, 0.0001f, "最後の敵を倒した所で止まり、そのあとの時間は数えない");
             rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator RealRun_AllFiftyWavesSpawnAndClear_InOrder()
+        {
+            var run = AssetDatabase.LoadAssetAtPath<RunDefinition>("Assets/_Project/Data/Waves/RunDefinition.asset");
+            var rig = new Rig(1, run);
+            for (int n = 1; n <= 50; n++)
+            {
+                Assert.AreEqual(n, rig.Run.CurrentWave);
+                int before = rig.Spawned.Count;
+                rig.Tick(1f);   // 予兆が終わって敵が出る
+                Assert.GreaterOrEqual(rig.Spawned.Count - before, 1, "ウェーブ " + n + " の敵が出る");
+                // 分裂する中ボスは子を出すので、いなくなるまで倒し続ける
+                for (int i = 0; i < 20 && rig.Registry.Active.Count > 0; i++)
+                {
+                    rig.KillAll(100000);
+                    rig.Tick(Step);
+                }
+                if (n < 50) rig.Tick(1.6f);   // 休み
+            }
+            rig.Tick(1f);
+            Assert.IsTrue(rig.Run.IsCleared, "50 ウェーブを全部クリアした");
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator WaveTier_IsPassedToTheSpawnedEnemies()
+        {
+            var wave = ScriptableObject.CreateInstance<WaveDefinition>();
+            var so = new SerializedObject(wave);
+            var spawns = so.FindProperty("_spawns");
+            spawns.arraySize = 1;
+            spawns.GetArrayElementAtIndex(0).FindPropertyRelative("_enemy").objectReferenceValue = AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/Splitter.asset");
+            so.FindProperty("_telegraphSeconds").floatValue = 0.3f;
+            so.FindProperty("_tier").intValue = 2;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var rig = new Rig(1);
+            var spawner = new WaveSpawnSystem(rig.Enemies);
+            spawner.Begin(wave);
+            for (int i = 0; i < 10; i++) { rig.Enemies.Tick(Step); spawner.Tick(Step); }
+            var boss = rig.Spawned.Find(e => ((EnemyUnit)e).Definition.name == "Splitter");
+            Assert.IsNotNull(boss);
+            Assert.AreEqual(2, ((EnemyUnit)boss).Tier);
+
+            spawner.Dispose();
+            rig.Dispose();
+            Object.DestroyImmediate(wave);
             yield return null;
         }
 
