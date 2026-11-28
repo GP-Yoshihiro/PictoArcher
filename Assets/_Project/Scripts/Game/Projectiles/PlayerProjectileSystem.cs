@@ -58,13 +58,17 @@ namespace PictoArcher.Game
         {
             _entered.Clear();
             flying.View.Relay.DrainEntered(_entered);
+            // 同じフレームに壁と敵の両方に触れたら、壁を優先して敵には当てない（壁の向こうの敵に当てない）
+            for (int i = 0; i < _entered.Count; i++)
+            {
+                if (_entered[i] != null && _entered[i].gameObject.layer == Layers.Wall) return true;
+            }
             for (int i = 0; i < _entered.Count; i++)
             {
                 var other = _entered[i];
                 if (other == null) continue;
-                int layer = other.gameObject.layer;
-                if (layer == Layers.Wall) return true;
-                if (layer == Layers.Enemy && _enemies.TryGet(other, out var enemy) && enemy.IsAlive)
+                // 予兆の間や死んだあとの敵（Registry にいない・IsAlive が false）は、弾がすり抜ける
+                if (other.gameObject.layer == Layers.Enemy && _enemies.TryGet(other, out var enemy) && enemy.IsAlive)
                 {
                     enemy.TakeHit(new Damage(flying.Damage));
                     return true;

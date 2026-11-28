@@ -70,7 +70,7 @@ namespace PictoArcher.Game
             bool hasTarget = _enemies.TryFindNearest(Position, out var target);
             if (_fireTimer.Tick(deltaTime, hasTarget, moving))
             {
-                _shots.Fire(Position, target.Position - Position, _stats.ProjectileSpeed, _stats.ProjectileDamage, _stats.ProjectileLifetime, _shotVisual);
+                _shots.Fire(Position, AimDirection(target.Position - Position), _stats.ProjectileSpeed, _stats.ProjectileDamage, _stats.ProjectileLifetime, _shotVisual);
                 _animator.Play(CharacterPose.Attack);
             }
             else if (_animator.Pose != CharacterPose.Attack || _animator.IsFinished)
@@ -90,6 +90,13 @@ namespace PictoArcher.Game
             if (!_health.IsDead) return;
             _animator.Play(CharacterPose.Death);
             Died?.Invoke();
+        }
+
+        // 敵と完全に重なっていると向きが (0,0) になり弾が止まるので、向いている側へ撃つ
+        Vector2 AimDirection(Vector2 toTarget)
+        {
+            if (toTarget.sqrMagnitude > 0.0001f) return toTarget;
+            return _view.Sprite.flipX ? Vector2.left : Vector2.right;
         }
 
         public void Dispose()
