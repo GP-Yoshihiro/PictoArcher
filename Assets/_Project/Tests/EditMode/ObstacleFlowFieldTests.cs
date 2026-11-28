@@ -156,6 +156,23 @@ namespace PictoArcher.Tests.EditMode
             Assert.Less((path[path.Count - 1] - target).magnitude, Clearance + CellSize, "目標のそばまで来ていません");
         }
 
+        [Test] public void Walk_TargetAtTheAreaEdge_GoesAroundAPillarInsteadOfThroughIt()
+        {
+            // プレイヤーが右の壁ぎわ（縁の帯の中）にいて、敵は柱の反対側の左の壁ぎわにいる。
+            // 縁の帯は外周をぐるっとつながっているので、帯をたどって始まりを決めると、左の壁ぎわまで「まっすぐ」になり柱へ歩き続けた
+            var pillar = new[] { new Rect(4f, -1f, 1f, 2f) };
+            var field = NewField();
+            field.SetObstacles(pillar);
+            var target = new Vector2(7.2f, 0f);
+            field.SetTarget(target);
+            var start = new Vector2(-6.7f, 0.1f);
+
+            Assert.AreNotEqual(target, field.NextPoint(start), "柱の向こうから目標へまっすぐ向かっています");
+            var path = Walk(field, start, target, maxSteps: 6000);
+            AssertStaysOutside(path, pillar, Clearance);
+            Assert.Less((path[path.Count - 1] - target).magnitude, Clearance + CellSize, "目標のそばまで来ていません");
+        }
+
         [Test] public void NextPoint_TargetEnclosed_FallsBackToTheTarget()
         {
             // 目標が囲まれていて道がない。そのときは今までどおりまっすぐ向かう

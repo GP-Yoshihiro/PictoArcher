@@ -18,7 +18,7 @@ namespace PictoArcher.Core
         const float Unreached = float.PositiveInfinity;
         // 体が障害物の面に触れているとき（中心が広げた矩形の縁）を「中」に数えない幅
         const float EdgeTolerance = 1e-3f;
-        // 自分のマスがふさがっているとき、まわり何マスまで出口を探すか
+        // 自分（か目標）のマスがふさがっているとき、まわり何マスまで出口を探すか
         const int EscapeSearchCells = 2;
 
         // 8方向（前の4つがたて・よこ、後ろの4つがななめ）
@@ -34,10 +34,9 @@ namespace PictoArcher.Core
         readonly bool[] _blocked;
         readonly float[] _distance;
         readonly int[] _next;
+        readonly List<Rect> _obstacles = new List<Rect>();
         readonly List<Rect> _inflated = new List<Rect>();
         readonly CellHeap _open;
-        readonly Queue<int> _escape = new Queue<int>();
-        readonly bool[] _escapeSeen;
 
         bool _dirty = true;
         bool _hasTarget;
@@ -60,7 +59,6 @@ namespace PictoArcher.Core
             _blocked = new bool[count];
             _distance = new float[count];
             _next = new int[count];
-            _escapeSeen = new bool[count];
             _open = new CellHeap(count * 8);
         }
 
@@ -71,10 +69,12 @@ namespace PictoArcher.Core
         public void SetObstacles(IReadOnlyList<Rect> obstacles)
         {
             if (obstacles == null) throw new ArgumentNullException(nameof(obstacles));
+            _obstacles.Clear();
             _inflated.Clear();
             for (int i = 0; i < obstacles.Count; i++)
             {
                 var r = obstacles[i];
+                _obstacles.Add(r);
                 _inflated.Add(Rect.MinMaxRect(r.xMin - _clearance, r.yMin - _clearance, r.xMax + _clearance, r.yMax + _clearance));
             }
             for (int cell = 0; cell < _blocked.Length; cell++) _blocked[cell] = IsBlocked(CellCenter(cell));
@@ -168,38 +168,39 @@ namespace PictoArcher.Core
             _open.Push(cell, 0f);
         }
 
-        // 目標が広げた障害物の中（プレイヤーが障害物に背中をつけている）。ふさがったマスを目標から広げ、最初に出会う空きマスを始まりにする
+        // 目標が広げた障害物の中か壁ぎわの帯の中（プレイヤーが背中をつけている）。目標のまわり数マスの空きマスのうち、
+        // 目標までまっすぐ行けるマスだけを始まりにする。ふさがったマスをたどると、外周の帯を回って障害物の向こうのマスまで「まっすぐ」にしてしまうため
         void SeedAroundBlockedTarget()
         {
-            for (int i = 0; i < _escapeSeen.Length; i++) _escapeSeen[i] = false;
-            _escape.Clear();
-            _escape.Enqueue(_targetCell);
-            _escapeSeen[_targetCell] = true;
-            while (_escape.Count > 0)
+            int radius = EscapeSearchCells + Mathf.CeilToInt(_clearance / _cellSize);
+            int tx = _targetCell % _columns;
+            int ty = _targetCell / _columns;
+            for (int y = ty - radius; y <= ty + radius; y++)
             {
-                int cell = _escape.Dequeue();
-                int cx = cell % _columns;
-                int cy = cell / _columns;
-                for (int d = 0; d < _stepX.Length; d++)
+                for (int x = tx - radius; x <= tx + radius; x++)
                 {
-                    int nx = cx + _stepX[d];
-                    int ny = cy + _stepY[d];
-                    if (!InGrid(nx, ny)) continue;
-                    int neighbor = ny * _columns + nx;
-                    if (_escapeSeen[neighbor]) continue;
-                    _escapeSeen[neighbor] = true;
-                    if (_blocked[neighbor])
-                    {
-                        _escape.Enqueue(neighbor);
-                        continue;
-                    }
-                    float distance = (CellCenter(neighbor) - _target).magnitude / _cellSize;
-                    if (distance >= _distance[neighbor]) continue;
-                    _distance[neighbor] = distance;
-                    _next[neighbor] = -1;   // ここからは目標へまっすぐ
-                    _open.Push(neighbor, distance);
+                    if (!InGrid(x, y)) continue;
+                    int cell = y * _columns + x;
+                    if (_blocked[cell]) continue;
+                    var center = CellCenter(cell);
+                    if (!IsClearToTarget(center)) continue;
+                    float distance = (center - _target).magnitude / _cellSize;
+                    _distance[cell] = distance;
+                    _next[cell] = -1;   // ここからは目標へまっすぐ
+                    _open.Push(cell, distance);
                 }
             }
+        }
+
+        // from から目標への線分が障害物を横切らない。目標が中にいる広げた矩形は、広げる前の矩形で確かめる（目標のそばでは広げた範囲に入るしかないため）
+        bool IsClearToTarget(Vector2 from)
+        {
+            for (int i = 0; i < _inflated.Count; i++)
+            {
+                var rect = _inflated[i].Contains(_target) ? _obstacles[i] : _inflated[i];
+                if (SegmentEntersInterior(from, _target, rect)) return false;
+            }
+            return true;
         }
 
         // 自分のマスがふさがっている（障害物に押しつけられている）。まわりの、道のある近いマスを探す
