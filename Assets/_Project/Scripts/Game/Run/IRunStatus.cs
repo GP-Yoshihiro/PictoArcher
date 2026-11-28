@@ -10,5 +10,9 @@ namespace PictoArcher.Game
         /// <summary>次のレベルまでに要る経験値（バーの長さの分母）。</summary>
         int ExperienceToNextLevel { get; }
         int Coins { get; }
+        /// <summary>取った強化（初めて取った順、重ね取りしても1つ）。HUD の絵の一覧になる。</summary>
+        System.Collections.Generic.IReadOnlyList<SkillId> TakenSkills { get; }
+        /// <summary>強化を取った回数（重ね取りの数。取っていなければ 0）。</summary>
+        int TakenCountOf(SkillId id);
     }
 }

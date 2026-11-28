@@ -18,6 +18,7 @@ namespace PictoArcher.Game
         readonly ExperienceLevels _levels;
         readonly LevelUpChoices _choices;
         readonly List<SkillId> _taken = new List<SkillId>();
+        readonly List<int> _takenCounts = new List<int>();
         int _pickedCoins;
         int _cardCoins;
 
@@ -44,6 +45,13 @@ namespace PictoArcher.Game
         public int Coins => _pickedCoins + _cardCoins;
         /// <summary>取った強化（初めて取った順、重ね取りしても1回）。回復はその場で使い切るので入れない。</summary>
         public IReadOnlyList<SkillId> TakenSkills => _taken;
+
+        /// <summary>強化を取った回数（重ね取りの数。取っていなければ 0）。</summary>
+        public int TakenCountOf(SkillId id)
+        {
+            int index = _taken.IndexOf(id);
+            return index < 0 ? 0 : _takenCounts[index];
+        }
 
         /// <summary>拾ったものを数える。シーンが PickupSystem.Collected から渡す。</summary>
         public void Collect(PickupKind kind, int amount)
@@ -76,7 +84,19 @@ namespace PictoArcher.Game
                 return;
             }
             var id = (SkillId)card.SkillId;
-            if (id != SkillId.Heal && !_taken.Contains(id)) _taken.Add(id);
+            if (id != SkillId.Heal)
+            {
+                int index = _taken.IndexOf(id);
+                if (index < 0)
+                {
+                    _taken.Add(id);
+                    _takenCounts.Add(1);
+                }
+                else
+                {
+                    _takenCounts[index]++;
+                }
+            }
             SkillTaken?.Invoke(id, card.NextStack);
         }
     }
