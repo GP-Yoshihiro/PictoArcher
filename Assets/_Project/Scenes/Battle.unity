@@ -119,6 +119,119 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &109240221
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1010889621}
+    m_Modifications:
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3514614541151901783, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+      propertyPath: m_Name
+      value: HudStatus
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+--- !u!224 &109240222 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 711952771429867385, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+  m_PrefabInstance: {fileID: 109240221}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &109240223 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 500181626478967459, guid: e1ab46c87805141a5b3ad2ebd7e9fd12, type: 3}
+  m_PrefabInstance: {fileID: 109240221}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2313626469465e83246764de60626, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.HudStatusView
 --- !u!1001 &336319368
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -762,6 +875,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 109240222}
   - {fileID: 482854337}
   - {fileID: 1523378272}
   m_Father: {fileID: 936099106}
@@ -974,39 +1088,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 372bffe8bf3a04a8c96b3a304afbe7f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.CardSelectView
---- !u!1001 &1731406201
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 936099106}
-    m_Modifications:
-    - target: {fileID: 6362335144082684130, guid: e69c20227a2b466f933798059942147d, type: 3}
-      propertyPath: m_Name
-      value: ControlGuide
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: e69c20227a2b466f933798059942147d, type: 3}
---- !u!224 &1731406202 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 5590429100483190602, guid: e69c20227a2b466f933798059942147d, type: 3}
-  m_PrefabInstance: {fileID: 1731406201}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1731406203 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4440640716207016598, guid: e69c20227a2b466f933798059942147d, type: 3}
-  m_PrefabInstance: {fileID: 1731406201}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cff4db5d6814b4dabfb55e450ccb16e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.ControlGuideView
 --- !u!1 &1521874451
 GameObject:
   m_ObjectHideFlags: 0
@@ -1161,6 +1242,7 @@ MonoBehaviour:
   _telegraphSettings: {fileID: 11400000, guid: b3aad67d230c43c4380cb5b762e76ed8, type: 2}
   _attackTelegraphPrefab: {fileID: 7629994177825324415, guid: e496519642238ab4ba512a07c6c8ead0, type: 3}
   _hud: {fileID: 1010889622}
+  _hudStatus: {fileID: 109240223}
   _headHpPrefab: {fileID: 2473682468616647909, guid: bc203e7dd1b0e4d399258ed66b79c36f, type: 3}
   _obstaclePrefab: {fileID: 4739000793829335648, guid: 846634499c41c490ba028003c39be17d, type: 3}
   _obstacleSettings: {fileID: 11400000, guid: 248c1c03477cd40d3a10a55008de532f, type: 2}
@@ -1188,6 +1270,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1731406201
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 936099106}
+    m_Modifications:
+    - target: {fileID: 6362335144082684130, guid: e69c20227a2b466f933798059942147d, type: 3}
+      propertyPath: m_Name
+      value: ControlGuide
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e69c20227a2b466f933798059942147d, type: 3}
+--- !u!224 &1731406202 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5590429100483190602, guid: e69c20227a2b466f933798059942147d, type: 3}
+  m_PrefabInstance: {fileID: 1731406201}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1731406203 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4440640716207016598, guid: e69c20227a2b466f933798059942147d, type: 3}
+  m_PrefabInstance: {fileID: 1731406201}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cff4db5d6814b4dabfb55e450ccb16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.ControlGuideView
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

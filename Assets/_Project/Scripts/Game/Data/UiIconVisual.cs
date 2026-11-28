@@ -62,6 +62,17 @@ namespace PictoArcher.Game
         public Sprite WeaponLaser => _weaponLaser;
         public Sprite WeaponLauncher => _weaponLauncher;
         public Sprite CardFrame => _cardFrame;
+
+        /// <summary>武器の種類から、その武器の絵を引く。</summary>
+        public Sprite WeaponIconOf(WeaponId id)
+        {
+            switch (id)
+            {
+                case WeaponId.Laser: return _weaponLaser;
+                case WeaponId.Launcher: return _weaponLauncher;
+                default: return _weaponGun;
+            }
+        }
         public Sprite Trophy => _trophy;
         public Sprite Defeat => _defeat;
         public Sprite GuideArrowKey => _guideArrowKey;
