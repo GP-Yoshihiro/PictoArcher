@@ -26,7 +26,7 @@ namespace PictoArcher.Game
         {
             _clock = new GameClock();
             var flow = new SceneFlow<SceneId, OverlayId>();
-            var context = new GameContext(flow, _clock);
+            var context = new GameContext(flow, _clock, new BestRecord());
             _transform = new SceneTransform(flow, context, gameObject.scene);
         }
 

@@ -48,6 +48,9 @@ namespace PictoArcher.Tests.PlayMode
             yield return WaitUntilInitialized(second);
             second.Context.RequestScene(SceneId.Result);
             yield return WaitForActiveScene("Result");
+            // 結果なしで開いた Result は、どちらの板も出さない
+            Assert.IsFalse(View<ClearView>().gameObject.activeSelf);
+            Assert.IsFalse(View<DefeatView>().gameObject.activeSelf);
             Click<ResultScene>("_homeButton");
             yield return WaitForActiveScene("Home");
             Assert.AreEqual("Home", SceneManager.GetActiveScene().name);
@@ -225,6 +228,101 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(0f, Time.timeScale, "閉じても GameClock の一時停止は消さないはずです");
             host.Context.Clock.Paused = false;
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Clear_ShowsClearView_ThenHomeShowsBestTime()
+        {
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
+
+            var host = OpenHostScene("HostClear");
+            yield return WaitUntilInitialized(host);
+            Assert.IsTrue(host.Context.FinishRun(new RunResult(RunOutcome.Cleared, 50, 1425.4f, 321, WeaponId.Gun, null)));
+            yield return WaitForActiveScene("Result");
+            Assert.AreEqual("Result", SceneManager.GetActiveScene().name);
+            var clear = View<ClearView>();
+            Assert.IsTrue(clear.gameObject.activeSelf, "クリアの板が出る");
+            Assert.IsFalse(View<DefeatView>().gameObject.activeSelf);
+            Assert.AreEqual("23:45", TextOf(clear, "_timeText"));
+            Assert.AreEqual("321", TextOf(clear, "_coinText"));
+
+            Click<ResultScene>("_homeButton");
+            yield return WaitForActiveScene("Home");
+            var home = View<HomeView>();
+            Assert.IsTrue(Field<GameObject>(home, "_recordRow").activeSelf);
+            Assert.IsTrue(Field<GameObject>(home, "_bestTimeGroup").activeSelf, "クリア済みなら ⏱ 最短タイム");
+            Assert.IsFalse(Field<Component>(home, "_bestWaveText").gameObject.activeSelf);
+            Assert.AreEqual("23:45", TextOf(home, "_bestTimeText"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Died_ShowsDefeatView_ThenRetryGoesToBattle()
+        {
+            yield return LoadRoot();
+            var host = OpenHostScene("HostDied");
+            yield return WaitUntilInitialized(host);
+            Assert.IsTrue(host.Context.FinishRun(new RunResult(RunOutcome.Died, 23, 0f, 5, WeaponId.Laser, new[] { SkillId.Fire })));
+            yield return WaitForActiveScene("Result");
+            var defeat = View<DefeatView>();
+            Assert.IsTrue(defeat.gameObject.activeSelf, "死亡の板が出る");
+            Assert.IsFalse(View<ClearView>().gameObject.activeSelf);
+            Assert.AreEqual("23/50", TextOf(defeat, "_waveText"));
+            Assert.IsNotNull(Field<Image>(defeat, "_weaponIcon").sprite);
+
+            Click<ResultScene>("_retryButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
+            yield return WaitForSceneCount(2);
+            CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames());
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_PlayerDies_ShowsDefeatViewWithReachedWave()
+        {
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            Field<PlayerSystem>(battle, "_player").TakeHit(new PictoArcher.Core.Damage(99999));
+
+            // 死んでから結果の画面へ移るまで少し待つ（RunDefinition の EndDelaySeconds）
+            for (float t = 0f; t < 5f && SceneManager.GetActiveScene().name != "Result"; t += Time.unscaledDeltaTime) yield return null;
+            Assert.AreEqual("Result", SceneManager.GetActiveScene().name, "死ぬと結果の画面へ移る");
+            yield return null;
+            var defeat = View<DefeatView>();
+            Assert.IsTrue(defeat.gameObject.activeSelf, "死亡の板が出る");
+            Assert.AreEqual("1/50", TextOf(defeat, "_waveText"));
+        }
+
+        [UnityTest]
+        public IEnumerator Home_FirstTime_HidesRecordRow()
+        {
+            yield return LoadRoot();
+            Assert.IsFalse(Field<GameObject>(View<HomeView>(), "_recordRow").activeSelf, "記録がないときは出さない");
+            yield return null;
+        }
+
+        static T View<T>() where T : Component
+        {
+            var view = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
+            Assert.IsNotNull(view, typeof(T).Name + " がありません");
+            return view;
+        }
+
+        static T Field<T>(object owner, string field) where T : class =>
+            owner.GetType().GetField(field, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(owner) as T;
+
+        // PlayMode のテストは TMP を参照しないので、text はリフレクションで読む
+        static string TextOf(object owner, string field)
+        {
+            var text = Field<Component>(owner, field);
+            return (string)text.GetType().GetProperty("text").GetValue(text);
         }
 
         /// <summary>

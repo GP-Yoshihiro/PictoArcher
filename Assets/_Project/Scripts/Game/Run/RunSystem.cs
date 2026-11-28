@@ -32,6 +32,8 @@ namespace PictoArcher.Game
         public int TotalWaves => WaveLayout.TotalWaves;
         public bool IsCleared { get; private set; }
         public bool IsOver => _ended && _endTimer >= _definition.EndDelaySeconds;
+        /// <summary>始めてから終わる（死ぬか 50 ウェーブ目をクリアする）までの Tick の合計。一時停止中は Tick が止まるので数えない。</summary>
+        public float ElapsedSeconds { get; private set; }
 
         public void Begin() => _sequence.Begin();
 
@@ -48,6 +50,7 @@ namespace PictoArcher.Game
                 _endTimer += deltaTime;
                 return;
             }
+            ElapsedSeconds += deltaTime;
             _sequence.Tick(deltaTime);
         }
 
