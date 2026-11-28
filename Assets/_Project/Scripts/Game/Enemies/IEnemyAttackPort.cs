@@ -19,5 +19,11 @@ namespace PictoArcher.Game
 
         /// <summary>position に予兆を出し、seconds 秒あとにそこへ enemy を出す（ボスの雑魚呼び）。呼んだ敵が先に死んだら出さない。</summary>
         void Summon(EnemyDefinition enemy, Vector2 position, float seconds);
+
+        /// <summary>体の色をかける（白でそのまま）。次に変えるまで残る。赤・緑・黄・青・紫は使わない。</summary>
+        void SetTint(Color color);
+
+        /// <summary>体を光らせる（攻撃の前ぶれ）。amount が 0 で体の色のまま、1 で color。予兆と同じく、その Tick に出さなければ消える。</summary>
+        void ShowGlow(Color color, float amount);
     }
 }

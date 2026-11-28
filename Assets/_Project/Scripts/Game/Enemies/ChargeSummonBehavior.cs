@@ -87,14 +87,10 @@ namespace PictoArcher.Game
             int count = _definition.SummonCount;
             if (_definition.SummonEnemy == null || count <= 0) return;
             var toTarget = context.TargetPosition - context.Position;
-            float baseAngle = Mathf.Atan2(toTarget.y, toTarget.x) + Mathf.PI * 0.5f;
-            var area = _definition.SummonArea;
+            var start = new Vector2(-toTarget.y, toTarget.x);
             for (int i = 0; i < count; i++)
             {
-                float angle = baseAngle + Mathf.PI * 2f * i / count;
-                var position = context.Position + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * _definition.SummonDistance;
-                position.x = Mathf.Clamp(position.x, area.xMin, area.xMax);
-                position.y = Mathf.Clamp(position.y, area.yMin, area.yMax);
+                var position = RingPattern.Point(context.Position, start, i, count, _definition.SummonDistance, _definition.SummonArea);
                 attacks.Summon(_definition.SummonEnemy, position, _definition.SummonWindupSeconds);
             }
         }
