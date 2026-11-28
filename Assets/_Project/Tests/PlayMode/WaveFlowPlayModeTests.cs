@@ -1,0 +1,192 @@
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using PictoArcher.Core;
+using PictoArcher.Game;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+
+namespace PictoArcher.Tests.PlayMode
+{
+    public class WaveFlowPlayModeTests
+    {
+        const float Step = 0.1f;
+
+        sealed class FakePlayer : ITarget, IHittable, IPlayerStatus
+        {
+            public Vector2 Position { get; set; } = new Vector2(50f, 0f);
+            public bool IsAlive => !IsDead;
+            public bool IsDead { get; set; }
+            public int Hp => 100;
+            public int MaxHp => 100;
+            public bool IsInvulnerable => false;
+            public void TakeHit(Damage damage) { }
+        }
+
+        sealed class Rig
+        {
+            public readonly EnemyRegistry Registry = new EnemyRegistry();
+            public readonly FakePlayer Player = new FakePlayer();
+            public readonly List<IEnemyTarget> Spawned = new List<IEnemyTarget>();
+            public EnemySystem Enemies;
+            public WaveSpawnSystem Waves;
+            public RunSystem Run;
+            RunDefinition _definition;
+
+            public Rig(int startWave)
+            {
+                _definition = ScriptableObject.CreateInstance<RunDefinition>();
+                var so = new SerializedObject(_definition);
+                var waves = so.FindProperty("_waves");
+                waves.arraySize = 2;
+                waves.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_A.asset");
+                waves.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<WaveDefinition>("Assets/_Project/Data/Waves/Wave_Test_B.asset");
+                so.FindProperty("_startWave").intValue = startWave;
+                so.FindProperty("_restSeconds").floatValue = 1.5f;
+                so.FindProperty("_endDelaySeconds").floatValue = 0.5f;
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                var telegraph = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/SpawnTelegraph.prefab").GetComponent<SpawnTelegraphView>();
+                var settings = AssetDatabase.LoadAssetAtPath<SpawnTelegraphSettings>("Assets/_Project/Data/Enemies/SpawnTelegraphSettings.asset");
+                var attack = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Enemies/AttackTelegraph.prefab").GetComponent<AttackTelegraphView>();
+                Enemies = new EnemySystem(Registry, telegraph, settings, attack, new EnemyProjectileSystem(Player), Player, Player);
+                Enemies.Spawned += e => Spawned.Add(e);
+                Waves = new WaveSpawnSystem(Enemies);
+                Run = new RunSystem(_definition, Waves, Player);
+                Run.Begin();
+            }
+
+            // BattleScene と同じ順に回す
+            public void Tick(float seconds)
+            {
+                for (float t = 0f; t < seconds - 0.0001f; t += Step)
+                {
+                    Enemies.Tick(Step);
+                    Waves.Tick(Step);
+                    Run.Tick(Step);
+                }
+            }
+
+            public void KillAll()
+            {
+                var alive = new List<IEnemyTarget>(Registry.Active);
+                for (int i = 0; i < alive.Count; i++) alive[i].TakeHit(new Damage(1000));
+                // 最後の1体に2発同時に当たっても、ウェーブは1つだけ進む
+                if (alive.Count > 0) alive[alive.Count - 1].TakeHit(new Damage(1000));
+            }
+
+            public void Dispose()
+            {
+                Run.Dispose();
+                Waves.Dispose();
+                Enemies.Dispose();
+                Registry.Clear();
+                Object.DestroyImmediate(_definition);
+            }
+        }
+
+        bool _battleLoaded;
+
+        [UnityTest]
+        public IEnumerator Waves_SpawnAfterTelegraph_AdvanceOneAtATime_AndRestBeforeNext()
+        {
+            var rig = new Rig(1);
+            Assert.AreEqual(1, rig.Run.CurrentWave);
+            Assert.AreEqual(3, rig.Enemies.PendingCount, "始まるとすぐ予兆が3つ出る");
+            rig.Tick(1f);
+            Assert.AreEqual(3, rig.Spawned.Count, "予兆のあとに3体出る");
+
+            rig.KillAll();
+            rig.Tick(Step);
+            Assert.AreEqual(2, rig.Run.CurrentWave, "全滅すると 2/50 になる");
+
+            rig.Tick(1f);
+            Assert.AreEqual(0, rig.Enemies.PendingCount, "休みの間は出さない");
+            rig.Tick(0.6f);
+            Assert.AreEqual(5, rig.Enemies.PendingCount, "約1.5秒あとに5つの予兆");
+            rig.Tick(1f);
+            Assert.AreEqual(8, rig.Spawned.Count);
+
+            rig.KillAll();
+            rig.Tick(1.6f);
+            Assert.AreEqual(3, rig.Run.CurrentWave, "3ウェーブ目へ（1つずつ進む）");
+            rig.Tick(1f);
+            Assert.AreEqual(11, rig.Spawned.Count, "3ウェーブ目は最初のウェーブを使い回す");
+            Assert.IsFalse(rig.Run.IsOver);
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator PlayerDeathDuringRest_StopsTheNextWave_AndEndsAfterDelay()
+        {
+            var rig = new Rig(1);
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            rig.Player.IsDead = true;
+            rig.Tick(Step);
+            Assert.IsFalse(rig.Run.IsOver, "少し待ってから終わる");
+            rig.Tick(3f);
+
+            Assert.AreEqual(0, rig.Enemies.PendingCount, "死んだあとは次のウェーブを始めない");
+            Assert.AreEqual(3, rig.Spawned.Count);
+            Assert.IsTrue(rig.Run.IsOver);
+            Assert.IsFalse(rig.Run.IsCleared);
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ClearingWave50_EndsAsCleared()
+        {
+            var rig = new Rig(50);
+            Assert.AreEqual(50, rig.Run.CurrentWave);
+            rig.Tick(1f);
+            rig.KillAll();
+            rig.Tick(Step);
+            Assert.IsTrue(rig.Run.IsCleared, "50/50 を全滅させるとクリア");
+            rig.Tick(1f);
+            Assert.IsTrue(rig.Run.IsOver);
+            Assert.AreEqual(50, rig.Run.CurrentWave);
+            rig.Dispose();
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_ShowsWaveAndHeadHp_AndSpawnsTheFirstWave()
+        {
+            _battleLoaded = true;
+            SceneManager.LoadScene(SceneTransform.RootSceneName);
+            yield return null;   // 前のテストの Home が残っていても、読み込み直しを待つ
+            for (int i = 0; i < 300 && SceneManager.GetActiveScene().name != "Home"; i++) yield return null;
+            var home = Object.FindAnyObjectByType<HomeScene>();
+            var start = (UiButtonRelay)typeof(HomeScene).GetField("_startButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(home);
+            start.GetComponent<Button>().onClick.Invoke();
+            for (int i = 0; i < 300 && SceneManager.GetActiveScene().name != "Battle"; i++) yield return null;
+            Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
+            yield return new WaitForSeconds(1.3f);
+
+            Assert.AreEqual(1, Object.FindObjectsByType<PlayerView>(FindObjectsSortMode.None).Length, "プレイヤーが1人");
+            Assert.AreEqual(1, Object.FindObjectsByType<HeadHpView>(FindObjectsSortMode.None).Length, "頭上の HP");
+            Assert.GreaterOrEqual(Object.FindObjectsByType<EnemyView>(FindObjectsSortMode.None).Length, 1, "最初のウェーブの敵が出る");
+            var hud = Object.FindAnyObjectByType<HudView>();
+            // テストの asmdef は TextMeshPro を参照しないので、文字はリフレクションで読む
+            var wave = (Component)typeof(HudView).GetField("_wave", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(hud);
+            Assert.AreEqual("1/50", (string)wave.GetType().GetProperty("text").GetValue(wave));
+        }
+
+        [UnityTearDown]
+        public IEnumerator CleanUp()
+        {
+            if (!_battleLoaded) yield break;
+            _battleLoaded = false;
+            SceneManager.LoadScene(SceneTransform.RootSceneName);
+            yield return null;
+            yield return null;
+        }
+    }
+}

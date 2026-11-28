@@ -1,0 +1,86 @@
+using System;
+using System.Collections.Generic;
+using PictoArcher.Core;
+using UnityEngine;
+
+namespace PictoArcher.Game
+{
+    /// <summary>
+    /// 1ウェーブの出現と全滅の見張り。Begin で全部の出現位置に同時に予兆を出し、出た敵を WaveProgress に登録する。
+    /// 予兆が全部終わったら出し終わりにし、分裂の子を含めて全部死んだら Cleared を出す。
+    /// </summary>
+    public sealed class WaveSpawnSystem : ITickable, IDisposable
+    {
+        struct Tracked
+        {
+            public IEnemyTarget Enemy;
+            public int Id;
+        }
+
+        readonly EnemySystem _enemies;
+        readonly List<Tracked> _alive = new List<Tracked>();
+        WaveProgress _progress;
+        bool _waitingForSpawns;
+        int _nextId;
+
+        public event Action Cleared;
+
+        public WaveSpawnSystem(EnemySystem enemies)
+        {
+            _enemies = enemies;
+            _enemies.Spawned += HandleSpawned;
+            _enemies.Died += HandleDied;
+        }
+
+        public void Begin(WaveDefinition wave)
+        {
+            if (_progress != null) _progress.Cleared -= HandleCleared;
+            _alive.Clear();
+            _progress = new WaveProgress();
+            _progress.Cleared += HandleCleared;
+            var spawns = wave.Spawns;
+            for (int i = 0; i < spawns.Count; i++) _enemies.Spawn(spawns[i].Enemy, spawns[i].Position, wave.TelegraphSeconds);
+            _waitingForSpawns = true;
+        }
+
+        public void Tick(float deltaTime)
+        {
+            // 予兆が全部終わって敵になったら、出し終わり（敵が0体なら、ここでクリアになる）
+            if (!_waitingForSpawns || _enemies.PendingCount > 0) return;
+            _waitingForSpawns = false;
+            _progress.FinishSpawning();
+        }
+
+        public void Dispose()
+        {
+            if (_progress != null) _progress.Cleared -= HandleCleared;
+            _enemies.Died -= HandleDied;
+            _enemies.Spawned -= HandleSpawned;
+            _alive.Clear();
+        }
+
+        void HandleSpawned(IEnemyTarget enemy)
+        {
+            if (_progress == null) return;
+            int id = _nextId++;
+            _alive.Add(new Tracked { Enemy = enemy, Id = id });
+            _progress.RegisterEnemy(id);
+        }
+
+        // EnemyDeath は敵そのものを持たないので、死んでいて同じ位置にいる1体を探す
+        // （分裂する敵は子を出すまで Died が遅れて届くので、IsAlive だけで探すと早くクリアになる）
+        void HandleDied(EnemyDeath death)
+        {
+            for (int i = 0; i < _alive.Count; i++)
+            {
+                var tracked = _alive[i];
+                if (tracked.Enemy.IsAlive || tracked.Enemy.Position != death.Position) continue;
+                _alive.RemoveAt(i);
+                _progress.MarkKilled(tracked.Id);
+                return;
+            }
+        }
+
+        void HandleCleared() => Cleared?.Invoke();
+    }
+}
