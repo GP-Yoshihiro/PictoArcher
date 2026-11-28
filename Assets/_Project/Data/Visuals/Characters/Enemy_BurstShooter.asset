@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17b072ad2fb1415e8c99e4b5d521340, type: 3}
+  m_Name: Enemy_BurstShooter
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.CharacterVisual
+  _idle:
+    _frames:
+    - {fileID: 1218915586972859027, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    - {fileID: -7806700004214213429, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    _framesPerSecond: 2
+    _loops: 1
+  _move:
+    _frames:
+    - {fileID: -7806700004214213429, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    - {fileID: 6222628619805253106, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    _framesPerSecond: 6
+    _loops: 1
+  _attack:
+    _frames:
+    - {fileID: 1218915586972859027, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    _framesPerSecond: 8
+    _loops: 0
+  _death:
+    _frames:
+    - {fileID: 1218915586972859027, guid: e02fa527399b9492abaa1098b4566cc2, type: 3}
+    _framesPerSecond: 8
+    _loops: 0
+  _scale: 1
+  _footOffset: {x: 0, y: -1}
