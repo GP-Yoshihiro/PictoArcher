@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Ice
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 14
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: f712d4f724c9f45cfa777b77adb08179, type: 3}
   _maxStacks: 3
   _weight: 10

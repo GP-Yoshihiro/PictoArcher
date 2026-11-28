@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: DeathBlastHorizontal
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 20
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 6c77734910ff74cf38aacc3ddb3b0c65, type: 3}
   _maxStacks: 2
   _weight: 10

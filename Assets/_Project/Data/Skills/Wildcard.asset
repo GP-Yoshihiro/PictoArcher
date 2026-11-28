@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Wildcard
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 25
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: ace08d1d012544747a0650dec516b99e, type: 3}
   _maxStacks: 1
   _weight: 0

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: SideShot
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 7
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: e3938cf73bf744b99b9f344b072a37ec, type: 3}
   _maxStacks: 1
   _weight: 10

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: FrontShot
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.SkillDefinition
   _id: 5
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: af63b90f186584ad7bf79e52ca1b2b0a, type: 3}
   _maxStacks: 3
   _weight: 10
