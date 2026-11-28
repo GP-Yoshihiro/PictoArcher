@@ -9,7 +9,7 @@
 
 ## 1. 意図
 
-PictoArcher は3人のプログラマーで作る。山田さん以外の2人（肴場さん・洞さん）は Unity が初めてで、Claude を使って書く。プログラムの基礎はあっても、Unity の仕組み（Update の呼ばれ方、シーン、プレハブ、ScriptableObject、当たり判定の通知など）を知らない。
+PictoArcher は3人のプログラマーで作り始めた（6週目からは山田さんの1人。規則はそのまま使う）。山田さん以外の2人（肴場さん・洞さん）は Unity が初めてで、Claude を使って書く。プログラムの基礎はあっても、Unity の仕組み（Update の呼ばれ方、シーン、プレハブ、ScriptableObject、当たり判定の通知など）を知らない。
 
 この状態で各自が Claude にコードを書かせると、次のことが起きやすい。
 
@@ -45,7 +45,7 @@ PictoArcher は3人のプログラマーで作る。山田さん以外の2人（
 
 - Unity 6000.5.10f1、URP 2D。asmdef は Core ← Game ← Editor（Tests は全部を参照）。
 - ドメインのリロードが無効（`EnterPlayModeOptions` = 1）。static の値が再生をまたいで残る。
-- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を編集するのは C さんだけ。ほかの人はプレハブと Sandbox シーンで作業する。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` は、同時に2つのセッション（ワークツリー）で編集しない。部品の試しはプレハブと Sandbox シーンで行う。
 - 数値は ScriptableObject の調整値にする。Core は純粋な C# で、先にテストを書く。
 - 文字ゼロのルール（画面に文字を出さない）。
 - テストは Unity のエディタを閉じて `tools/run-editmode-tests.sh` で回す。
