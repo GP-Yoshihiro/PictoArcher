@@ -16,7 +16,7 @@ namespace PictoArcher.Tests.EditMode
     public class NoTextGuardTests
     {
         const string FontPath = "Assets/_Project/Fonts/Digits.asset";
-        const string Required = "0123456789+-×/%";
+        const string Required = "0123456789+-×/%:";
 
         [Test]
         public void DigitFont_HasOnlyDigitsAndSymbols()
