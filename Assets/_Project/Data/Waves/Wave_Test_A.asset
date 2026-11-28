@@ -20,3 +20,4 @@ MonoBehaviour:
   - _enemy: {fileID: 11400000, guid: d29a2102cc5f28e45a74ac8d82e9eb02, type: 2}
     _position: {x: 5, y: 9}
   _telegraphSeconds: 0.8
+  _obstacleLayout: {fileID: 11400000, guid: 4299bf7acd33544539189c9d850a9df8, type: 2}

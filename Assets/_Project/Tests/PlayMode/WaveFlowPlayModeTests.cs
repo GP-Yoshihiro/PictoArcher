@@ -217,6 +217,7 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(1, Object.FindObjectsByType<PlayerView>(FindObjectsSortMode.None).Length, "プレイヤーが1人");
             Assert.AreEqual(1, Object.FindObjectsByType<HeadHpView>(FindObjectsSortMode.None).Length, "頭上の HP");
             Assert.GreaterOrEqual(Object.FindObjectsByType<EnemyView>(FindObjectsSortMode.None).Length, 1, "最初のウェーブの敵が出る");
+            Assert.AreEqual(4, Object.FindObjectsByType<ObstacleView>(FindObjectsSortMode.None).Length, "1ウェーブ目の障害物（四隅）が出る");
             var hud = Object.FindAnyObjectByType<HudView>();
             // テストの asmdef は TextMeshPro を参照しないので、文字はリフレクションで読む
             var wave = (Component)typeof(HudView).GetField("_wave", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(hud);

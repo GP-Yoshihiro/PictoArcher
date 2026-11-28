@@ -35,6 +35,9 @@ namespace PictoArcher.Game
         /// <summary>始めてから終わる（死ぬか 50 ウェーブ目をクリアする）までの Tick の合計。一時停止中は Tick が止まるので数えない。</summary>
         public float ElapsedSeconds { get; private set; }
 
+        /// <summary>ウェーブを全滅させて休みに入った。引数は次に始まるウェーブの番号（障害物の切り替えに使う）。</summary>
+        public event Action<int> RestStarted;
+
         public void Begin() => _sequence.Begin();
 
         public void Tick(float deltaTime)
@@ -65,7 +68,9 @@ namespace PictoArcher.Game
 
         void HandleCleared()
         {
-            if (!_ended) _sequence.NotifyCleared();
+            if (_ended) return;
+            _sequence.NotifyCleared();
+            if (_sequence.Phase == WavePhase.Resting) RestStarted?.Invoke(_sequence.CurrentWave);
         }
 
         void HandleCompleted()
