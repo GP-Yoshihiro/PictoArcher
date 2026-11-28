@@ -24,6 +24,8 @@ namespace PictoArcher.Game
         [SerializeField] ObstacleView _obstaclePrefab;
         [SerializeField] ObstacleSwitchSettings _obstacleSettings;
         [SerializeField, Tooltip("フィールドの Obstacles の子")] Transform _obstacleRoot;
+        [SerializeField] PickupView _pickupPrefab;
+        [SerializeField] PickupSettings _pickupSettings;
 
         GameContext _context;
         EnemyRegistry _enemies;
@@ -33,6 +35,7 @@ namespace PictoArcher.Game
         EnemyProjectileSystem _enemyShots;
         EnemySystem _enemySystem;
         WaveSpawnSystem _waves;
+        PickupSystem _pickups;
         RunSystem _runSystem;
         HudSystem _hudSystem;
         bool _leaving;
@@ -48,6 +51,8 @@ namespace PictoArcher.Game
             _enemyShots = new EnemyProjectileSystem(_player);
             _enemySystem = new EnemySystem(_enemies, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _enemyShots, _player, _player);
             _waves = new WaveSpawnSystem(_enemySystem);
+            _pickups = new PickupSystem(_pickupPrefab, _pickupSettings, _enemySystem, _player);
+            _waves.Cleared += HandleWaveCleared;
             _runSystem = new RunSystem(_run, _waves, _player);
             _hudSystem = new HudSystem(_hud, _headHpPrefab, _player, _player, _runSystem);
             _runSystem.RestStarted += HandleRestStarted;
@@ -63,6 +68,7 @@ namespace PictoArcher.Game
             _obstacles.Tick(deltaTime);
             _enemySystem.Tick(deltaTime);
             _waves.Tick(deltaTime);
+            _pickups.Tick(deltaTime);
             _shots.Tick(deltaTime);
             _enemyShots.Tick(deltaTime);
             _runSystem.Tick(deltaTime);
@@ -70,14 +76,18 @@ namespace PictoArcher.Game
             if (_runSystem.IsOver && !_leaving) _leaving = _context.FinishRun(NewResult());
         }
 
-        // コイン・武器・強化は、それぞれのタスク（04・10・05）で本物の値につなぐ。今は 0 枚・銃・なし。
+        // 武器・強化は、それぞれのタスク（10・05）で本物の値につなぐ。今は銃・なし。
+        // クリアしたときは、全滅で吸い寄せ中のコインも足す（拾い終わる前に結果へ移るため）。
         RunResult NewResult() => new RunResult(
             _runSystem.IsCleared ? RunOutcome.Cleared : RunOutcome.Died,
             _runSystem.CurrentWave,
             _runSystem.ElapsedSeconds,
-            0,
+            _pickups.Coins + (_runSystem.IsCleared ? _pickups.PendingCoins : 0),
             WeaponId.Gun,
             null);
+
+        // ウェーブを全滅させたら、落ちている経験値とコインを全部吸い寄せる。
+        void HandleWaveCleared() => _pickups.AttractAll();
 
         // 休みに入ったら、次のウェーブの障害物の並びへ切り替える（空なら今のまま）。
         void HandleRestStarted(int nextWave) => _obstacles.SwitchTo(_run.WaveFor(nextWave).ObstacleLayout);
@@ -94,6 +104,8 @@ namespace PictoArcher.Game
             _hudSystem.Dispose();
             _runSystem.RestStarted -= HandleRestStarted;
             _runSystem.Dispose();
+            _waves.Cleared -= HandleWaveCleared;
+            _pickups.Dispose();
             _waves.Dispose();
             _enemySystem.Dispose();
             _enemyShots.Dispose();
