@@ -18,6 +18,8 @@ namespace PictoArcher.Tests.EditMode
             public void Shoot(EnemyProjectileDefinition projectile, Vector2 direction) { }
             public void SelfDestruct(float radius, int damage) { }
             public void Summon(EnemyDefinition enemy, Vector2 position, float seconds) => Summons.Add((enemy, position, seconds));
+            public void SetTint(Color color) { }
+            public void ShowGlow(Color color, float amount) { }
         }
 
         const float Step = 0.05f;

@@ -28,6 +28,11 @@ namespace PictoArcher.Game
         AttackTelegraphView _circleView;
         int _linesUsed;
         bool _circleUsed;
+        Color _tint = Color.white;
+        Color _glowColor;
+        float _glowAmount;
+        bool _glowUsed;
+        Color _shownColor = Color.white;
         readonly SplitTracker _splitTracker;
         readonly float _moveSpeed;
         bool _deathRaised;
@@ -106,14 +111,16 @@ namespace PictoArcher.Game
         {
             _linesUsed = 0;
             _circleUsed = false;
+            _glowUsed = false;
             var velocity = Vector2.zero;
             if (_player.IsAlive)
             {
-                var context = new EnemyContext(Position, _player.Position, _moveSpeed);
+                var context = new EnemyContext(Position, _player.Position, _moveSpeed, (float)_health.Current / _health.Max);
                 velocity = _behavior.Tick(deltaTime, context, this);
             }
             if (!IsAlive) return;   // 自爆したときは、このあとの動きや見た目を更新しない
             HideUnusedTelegraphs();
+            UpdateColor();
 
             _view.SetVelocity(velocity);
             UpdateAppearance(velocity);
@@ -129,6 +136,15 @@ namespace PictoArcher.Game
             bool telegraphing = _linesUsed > 0 || _circleUsed;
             var pose = telegraphing ? CharacterPose.Attack : velocity != Vector2.zero ? CharacterPose.Move : CharacterPose.Idle;
             if (_animator.Pose != pose) _animator.Play(pose);
+        }
+
+        // 体の色と光り。変わったときだけ SpriteRenderer に入れる
+        void UpdateColor()
+        {
+            var color = _glowUsed ? Color.Lerp(_tint, _glowColor, _glowAmount) : _tint;
+            if (color == _shownColor) return;
+            _shownColor = color;
+            _view.Sprite.color = color;
         }
 
         // 「入ってきた」記録は使わないが、溜まり続けないよう毎回捨てる
@@ -167,6 +183,8 @@ namespace PictoArcher.Game
             _deathRaised = true;
             _view.Freeze();
             ReleaseTelegraphs();
+            _glowUsed = false;   // 光っている途中で倒れても、やられの絵は体の色で出す
+            UpdateColor();
             _animator.Play(CharacterPose.Death);
             Died?.Invoke(this, new EnemyDeath(_definition, Position, _definition.XpReward, _definition.CoinReward));
         }
@@ -203,6 +221,15 @@ namespace PictoArcher.Game
         public void Summon(EnemyDefinition enemy, Vector2 position, float seconds)
         {
             if (IsAlive) SummonRequested?.Invoke(this, enemy, position, seconds);
+        }
+
+        public void SetTint(Color color) => _tint = color;
+
+        public void ShowGlow(Color color, float amount)
+        {
+            _glowColor = color;
+            _glowAmount = Mathf.Clamp01(amount);
+            _glowUsed = true;
         }
 
         AttackTelegraphView NewTelegraph()
