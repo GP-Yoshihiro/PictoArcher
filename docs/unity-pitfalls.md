@@ -31,7 +31,7 @@ Unity を初めて使う人と、その人の Claude が勘違いしやすい所
 ## 6. シーンとプレハブは2人で同時に直すと衝突する
 - **何が起きるか**：同じシーンやプレハブを2人が直すと、マージで壊れたり片方の変更が消えたりする。
 - **なぜか**：中身は YAML だが、人が読んで直せる形ではなく、自動のマージがうまくいかないことが多い。
-- **ここではどうするか**：`Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を直すのは C さんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。同じプレハブを触る PR が開いていたら作業を始めない。
+- **ここではどうするか**：`Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` は、同時に2つのセッション（ワークツリー）で直さない。部品の試しはプレハブと `Scenes/Sandbox/Sandbox_<名前>.unity` で行う。同じプレハブやシーンを触る PR やワークツリーがあったら作業を始めない。
 
 ## 7. 物理で動かすものは `Rigidbody2D` を使い、`FixedTick` で動かす
 - **何が起きるか**：`Rigidbody2D` を持つものを `transform.position` で動かすと、壁をすり抜けたりカクついたりする。

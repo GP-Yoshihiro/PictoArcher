@@ -1,11 +1,11 @@
 # PictoArcher：Claude へのルール
 
-3人の Claude が同じルールで動くための文書。Unity 6000.5.10f1（URP 2D）。
+プログラマー1人（山田）が Claude を使って開発するときのルール。6週目から A・B・C の3人の作業をすべて1人で引き継いだ（仕様は変えていない）。Unity 6000.5.10f1（URP 2D）。
 開発ルールの正本は `docs/development-rules.md`。仕様の一覧・工程・工数は `docs/PictoArcher_仕様書.xlsx`。
 
 ## 作業を始める前に（毎回・必ず）
 
-3人とも Claude を使うので、同じ作業を2つの Claude が始めないように、コードやファイルを触る前に次を行う。
+Claude と Codex のセッションやサブエージェントを同時に動かすので、同じ作業を2つのセッションが始めないように、コードやファイルを触る前に次を行う。
 
 1. 次を実行して結果を見る。
    ```bash
@@ -13,14 +13,15 @@
    gh issue list --state open
    gh pr list --state open
    git branch -r
+   git worktree list
    ```
-2. 頼まれた作業の Issue を探す（タイトルは `<担当>-<作業順> [作業工程の ID] タスク名`（例 `A-03 [P2-02] 強化の仕組み`。`A-03` は A さんの3番目の作業。作業順は仕様書「作業工程」シートの「作業順」の列））。
-   - Issue の担当（assignee）がほかの人なら、作業を始めずに人に伝える。
-   - 同じファイルを触る PR（下書きを含む）が開いているなら、作業を始めずに人に伝える。
+2. 頼まれた作業の Issue を探す（タイトルは `<作業順> [作業工程の ID] タスク名`（例 `05 [P2-02] 強化の仕組み`。作業順は進める順の通し番号で、仕様書「作業工程」シートの「作業順」の列。5週目までに終わったものは `B-04` のような3人のころの番号のまま））。
+   - 同じ Issue の作業ブランチ・下書きの PR・ワークツリーがすでにあるなら、別のセッションが進めているので、作業を始めずに人に伝える。
+   - 同じファイルを触る PR（下書きを含む）やワークツリーがあるなら、作業を始めずに人に伝える。
    - Issue がないなら、作ってよいか人に聞く。
-3. 自分の Issue の担当になってから、`develop` から `<プレフィックス>/t<Issue番号>-<短い英語>` のブランチを切り（下の「シーンとブランチ」）、下書きの PR（本文に `Closes #<番号>` と触るファイル）を開く。push と PR の作成は人の OK をもらってから。
+3. Issue の担当を自分（`@me`）にしてから、`develop` から `<プレフィックス>/t<Issue番号>-<短い英語>` のブランチを切り（下の「シーンとブランチ」）、下書きの PR（本文に `Closes #<番号>` と触るファイル）を開く。push と PR の作成は人の OK をもらってから。
 4. 仕様書「作業工程」シートの「先に要るもの」がマージ済みか確かめる。まだなら人に伝える。
-5. 作業中は Issue に書いてあること以外をしない。担当外のファイル（ほかの人のプレハブ、`Battle.unity` など）を直したくなったら、直さずに人に伝える。
+5. 作業中は Issue に書いてあること以外をしない。Issue に書いていないファイル（ほかのタスクのプレハブ、`Battle.unity` など）を直したくなったら、直さずに人に伝える。
 
 1セッション＝1タスク。別のタスクに移るときは `/clear` してから。計画が要る作業は Plan Mode で計画を作り、人が読んでから進める。
 
@@ -104,8 +105,8 @@ Assets/_Project/
     System/                MainCamera
     Player/ Enemies/ Projectiles/ Field/ UI/   それぞれのタスクで足す
   Scenes/Root.unity          消えない土台（Main、RootScene、カメラ、EventSystem）。Build の 0 番
-  Scenes/Home.unity, Battle.unity, Result.unity, Pause.unity   Root に加算で読み込む。Cさんだけが編集する（Build Settings は Root から この順）
-  Scenes/Sandbox/          Sandbox_A.unity, Sandbox_B.unity（各自の試し用、他の人は触らない）
+  Scenes/Home.unity, Battle.unity, Result.unity, Pause.unity   Root に加算で読み込む。同時に2つのセッションで編集しない（Build Settings は Root から この順）
+  Scenes/Sandbox/          Sandbox_B.unity など（試し用）
   Fonts/                   数字と記号だけのフォント
   Art/                     絵
     Characters/            キャラのドット絵 32×32（プレイヤー、敵、中ボス、ボス。Point）
@@ -146,12 +147,12 @@ docs/superpowers/          設計書（specs/）と計画（plans/）
 
 ## シーンとブランチ
 
-- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` を編集するのは Cさんだけ。ほかの人はプレハブと `Scenes/Sandbox/Sandbox_<担当>.unity` で作業する。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxAScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
+- `Root.unity`・`Home.unity`・`Battle.unity`・`Result.unity`・`Pause.unity` は、同時に2つのセッション（ワークツリー）で編集しない。シーンを触るタスクは1つずつ進める。部品の試しはプレハブと `Scenes/Sandbox/Sandbox_<名前>.unity` で行う。Sandbox のシーンにも自分の `SceneBase`（例 `SandboxBScene`）を1つ置く（置かないと何も動かない。書き方はスキル `pictoarcher-coding-rules`）。
 - エディタの ▶ は、どのシーンを開いていても `Root.unity`（Build の 0 番）から始まり、Home が出る（`PlayFromRootScene`）。ビルドも 0 番から始まる。例外は `Scenes/Sandbox/` のシーンで、開いたシーンのまま始まる（`Main` が Root を加算で足す）。
-- ブランチは `develop` から切り、PR も `develop` 向けに出す。`main` はリリースのときだけ `develop` から入れる（C さん）。
+- ブランチは `develop` から切り、PR も `develop` 向けに出す。`main` はリリースのときだけ `develop` から入れる。
 - ブランチ名は `<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`）。作業の種類がわかるようにする。1タスク＝1 Issue＝1ブランチ。
   - `feature/` 新機能／`fix/`（または `bugfix/`）バグの修正／`hotfix/` 本番の緊急修正／`release/` リリースに向けた調整・バージョンアップ／`refactor/` 動きを変えずにコードを整理／`docs/` 文書の修正・追加
-- `develop` と `main` へは直接入れない。ほかの1人が確認してからマージする。`develop` へのマージでは Issue が自動で閉じないので、マージしたら `gh issue close <番号>` で閉じる。
+- `develop` と `main` へは直接入れない。人（山田）が差分を読み、`task-reviewer` か CodeRabbit のレビューを通してからマージする。`develop` へのマージでは Issue が自動で閉じないので、マージしたら `gh issue close <番号>` で閉じる。
 - Claude が書いたコードも、マージ前に人が読む。
 - PR は `.github/pull_request_template.md` の項目を埋める。コミットの種類、レビュー、マージの方法は `docs/development-rules.md` §6〜§8。
 - 仕様を変えるときは、設計書（`.md`）と `tools/spec/build_spec_xlsx.py` を同じ PR で直し、`.xlsx` を作り直す（§10）。
