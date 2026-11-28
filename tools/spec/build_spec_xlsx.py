@@ -1070,7 +1070,10 @@ def build_prog_effort(b):
         ("", "6〜8週目に使える作業日", 15, "", "", "", "週5日×3週（設計書 §3）"),
         ("", "残りの見積もり", None, "", "", "", "作業工程シートの数式"),
         ("", "使える日−残りの見積もり", None, "", "", "", "マイナスは、はみ出す日数"),
-    ], input_cols=(3,), formats={3: "0.0#"})
+    ], formats={3: "0.0#"})
+    # 書き込むのは使える作業日だけ。残りの2行は数式なので引き継がない
+    s.ws.cell(row=solo_row + 1, column=3).fill = fill(C_INPUT)
+    b.input_cells = getattr(b, "input_cells", []) + [("工数_プログラマー", "C{}".format(solo_row + 1))]
     s.ws.cell(row=solo_row + 2, column=3,
               value="=SUMIFS('作業工程'!H:H,'作業工程'!D:D,\"プログラマー\",'作業工程'!I:I,\"<>済み\")").number_format = "0.0#"
     s.ws.cell(row=solo_row + 3, column=3, value="=C{}-C{}".format(solo_row + 1, solo_row + 2)).number_format = "+0.0#;-0.0#;0"
@@ -1261,7 +1264,7 @@ def build_schedule(b):
     s.cell(r + 2, 3, '=IF(C{0}<C{1},"開始前",IF(C{0}>C{1}+55,"終了",INT((C{0}-C{1})/7)+1))'.format(r + 1, r),
            border=True, align=CENTER)
     s.row = r + 4
-    b.input_cells = [("スケジュール", "C{}".format(r))]
+    b.input_cells = getattr(b, "input_cells", []) + [("スケジュール", "C{}".format(r))]
 
     s.heading("週ごとの予定")
     rows = [[w, None, None, None, prog, art, mark, plan] for w, prog, art, mark, plan in SCHEDULE]

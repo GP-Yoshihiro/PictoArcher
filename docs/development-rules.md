@@ -58,14 +58,15 @@
 プログラマーは1人でも、Claude と Codex のセッションやサブエージェントを同時に動かすので、同じタスクを2つのセッションが始める、同じファイルを別々に直す、ということが起きやすい。タスクを始めるたびに、次を上から確かめる。Claude にも同じ確認をさせる（`CLAUDE.md`「作業を始める前に」）。
 
 ```bash
-git switch develop && git pull
+git fetch --prune
 gh issue list --state open
 gh pr list --state open
-git fetch --prune && git branch -r
+git branch -r
+git worktree list
 ```
 
 1. 自分のタスクの Issue がある。なければ作る（§4）。
-2. その Issue の担当（assignee）が自分（いなければ自分にする）。同じ Issue の作業ブランチや下書きの PR がすでにあるなら、別のセッションが進めているので始めない。
+2. その Issue の担当（assignee）が自分（いなければ自分にする）。同じ Issue の作業ブランチや下書きの PR がすでにあるなら、別のセッションが進めているかもしれないので始めずに確かめる。止まった作業を引き継ぐなら、新しく作らずにそのブランチと PR で続ける。
 3. 開いている PR（下書きを含む）やほかのワークツリー（`git worktree list`）に、同じファイルを触るものがない。あるなら、どちらを先にするか決めてから始める。
 4. 仕様書「作業工程」シートの「先に要るもの」がマージ済み。
 5. 自分を担当にしてから、ブランチを作り、すぐ下書きの PR を開く（§5、§7）。
@@ -92,6 +93,7 @@ git fetch --prune && git branch -r
 - 日々の作業をまとめるのは `develop`。作業のブランチは `develop` から切り、PR も `develop` 向けに出す。
 - `main` はリリースした版だけを置く。`develop` から `main` へ入れるのはリリースのときだけで、`release/` のブランチで行う。
 - 1タスク＝1ブランチ。`develop` にも `main` にも直接コミットしない。
+- 作り方：`git fetch --prune` のあと、`origin/develop` から切る（`git switch -c <ブランチ名> origin/develop`、ワークツリーなら `git worktree add <場所> -b <ブランチ名> origin/develop`）。ほかのワークツリーが `develop` を開いていると `git switch develop` は失敗するので、手元の `develop` には切り替えない。
 - 名前：`<プレフィックス>/t<Issue番号>-<短い英語>`（例 `feature/t12-weapon-select`、`docs/t20-assets-list`）。名前でどんな作業かわかるようにする。
 
 | プレフィックス | 使うとき |
