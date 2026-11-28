@@ -25,6 +25,7 @@ namespace PictoArcher.Game
         [SerializeField] HeadHpView _headHpPrefab;
         [SerializeField] ObstacleView _obstaclePrefab;
         [SerializeField] ObstacleSwitchSettings _obstacleSettings;
+        [SerializeField] EnemyPathSettings _enemyPathSettings;
         [SerializeField, Tooltip("フィールドの Obstacles の子")] Transform _obstacleRoot;
         [SerializeField] PickupView _pickupPrefab;
         [SerializeField] PickupSettings _pickupSettings;
@@ -38,6 +39,7 @@ namespace PictoArcher.Game
         PlayerProjectileSystem _shots;
         PlayerSystem _player;
         ObstacleSystem _obstacles;
+        EnemyPathSystem _enemyPath;
         EnemyProjectileSystem _enemyShots;
         EnemySystem _enemySystem;
         WaveSpawnSystem _waves;
@@ -59,7 +61,8 @@ namespace PictoArcher.Game
             _player = new PlayerSystem(_playerPrefab, _run.PlayerStart, _playerStats, _playerVisual.For(weapon.Id), weapon.Create(), new PlayerMoveInput(), _enemies, _shots);
             _obstacles = new ObstacleSystem(_obstaclePrefab, _obstacleRoot, _obstacleSettings, _player);
             _enemyShots = new EnemyProjectileSystem(_player);
-            _enemySystem = new EnemySystem(_enemies, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _enemyShots, _player, _player);
+            _enemyPath = new EnemyPathSystem(_enemyPathSettings, _obstacles, _player);
+            _enemySystem = new EnemySystem(_enemies, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _enemyShots, _player, _player, _enemyPath);
             _waves = new WaveSpawnSystem(_enemySystem);
             _pickups = new PickupSystem(_pickupPrefab, _pickupSettings, _enemySystem, _player);
             _waves.Cleared += HandleWaveCleared;
@@ -84,6 +87,7 @@ namespace PictoArcher.Game
             {
                 _player.Tick(deltaTime);
                 _obstacles.Tick(deltaTime);
+                _enemyPath.Tick(deltaTime);
                 _enemySystem.Tick(deltaTime);
                 _waves.Tick(deltaTime);
                 _pickups.Tick(deltaTime);
@@ -133,6 +137,7 @@ namespace PictoArcher.Game
             _pickups.Dispose();
             _waves.Dispose();
             _enemySystem.Dispose();
+            _enemyPath.Dispose();
             _enemyShots.Dispose();
             _obstacles.Dispose();
             _player.Dispose();

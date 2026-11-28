@@ -35,10 +35,12 @@ namespace PictoArcher.Game
         Color _shownColor = Color.white;
         readonly SplitTracker _splitTracker;
         readonly float _moveSpeed;
+        readonly IChaseRoute _route;
+        readonly float _bodyRadius;
         bool _deathRaised;
 
         public EnemyUnit(EnemyDefinition definition, EnemyView view, ITarget player, IHittable playerBody,
-            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles, int tier = 0)
+            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles, int tier = 0, IChaseRoute route = null)
         {
             if (definition.Behavior == null) throw new ArgumentException(definition.name + " に動きと攻撃（Behavior）が入っていません。", nameof(definition));
             if (definition.MoveSpeed < 0f) throw new ArgumentOutOfRangeException(nameof(definition), definition.name + " の速度が負です。");
@@ -48,6 +50,8 @@ namespace PictoArcher.Game
             _playerBody = playerBody;
             _telegraphPrefab = telegraphPrefab;
             _projectiles = projectiles;
+            _route = route;
+            _bodyRadius = BodyRadiusOf(view.Body);
             Tier = tier;
             _health = new Health(TierScaling.Scale(definition.MaxHp, definition.HpGrowthPerTier, tier));
             _moveSpeed = TierScaling.Scale(definition.MoveSpeed, definition.SpeedGrowthPerTier, tier);
@@ -115,7 +119,10 @@ namespace PictoArcher.Game
             var velocity = Vector2.zero;
             if (_player.IsAlive)
             {
-                var context = new EnemyContext(Position, _player.Position, _moveSpeed, (float)_health.Current / _health.Max);
+                var position = Position;
+                var target = _player.Position;
+                var chasePoint = _route != null ? _route.Waypoint(position, _bodyRadius) : target;
+                var context = new EnemyContext(position, target, chasePoint, _moveSpeed, (float)_health.Current / _health.Max);
                 velocity = _behavior.Tick(deltaTime, context, this);
             }
             if (!IsAlive) return;   // 自爆したときは、このあとの動きや見た目を更新しない
@@ -250,5 +257,22 @@ namespace PictoArcher.Game
         {
             if (view != null) UnityEngine.Object.Destroy(view.gameObject);
         }
+
+        // 障害物を回り込むときに空ける、足元から体の端までの長さ（ユニット）
+        static float BodyRadiusOf(Collider2D body)
+        {
+            if (body == null) return 0f;
+            var scale = body.transform.lossyScale;
+            float size = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            switch (body)
+            {
+                case CircleCollider2D circle: return circle.radius * size + (circle.offset * size).magnitude;
+                case BoxCollider2D box: return (box.size * 0.5f * size + Abs(box.offset) * size).magnitude;
+                case CapsuleCollider2D capsule: return Mathf.Max(capsule.size.x, capsule.size.y) * 0.5f * size + (capsule.offset * size).magnitude;
+                default: return Mathf.Max(body.bounds.extents.x, body.bounds.extents.y);
+            }
+        }
+
+        static Vector2 Abs(Vector2 v) => new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));
     }
 }

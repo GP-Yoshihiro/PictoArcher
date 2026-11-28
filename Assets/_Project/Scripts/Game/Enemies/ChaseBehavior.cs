@@ -11,7 +11,7 @@ namespace PictoArcher.Game
         public Vector2 Tick(float deltaTime, in EnemyContext context, IEnemyAttackPort attacks)
         {
             if (_movement == null) _movement = new ChaseMovement(context.MoveSpeed);
-            return _movement.Velocity(context.Position, context.TargetPosition);
+            return _movement.Velocity(context.Position, context.ChasePoint);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace PictoArcher.Game
             {
                 case Phase.Approach:
                     if (_movement == null) _movement = new ChaseMovement(context.MoveSpeed);
-                    return _movement.Velocity(context.Position, context.TargetPosition);
+                    return _movement.Velocity(context.Position, context.ChasePoint);
                 case Phase.ChargeWindup:
                     float progress = Mathf.Clamp01(_elapsed / _definition.ChargeWindupSeconds);
                     attacks.ShowLine(0, context.Position, _chargeDirection, _definition.ChargeDistance, _definition.ChargeLineWidth, progress);

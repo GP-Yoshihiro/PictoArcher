@@ -1130,6 +1130,7 @@ MonoBehaviour:
   _headHpPrefab: {fileID: 2473682468616647909, guid: bc203e7dd1b0e4d399258ed66b79c36f, type: 3}
   _obstaclePrefab: {fileID: 4739000793829335648, guid: 846634499c41c490ba028003c39be17d, type: 3}
   _obstacleSettings: {fileID: 11400000, guid: 248c1c03477cd40d3a10a55008de532f, type: 2}
+  _enemyPathSettings: {fileID: 11400000, guid: f1abbb76892d4430b2705a722ead1e5e, type: 2}
   _obstacleRoot: {fileID: 336319369}
   _pickupPrefab: {fileID: 8095644330198611004, guid: c3036ca0b5209438ca4ab55ea342dc92, type: 3}
   _pickupSettings: {fileID: 11400000, guid: 917b44940de9f43e7b474e37a96ab3cd, type: 2}
