@@ -13,8 +13,56 @@ MonoBehaviour:
   m_Name: RunDefinition
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.RunDefinition
   _waves:
-  - {fileID: 11400000, guid: d64f7869ef31046c5aa07a9f7515fa51, type: 2}
-  - {fileID: 11400000, guid: 17b40c5d13d8d4f88831ecc2076b9d0f, type: 2}
+  - {fileID: 11400000, guid: 9cf0419210a2f4b3cb556ab23e90d27f, type: 2}
+  - {fileID: 11400000, guid: 1438e125e521641cf8aa88f3f1c3d4d0, type: 2}
+  - {fileID: 11400000, guid: db2923c15475640dbabc7276dc0636fc, type: 2}
+  - {fileID: 11400000, guid: 6b5388fd709504dcd9032774b83e8106, type: 2}
+  - {fileID: 11400000, guid: b8c8ecf2691cb4ec1aa5c6c2ba5566da, type: 2}
+  - {fileID: 11400000, guid: cc7d0411e6f424c31ab2d36563a1418c, type: 2}
+  - {fileID: 11400000, guid: 760bfa969cd5944c0b5c008c6a96503c, type: 2}
+  - {fileID: 11400000, guid: 57f0b6d619fc243558e2ebba79a86082, type: 2}
+  - {fileID: 11400000, guid: 84ae0f087357a4164b0c3e5f614ff6d3, type: 2}
+  - {fileID: 11400000, guid: 0e997c55c6476418080d6d7cb7423d3d, type: 2}
+  - {fileID: 11400000, guid: d49d143ebe940463b977dcf07a17c318, type: 2}
+  - {fileID: 11400000, guid: 429ab0f6b10e74e5a861d17bcbaa9ddc, type: 2}
+  - {fileID: 11400000, guid: f9f6fe8f8edc54298962ce2003f7f0b2, type: 2}
+  - {fileID: 11400000, guid: 7d448edbb7a114ab5b2f3ab5c8e7816c, type: 2}
+  - {fileID: 11400000, guid: e0b34cef4bdb64b4a93bbf363e469849, type: 2}
+  - {fileID: 11400000, guid: 89140e950a9544edca0c7b7c626a3d77, type: 2}
+  - {fileID: 11400000, guid: edd36196107b34f9797626a9f256e765, type: 2}
+  - {fileID: 11400000, guid: ae04141b575324b07a9512c34ff44525, type: 2}
+  - {fileID: 11400000, guid: bedd38de56fe0421997c87fcd9322b63, type: 2}
+  - {fileID: 11400000, guid: ad76c6632863a433eb2935cee3e8b391, type: 2}
+  - {fileID: 11400000, guid: f34f46d7c0f574d4a896e8c276c3d64d, type: 2}
+  - {fileID: 11400000, guid: f053d2198e4ca477d9601adbe1343841, type: 2}
+  - {fileID: 11400000, guid: 1b10e82bd102c4032b5bfe25b69a37d3, type: 2}
+  - {fileID: 11400000, guid: 861b3135cbfcf4dce8548f48f15cd1f6, type: 2}
+  - {fileID: 11400000, guid: 3509c1925d2e0487c8e3350c841d76cb, type: 2}
+  - {fileID: 11400000, guid: 4ebe0e9aea98840baa039f401a191684, type: 2}
+  - {fileID: 11400000, guid: e1d728f2ee6a24167bc12831bcc1bd60, type: 2}
+  - {fileID: 11400000, guid: 890147a2a0b57494290d79f32a20efc6, type: 2}
+  - {fileID: 11400000, guid: a24cb9225064f4a0cab671ea0b79d258, type: 2}
+  - {fileID: 11400000, guid: 236abf00f4cc14c549ede3f4d300a433, type: 2}
+  - {fileID: 11400000, guid: 9ce8268c871a84d58a6abace6f19ee70, type: 2}
+  - {fileID: 11400000, guid: 7ab4932ae07c141e8846b118cd06464c, type: 2}
+  - {fileID: 11400000, guid: 25840812dd1074ba79fdb5f5899a5826, type: 2}
+  - {fileID: 11400000, guid: cdb58007068ed4d87a15064d468f53b1, type: 2}
+  - {fileID: 11400000, guid: bec197380c63a4fa9ad716657d0aaf70, type: 2}
+  - {fileID: 11400000, guid: a2e384ffcb5924730ab573f55678df5c, type: 2}
+  - {fileID: 11400000, guid: 8d5e5f0b45e03484f88417910c84f095, type: 2}
+  - {fileID: 11400000, guid: ad5fd0717c83e4ff6bc550dcbd0579da, type: 2}
+  - {fileID: 11400000, guid: 933e7d91b761f47cbad91a7830b70a47, type: 2}
+  - {fileID: 11400000, guid: 74ab55a8e980c4c2a85086e08e3aade5, type: 2}
+  - {fileID: 11400000, guid: 968b43e6608bf4b56a7879d87726c52a, type: 2}
+  - {fileID: 11400000, guid: cc6d9a390b1844be4abfacdd7ce85bd3, type: 2}
+  - {fileID: 11400000, guid: 93bafd485a2144859896440e2e8b985e, type: 2}
+  - {fileID: 11400000, guid: 29c68737ba2ca433ca52db352149df42, type: 2}
+  - {fileID: 11400000, guid: 332413c2057284918aca46c42ffb2395, type: 2}
+  - {fileID: 11400000, guid: f714c9fbbb5974fc8a60466ef2d1ffc2, type: 2}
+  - {fileID: 11400000, guid: 1e743d968f9a049f9844afca9c11a0a0, type: 2}
+  - {fileID: 11400000, guid: b2222aaad53494b7bb8cb91509a01401, type: 2}
+  - {fileID: 11400000, guid: 73daa7662bca94bcf8a556c0d0a8c032, type: 2}
+  - {fileID: 11400000, guid: ba570d7adfc104746b9facb4d2ade247, type: 2}
   _startWave: 1
   _restSeconds: 1.5
   _endDelaySeconds: 1.2

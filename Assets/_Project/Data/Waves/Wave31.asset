@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9a3b0f40f86d45f8886a6ffc40713db, type: 3}
+  m_Name: Wave31
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.WaveDefinition
+  _spawns:
+  - _enemy: {fileID: 11400000, guid: cd6c5d0dce22bf24daeb3cf89590b32e, type: 2}
+    _position: {x: -6, y: 10.5}
+  - _enemy: {fileID: 11400000, guid: 4de285c60544a5148938eb09a6c0a583, type: 2}
+    _position: {x: -6, y: 4.5}
+  - _enemy: {fileID: 11400000, guid: 52210a2338f5e164c85411ed7c502cda, type: 2}
+    _position: {x: 0, y: 7.5}
+  - _enemy: {fileID: 11400000, guid: 4c8bb2b00a2d7b144ab67362418d8ed0, type: 2}
+    _position: {x: 6, y: 10.5}
+  - _enemy: {fileID: 11400000, guid: 1b551eb2fd7209d4e8c5d7d02730f6cb, type: 2}
+    _position: {x: -6, y: 7.5}
+  - _enemy: {fileID: 11400000, guid: 4de285c60544a5148938eb09a6c0a583, type: 2}
+    _position: {x: -3, y: 7.5}
+  - _enemy: {fileID: 11400000, guid: 043d9c6f40cee424fa725a7cd2e58cd9, type: 2}
+    _position: {x: -3, y: 4.5}
+  - _enemy: {fileID: 11400000, guid: cd6c5d0dce22bf24daeb3cf89590b32e, type: 2}
+    _position: {x: -3, y: 10.5}
+  _telegraphSeconds: 0.8
+  _obstacleLayout: {fileID: 11400000, guid: 303850ce3e86b497eb4c5d6ad0b0c3db, type: 2}
+  _tier: 3
