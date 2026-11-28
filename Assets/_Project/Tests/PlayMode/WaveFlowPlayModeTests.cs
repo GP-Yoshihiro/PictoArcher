@@ -300,6 +300,9 @@ namespace PictoArcher.Tests.PlayMode
             var home = Object.FindAnyObjectByType<HomeScene>();
             var start = (UiButtonRelay)typeof(HomeScene).GetField("_startButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(home);
             start.GetComponent<Button>().onClick.Invoke();
+            yield return null;   // 武器を選ぶ画面が開く
+            var gun = (UiButtonRelay)typeof(HomeScene).GetField("_gunButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(home);
+            gun.GetComponent<Button>().onClick.Invoke();
             for (int i = 0; i < 300 && SceneManager.GetActiveScene().name != "Battle"; i++) yield return null;
             Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
             yield return new WaitForSeconds(1.3f);
