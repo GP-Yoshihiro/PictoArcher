@@ -1073,7 +1073,8 @@ def build_prog_effort(b):
     ], formats={3: "0.0#"})
     # 書き込むのは使える作業日だけ。残りの2行は数式なので引き継がない
     s.ws.cell(row=solo_row + 1, column=3).fill = fill(C_INPUT)
-    b.input_cells = getattr(b, "input_cells", []) + [("工数_プログラマー", "C{}".format(solo_row + 1))]
+    b.input_cells = getattr(b, "input_cells", []) + [
+        ("工数_プログラマー", "C{}".format(solo_row + 1), "B{}".format(solo_row + 1))]
     s.ws.cell(row=solo_row + 2, column=3,
               value="=SUMIFS('作業工程'!H:H,'作業工程'!D:D,\"プログラマー\",'作業工程'!I:I,\"<>済み\")").number_format = "0.0#"
     s.ws.cell(row=solo_row + 3, column=3, value="=C{}-C{}".format(solo_row + 1, solo_row + 2)).number_format = "+0.0#;-0.0#;0"
@@ -1740,9 +1741,14 @@ def carry_over(book, old_wb):
     if not old_wb:
         return 0
     count = 0
-    # スケジュールの開始日などの単独の入力セル
-    for sheet, ref in getattr(book, "input_cells", []):
+    # スケジュールの開始日などの単独の入力セル。label を付けたものは、前の .xlsx の
+    # 同じ番地の項目名が同じときだけ引き継ぐ（表の位置が変わった古い版の値を拾わない）
+    for entry in getattr(book, "input_cells", []):
+        sheet, ref = entry[0], entry[1]
+        label = entry[2] if len(entry) > 2 else None
         if sheet in old_wb.sheetnames:
+            if label and old_wb[sheet][label].value != book.wb[sheet][label].value:
+                continue
             v = old_wb[sheet][ref].value
             if v is not None:
                 book.wb[sheet][ref].value = v
