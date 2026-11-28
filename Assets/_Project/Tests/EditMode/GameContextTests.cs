@@ -6,10 +6,18 @@ namespace PictoArcher.Tests.EditMode
 {
     public class GameContextTests
     {
-        static (SceneFlow<SceneId, OverlayId> flow, GameContext context) Running()
+        sealed class MemoryStore : ISaveStore
+        {
+            public SaveData Saved;
+            public int SaveCount;
+            public SaveData Load() => Saved ?? SaveData.Empty();
+            public void Save(SaveData data) { Saved = data; SaveCount++; }
+        }
+
+        static (SceneFlow<SceneId, OverlayId> flow, GameContext context) Running(SaveData saved = null, ISaveStore store = null)
         {
             var flow = new SceneFlow<SceneId, OverlayId>();
-            var context = new GameContext(flow, new GameClock(), new BestRecord());
+            var context = new GameContext(flow, new GameClock(), saved ?? SaveData.Empty(), store);
             flow.EnterRunning();
             return (flow, context);
         }
@@ -79,5 +87,72 @@ namespace PictoArcher.Tests.EditMode
         }
 
         [Test] public void LastRun_IsNullBeforeAnyRun() => Assert.IsNull(Running().context.LastRun);
+
+        [Test] public void Ctor_StartsFromTheSave()
+        {
+            var (_, context) = Running(new SaveData(31, false, 0f, 120, "Laser"));
+            Assert.AreEqual(31, context.Records.BestWave);
+            Assert.AreEqual(120, context.Coins);
+            Assert.AreEqual(WeaponId.Laser, context.Weapon);
+        }
+
+        [TestCase("")]
+        [TestCase("Sword")]
+        [TestCase("laser")]
+        [TestCase("99")]
+        public void Ctor_UnknownWeaponName_FallsBackToGun(string name)
+            => Assert.AreEqual(WeaponId.Gun, Running(new SaveData(0, false, 0f, 0, name)).context.Weapon);
+
+        [Test] public void SelectWeapon_SavesOnlyWhenItChanges()
+        {
+            var store = new MemoryStore();
+            var (_, context) = Running(store: store);
+            context.SelectWeapon(WeaponId.Gun);
+            Assert.AreEqual(0, store.SaveCount, "同じ武器なら保存しない");
+            context.SelectWeapon(WeaponId.Launcher);
+            Assert.AreEqual(1, store.SaveCount);
+            Assert.AreEqual("Launcher", store.Saved.Weapon);
+        }
+
+        [Test] public void FinishRun_AddsCoins_AndSavesTheRecord()
+        {
+            var store = new MemoryStore();
+            var (_, context) = Running(new SaveData(10, false, 0f, 30, "Gun"), store);
+            Assert.IsTrue(context.FinishRun(new RunResult(RunOutcome.Died, 23, 0f, 12, WeaponId.Gun, null)));
+            Assert.AreEqual(42, context.Coins);
+            Assert.AreEqual(1, store.SaveCount);
+            Assert.AreEqual(23, store.Saved.BestWave);
+            Assert.AreEqual(42, store.Saved.Coins);
+        }
+
+        [Test] public void FinishRun_Rejected_DoesNotSave()
+        {
+            var store = new MemoryStore();
+            var (_, context) = Running(store: store);
+            context.FinishRun(new RunResult(RunOutcome.Died, 3, 0f, 5, WeaponId.Gun, null));
+            context.FinishRun(new RunResult(RunOutcome.Died, 9, 0f, 5, WeaponId.Gun, null));
+            Assert.AreEqual(1, store.SaveCount);
+            Assert.AreEqual(5, context.Coins);
+        }
+
+        [Test] public void FinishRun_CoinsStopAtIntMax()
+        {
+            var (_, context) = Running(new SaveData(0, false, 0f, int.MaxValue - 1, "Gun"));
+            context.FinishRun(new RunResult(RunOutcome.Died, 1, 0f, 10, WeaponId.Gun, null));
+            Assert.AreEqual(int.MaxValue, context.Coins);
+        }
+
+        [Test] public void RestartFromTheSameStore_KeepsWeaponAndRecord()
+        {
+            var store = new MemoryStore();
+            var (_, first) = Running(store: store);
+            first.SelectWeapon(WeaponId.Laser);
+            first.FinishRun(new RunResult(RunOutcome.Died, 17, 0f, 8, WeaponId.Laser, null));
+
+            var (_, second) = Running(store.Load(), store);
+            Assert.AreEqual(WeaponId.Laser, second.Weapon);
+            Assert.AreEqual(17, second.Records.BestWave);
+            Assert.AreEqual(8, second.Coins);
+        }
     }
 }

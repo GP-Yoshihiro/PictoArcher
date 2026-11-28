@@ -2,12 +2,12 @@ using System;
 
 namespace PictoArcher.Core
 {
-    /// <summary>最高記録（到達ウェーブとクリアの最短タイム）。良いほうだけを残す。保存は C-14 まではメモリだけ。</summary>
+    /// <summary>最高記録（到達ウェーブとクリアの最短タイム）。良いほうだけを残す。保存は SaveData を通す。</summary>
     public sealed class BestRecord
     {
         public BestRecord() { }
 
-        /// <summary>保存した値から作り直す（C-14 の読み込み用）。</summary>
+        /// <summary>保存した値から作り直す（SaveData.ToRecord が使う）。</summary>
         public BestRecord(int bestWave, bool hasCleared, float bestClearSeconds)
         {
             if (bestWave < 0) throw new ArgumentOutOfRangeException(nameof(bestWave));

@@ -26,7 +26,9 @@ namespace PictoArcher.Game
         {
             _clock = new GameClock();
             var flow = new SceneFlow<SceneId, OverlayId>();
-            var context = new GameContext(flow, _clock, new BestRecord());
+            // 保存を読み込んで、前回の記録と武器から始める
+            var saves = new JsonFileSaveStore(JsonFileSaveStore.DefaultPath());
+            var context = new GameContext(flow, _clock, saves.Load(), saves);
             _transform = new SceneTransform(flow, context, gameObject.scene);
         }
 
