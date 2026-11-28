@@ -19,7 +19,7 @@ namespace PictoArcher.Tests.PlayMode
         {
             yield return LoadRoot();
 
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
             yield return WaitForSceneCount(2);
@@ -116,10 +116,54 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Home_Start_OpensWeaponSelect_AndBackClosesIt()
+        {
+            yield return LoadRoot();
+            var select = View<WeaponSelectView>();
+            Assert.IsFalse(select.IsOpen, "はじめは隠れている");
+
+            Click<HomeScene>("_startButton");
+            yield return null;
+            Assert.IsTrue(select.IsOpen);
+            Assert.IsTrue(Field<GameObject>(select, "_gunMark").activeSelf, "まだ選んでいないときは銃に印");
+            Assert.IsFalse(Field<GameObject>(select, "_laserMark").activeSelf);
+
+            Click<HomeScene>("_backButton");
+            yield return null;
+            Assert.IsFalse(select.IsOpen, "🏠 で閉じる");
+            yield return null;
+            Assert.AreEqual("Home", SceneManager.GetActiveScene().name, "閉じてもホームのまま");
+        }
+
+        [UnityTest]
+        public IEnumerator Home_ChoosingLaser_StartsBattleWithLaser_AndMarksItNextTime()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_laserButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            Assert.AreEqual(WeaponId.Laser, Field<GameContext>(battle, "_context").Weapon, "選んだ武器で始まる");
+
+            // 🏠 でホームへ戻り、もう一度 ▶ を押すと、前回のレーザーに印
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+            Click<PauseScene>("_homeButton");
+            yield return WaitForActiveScene("Home");
+            yield return null;
+            Click<HomeScene>("_startButton");
+            yield return null;
+            var select = View<WeaponSelectView>();
+            Assert.IsTrue(Field<GameObject>(select, "_laserMark").activeSelf);
+            Assert.IsFalse(Field<GameObject>(select, "_gunMark").activeSelf);
+            Assert.IsFalse(Field<GameObject>(select, "_launcherMark").activeSelf);
+        }
+
+        [UnityTest]
         public IEnumerator Battle_PauseOpens_StopsTime_ResumeCloses()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
 
             Click<BattleScene>("_pauseButton");
@@ -140,7 +184,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Battle_PauseThenHome_LeavesOnlyRootAndHome()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Click<BattleScene>("_pauseButton");
             yield return WaitForSceneLoaded("Pause");
@@ -157,7 +201,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Battle_PauseDoubleClick_DoesNotReopenAfterResume()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
 
             // 1回目で Pause を開く。読み込み中（Battle は Tick されない）にもう1回押す。
@@ -176,7 +220,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator MainDestroyedWhilePaused_RestoresTimeScale()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Click<BattleScene>("_pauseButton");
             yield return WaitForSceneLoaded("Pause");
@@ -234,7 +278,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Clear_ShowsClearView_ThenHomeShowsBestTime()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
 
@@ -285,7 +329,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Battle_PlayerDies_ShowsDefeatViewWithReachedWave()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             yield return null;
             var battle = Object.FindAnyObjectByType<BattleScene>();
@@ -323,6 +367,15 @@ namespace PictoArcher.Tests.PlayMode
         {
             var text = Field<Component>(owner, field);
             return (string)text.GetType().GetProperty("text").GetValue(text);
+        }
+
+        /// <summary>Home で ▶ を押し、武器を選ぶ画面が開いたら、その武器のボタンを押す。</summary>
+        static IEnumerator StartWith(string weaponButton)
+        {
+            Click<HomeScene>("_startButton");
+            yield return null;
+            Assert.IsTrue(View<WeaponSelectView>().IsOpen, "▶ のあとに武器を選ぶ画面が開くはずです");
+            Click<HomeScene>(weaponButton);
         }
 
         /// <summary>

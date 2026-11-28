@@ -73,6 +73,10 @@ namespace PictoArcher.Tests.EditMode
 
         // 文字ゼロのルール：ボタンは絵だけで、文字の部品を持たない。
         [TestCase("Home", typeof(HomeScene), "_startButton")]
+        [TestCase("Home", typeof(HomeScene), "_gunButton")]
+        [TestCase("Home", typeof(HomeScene), "_laserButton")]
+        [TestCase("Home", typeof(HomeScene), "_launcherButton")]
+        [TestCase("Home", typeof(HomeScene), "_backButton")]
         [TestCase("Battle", typeof(BattleScene), "_pauseButton")]
         [TestCase("Result", typeof(ResultScene), "_homeButton")]
         [TestCase("Result", typeof(ResultScene), "_retryButton")]
@@ -92,6 +96,7 @@ namespace PictoArcher.Tests.EditMode
 
         [TestCase("Home", typeof(HomeScene), "_view")]
         [TestCase("Home", typeof(HomeScene), "_icons")]
+        [TestCase("Home", typeof(HomeScene), "_weaponSelect")]
         [TestCase("Result", typeof(ResultScene), "_clearView")]
         [TestCase("Result", typeof(ResultScene), "_defeatView")]
         [TestCase("Result", typeof(ResultScene), "_icons")]
