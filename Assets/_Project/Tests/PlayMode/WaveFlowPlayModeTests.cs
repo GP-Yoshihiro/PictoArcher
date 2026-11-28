@@ -136,6 +136,7 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(3, rig.Spawned.Count);
             Assert.IsTrue(rig.Run.IsOver);
             Assert.IsFalse(rig.Run.IsCleared);
+            Assert.AreEqual(1f + Step, rig.Run.ElapsedSeconds, 0.0001f, "死んだあとの時間は数えない");
             rig.Dispose();
             yield return null;
         }
@@ -152,6 +153,7 @@ namespace PictoArcher.Tests.PlayMode
             rig.Tick(1f);
             Assert.IsTrue(rig.Run.IsOver);
             Assert.AreEqual(50, rig.Run.CurrentWave);
+            Assert.AreEqual(1f, rig.Run.ElapsedSeconds, 0.0001f, "最後の敵を倒した所で止まり、そのあとの時間は数えない");
             rig.Dispose();
             yield return null;
         }

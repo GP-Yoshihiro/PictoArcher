@@ -282,6 +282,25 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Battle_PlayerDies_ShowsDefeatViewWithReachedWave()
+        {
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            Field<PlayerSystem>(battle, "_player").TakeHit(new PictoArcher.Core.Damage(99999));
+
+            // 死んでから結果の画面へ移るまで少し待つ（RunDefinition の EndDelaySeconds）
+            for (float t = 0f; t < 5f && SceneManager.GetActiveScene().name != "Result"; t += Time.unscaledDeltaTime) yield return null;
+            Assert.AreEqual("Result", SceneManager.GetActiveScene().name, "死ぬと結果の画面へ移る");
+            yield return null;
+            var defeat = View<DefeatView>();
+            Assert.IsTrue(defeat.gameObject.activeSelf, "死亡の板が出る");
+            Assert.AreEqual("1/50", TextOf(defeat, "_waveText"));
+        }
+
+        [UnityTest]
         public IEnumerator Home_FirstTime_HidesRecordRow()
         {
             yield return LoadRoot();

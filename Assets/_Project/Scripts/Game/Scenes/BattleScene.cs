@@ -59,8 +59,17 @@ namespace PictoArcher.Game
             _enemyShots.Tick(deltaTime);
             _runSystem.Tick(deltaTime);
             _hudSystem.Tick(deltaTime);
-            if (_runSystem.IsOver && !_leaving) _leaving = _context.RequestScene(SceneId.Result);
+            if (_runSystem.IsOver && !_leaving) _leaving = _context.FinishRun(NewResult());
         }
+
+        // コイン・武器・強化は、それぞれのタスク（04・10・05）で本物の値につなぐ。今は 0 枚・銃・なし。
+        RunResult NewResult() => new RunResult(
+            _runSystem.IsCleared ? RunOutcome.Cleared : RunOutcome.Died,
+            _runSystem.CurrentWave,
+            _runSystem.ElapsedSeconds,
+            0,
+            WeaponId.Gun,
+            null);
 
         public override void OnOverlayClosed(OverlayId id, int result)
         {
