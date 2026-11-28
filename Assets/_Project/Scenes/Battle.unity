@@ -724,6 +724,7 @@ RectTransform:
   m_Children:
   - {fileID: 1010889621}
   - {fileID: 419819292}
+  - {fileID: 1731406202}
   - {fileID: 1415971408}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -973,6 +974,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 372bffe8bf3a04a8c96b3a304afbe7f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.CardSelectView
+--- !u!1001 &1731406201
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 936099106}
+    m_Modifications:
+    - target: {fileID: 6362335144082684130, guid: e69c20227a2b466f933798059942147d, type: 3}
+      propertyPath: m_Name
+      value: ControlGuide
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e69c20227a2b466f933798059942147d, type: 3}
+--- !u!224 &1731406202 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5590429100483190602, guid: e69c20227a2b466f933798059942147d, type: 3}
+  m_PrefabInstance: {fileID: 1731406201}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1731406203 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4440640716207016598, guid: e69c20227a2b466f933798059942147d, type: 3}
+  m_PrefabInstance: {fileID: 1731406201}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1cff4db5d6814b4dabfb55e450ccb16e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.ControlGuideView
 --- !u!1 &1521874451
 GameObject:
   m_ObjectHideFlags: 0
@@ -1137,6 +1171,8 @@ MonoBehaviour:
   _levelUpSettings: {fileID: 11400000, guid: 919e41d504a584765b4229ccda2724f2, type: 2}
   _skills: {fileID: 11400000, guid: 4abe8e6d4f77147a6a41597ad65888f9, type: 2}
   _cardSelect: {fileID: 1415971409}
+  _icons: {fileID: 11400000, guid: e5f055d8abf004865993a63bf1c94263, type: 2}
+  _controlGuideView: {fileID: 1731406203}
 --- !u!4 &1537391863
 Transform:
   m_ObjectHideFlags: 0

@@ -39,6 +39,11 @@ namespace PictoArcher.Game
         [SerializeField, Tooltip("🏆 クリア")] Sprite _trophy;
         [SerializeField, Tooltip("💀 死亡")] Sprite _defeat;
 
+        [Header("操作案内")]
+        [SerializeField, Tooltip("矢印キー（上向き。回して4方向に使う。キーに英字を描かない）")] Sprite _guideArrowKey;
+        [SerializeField, Tooltip("マウス（左ボタンを押した形）")] Sprite _guideMouse;
+        [SerializeField, Tooltip("手（ドラッグを見せる）")] Sprite _guideHand;
+
         public Sprite Play => _play;
         public Sprite Pause => _pause;
         public Sprite Retry => _retry;
@@ -59,5 +64,8 @@ namespace PictoArcher.Game
         public Sprite CardFrame => _cardFrame;
         public Sprite Trophy => _trophy;
         public Sprite Defeat => _defeat;
+        public Sprite GuideArrowKey => _guideArrowKey;
+        public Sprite GuideMouse => _guideMouse;
+        public Sprite GuideHand => _guideHand;
     }
 }

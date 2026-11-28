@@ -32,6 +32,8 @@ namespace PictoArcher.Game
         [SerializeField] LevelUpSettings _levelUpSettings;
         [SerializeField] SkillCatalog _skills;
         [SerializeField] CardSelectView _cardSelect;
+        [SerializeField] UiIconVisual _icons;
+        [SerializeField] ControlGuideView _controlGuideView;
 
         GameContext _context;
         PauseKeyInput _pauseKey;
@@ -47,6 +49,7 @@ namespace PictoArcher.Game
         LevelUpSystem _levelUp;
         RunSystem _runSystem;
         HudSystem _hudSystem;
+        ControlGuideSystem _controlGuide;
         bool _leaving;
 
         public override void Init(GameContext context)
@@ -70,6 +73,7 @@ namespace PictoArcher.Game
             _pickups.Collected += HandleCollected;
             _runSystem = new RunSystem(_run, _waves, _player);
             _hudSystem = new HudSystem(_hud, _headHpPrefab, _player, _player, _runSystem, _enemySystem);
+            _controlGuide = new ControlGuideSystem(_controlGuideView, _icons, _player);
             _runSystem.RestStarted += HandleRestStarted;
             _obstacles.ShowImmediately(_run.WaveFor(_run.StartWave).ObstacleLayout);
             _runSystem.Begin();
@@ -98,6 +102,7 @@ namespace PictoArcher.Game
             _levelUp.Tick(deltaTime);
             _context.Clock.Paused = _levelUp.IsChoosing;
             _hudSystem.Tick(deltaTime);
+            _controlGuide.Tick(deltaTime);
             if (_runSystem.IsOver && !_leaving) _leaving = _context.FinishRun(NewResult());
         }
 
