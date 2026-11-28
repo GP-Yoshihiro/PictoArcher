@@ -12,7 +12,7 @@ namespace PictoArcher.Game
         public RunResult(RunOutcome outcome, int reachedWave, float clearSeconds, int coins, WeaponId weapon, IReadOnlyList<SkillId> skills)
         {
             if (reachedWave < 0 || reachedWave > WaveLayout.TotalWaves) throw new ArgumentOutOfRangeException(nameof(reachedWave));
-            if (clearSeconds < 0f || float.IsNaN(clearSeconds)) throw new ArgumentOutOfRangeException(nameof(clearSeconds));
+            if (clearSeconds < 0f || float.IsNaN(clearSeconds) || float.IsInfinity(clearSeconds)) throw new ArgumentOutOfRangeException(nameof(clearSeconds));
             Outcome = outcome;
             ReachedWave = reachedWave;
             ClearSeconds = clearSeconds;

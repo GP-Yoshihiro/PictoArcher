@@ -13,7 +13,7 @@ namespace PictoArcher.Core
         /// <summary>時間（分:秒、23:45）。分に上限はなく、秒は切り捨てる。負と NaN は 0:00。</summary>
         public static string Duration(float seconds)
         {
-            if (float.IsNaN(seconds) || seconds < 0f) seconds = 0f;
+            if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds < 0f) seconds = 0f;
             int total = Mathf.FloorToInt(seconds);
             int minutes = total / 60;
             int rest = total % 60;

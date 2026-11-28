@@ -23,6 +23,7 @@ namespace PictoArcher.Tests.EditMode
 
         [Test] public void NullSkills_AreEmpty() => Assert.AreEqual(0, new RunResult(RunOutcome.Cleared, 50, 1f, 0, WeaponId.Gun, null).Skills.Count);
         [Test] public void ReachedWaveOutOfRange_Throws() => Assert.Throws<ArgumentOutOfRangeException>(() => new RunResult(RunOutcome.Died, 51, 0f, 0, WeaponId.Gun, null));
+        [Test] public void InfiniteTime_Throws() => Assert.Throws<ArgumentOutOfRangeException>(() => new RunResult(RunOutcome.Cleared, 50, float.PositiveInfinity, 0, WeaponId.Gun, null));
         [Test] public void NegativeTime_Throws() => Assert.Throws<ArgumentOutOfRangeException>(() => new RunResult(RunOutcome.Died, 3, -1f, 0, WeaponId.Gun, null));
         [Test] public void IsCleared_FollowsOutcome() => Assert.IsTrue(new RunResult(RunOutcome.Cleared, 50, 1f, 0, WeaponId.Gun, null).IsCleared);
     }
