@@ -8,8 +8,9 @@ namespace PictoArcher.Game
     /// <summary>
     /// 敵の出現（予兆→出現）と、出ている敵の Tick。シーンが Init で作り、Tick で1行呼び、Dispose で片付ける。
     /// 敵が死んだらここが Registry から外し、やられのアニメが終わったら見た目を消す。
+    /// ボスの雑魚呼びもここで予兆を出し、呼んだボスが先に死んだら、まだ出ていない雑魚は出さない。
     /// </summary>
-    public sealed class EnemySystem : ITickable, IDisposable, IEnemyEvents
+    public sealed class EnemySystem : ITickable, IDisposable, IEnemyEvents, IBossStatus
     {
         sealed class Pending
         {
@@ -18,6 +19,8 @@ namespace PictoArcher.Game
             public EnemyDefinition Definition;
             public Vector2 Position;
             public int Tier;
+            /// <summary>雑魚呼びのときの呼んだ敵。ふつうの出現は null。</summary>
+            public EnemyUnit Summoner;
         }
 
         readonly EnemyRegistry _registry;
@@ -54,7 +57,9 @@ namespace PictoArcher.Game
 
         /// <summary>position に予兆を出し、seconds 秒あとにそこへ敵を出す。</summary>
         /// <summary>tier は何回目の登場か（0 が最初）。中ボスなどは tier が上がるほど HP・速さ・分裂の数が増える。定義に予兆の絵があれば、ふつうの予兆の代わりにそれを出す。</summary>
-        public void Spawn(EnemyDefinition definition, Vector2 position, float seconds, int tier = 0)
+        public void Spawn(EnemyDefinition definition, Vector2 position, float seconds, int tier = 0) => AddPending(definition, position, seconds, tier, null);
+
+        void AddPending(EnemyDefinition definition, Vector2 position, float seconds, int tier, EnemyUnit summoner)
         {
             // 時間が正しくないとタイマーが例外を出す。見た目を作る前に作って、予兆が管理されずに残るのを防ぐ
             var timer = new TelegraphTimer(seconds, _telegraphSettings.BlinksPerSecond);
@@ -68,6 +73,7 @@ namespace PictoArcher.Game
                 Definition = definition,
                 Position = position,
                 Tier = tier,
+                Summoner = summoner,
             });
         }
 
@@ -114,6 +120,7 @@ namespace PictoArcher.Game
             unit.Damaged += OnUnitDamaged;
             unit.Died += OnUnitDied;
             unit.SplitRequested += OnUnitSplitRequested;
+            unit.SummonRequested += OnUnitSummonRequested;
             _units.Add(unit);
             _registry.Register(unit, unit.Body);
             Spawned?.Invoke(unit);
@@ -132,6 +139,36 @@ namespace PictoArcher.Game
         }
 
         void OnUnitDamaged(DamageReport report) => Damaged?.Invoke(report);
+
+        // 呼んだ雑魚はいつも最初の強さ（tier 0）
+        void OnUnitSummonRequested(EnemyUnit summoner, EnemyDefinition enemy, Vector2 position, float seconds)
+            => AddPending(enemy, position, seconds, 0, summoner);
+
+        // 呼んだ敵が死んだら、まだ予兆の途中の雑魚は出さない（ボスを倒したのにあとから雑魚が出ないように）
+        void CancelSummonsOf(EnemyUnit summoner)
+        {
+            for (int i = _pending.Count - 1; i >= 0; i--)
+            {
+                if (_pending[i].Summoner != summoner) continue;
+                DestroyIfAlive(_pending[i].View);
+                _pending.RemoveAt(i);
+            }
+        }
+
+        // ---- IBossStatus ----
+
+        public bool HasBoss => FindBoss() != null;
+        public int BossHp => FindBoss()?.Hp ?? 0;
+        public int BossMaxHp => FindBoss()?.MaxHp ?? 0;
+
+        EnemyUnit FindBoss()
+        {
+            for (int i = 0; i < _units.Count; i++)
+            {
+                if (_units[i].IsAlive && _units[i].Definition.ShowsBossBar) return _units[i];
+            }
+            return null;
+        }
 
         // 当てた側の処理の途中で敵を増やさないよう、分裂は次の Tick の始めに出す
         void OnUnitSplitRequested(EnemyUnit unit, int count) => _splits.Add(new KeyValuePair<EnemyUnit, int>(unit, count));
@@ -181,6 +218,7 @@ namespace PictoArcher.Game
 
         void OnUnitDied(EnemyUnit unit, EnemyDeath death)
         {
+            CancelSummonsOf(unit);
             // 分裂の子がまだ出ていない敵が死んだら、Died は子を出したあとに届ける（先に届くと、ウェーブが「敵が0体」と見てクリアにしてしまう）
             if (HasPendingSplit(unit)) _deferredDeaths.Add(death);
             else Died?.Invoke(death);
@@ -193,6 +231,7 @@ namespace PictoArcher.Game
             unit.Damaged -= OnUnitDamaged;
             unit.Died -= OnUnitDied;
             unit.SplitRequested -= OnUnitSplitRequested;
+            unit.SummonRequested -= OnUnitSummonRequested;
             unit.ReleaseTelegraphs();
             _registry.Unregister(unit);
             DestroyIfAlive(unit.View);

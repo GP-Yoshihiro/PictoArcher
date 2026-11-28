@@ -312,6 +312,30 @@ namespace PictoArcher.Tests.PlayMode
             // テストの asmdef は TextMeshPro を参照しないので、文字はリフレクションで読む
             var wave = (Component)typeof(HudView).GetField("_wave", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(hud);
             Assert.AreEqual("1/50", (string)wave.GetType().GetProperty("text").GetValue(wave));
+
+            // ボスの HP バー：ボスがいない間は隠れていて、ボスが出たら HP の割合を写す
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var bar = (GameObject)typeof(HudView).GetField("_bossBar", flags).GetValue(hud);
+            var fill = (RectTransform)typeof(HudView).GetField("_bossFill", flags).GetValue(hud);
+            Assert.IsFalse(bar.activeSelf, "ボスがいない間は隠す");
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            var enemies = (EnemySystem)typeof(BattleScene).GetField("_enemySystem", flags).GetValue(battle);
+            IEnemyTarget boss = null;
+            System.Action<IEnemyTarget> spawned = e => { if (((EnemyUnit)e).Definition.ShowsBossBar) boss = e; };
+            enemies.Spawned += spawned;
+            enemies.Spawn(AssetDatabase.LoadAssetAtPath<EnemyDefinition>("Assets/_Project/Data/Enemies/BossA.asset"), new Vector2(0f, 6f), 0.1f);
+            // バッチモードではフレームが短いので、フレーム数ではなく時間で待つ
+            for (float t = 0f; t < 3f && boss == null; t += Time.deltaTime) yield return null;
+            enemies.Spawned -= spawned;
+            Assert.IsNotNull(boss, "ボスが出る");
+            yield return null;
+            Assert.IsTrue(bar.activeSelf, "ボスが出たらバーを出す");
+            boss.TakeHit(new Damage(300));
+            yield return null;
+            Assert.That(fill.anchorMax.x, Is.InRange(0.3f, 0.5f), "バーの長さは残りの HP の割合");
+            boss.TakeHit(new Damage(100000));
+            yield return null;
+            Assert.IsFalse(bar.activeSelf, "倒したらバーを隠す");
         }
 
         [UnityTearDown]

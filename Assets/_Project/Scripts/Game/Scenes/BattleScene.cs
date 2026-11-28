@@ -61,7 +61,7 @@ namespace PictoArcher.Game
             _levelUp = new LevelUpSystem(_levelUpSettings, _skills, _cardSelect, _player, new System.Random());
             _pickups.Collected += HandleCollected;
             _runSystem = new RunSystem(_run, _waves, _player);
-            _hudSystem = new HudSystem(_hud, _headHpPrefab, _player, _player, _runSystem);
+            _hudSystem = new HudSystem(_hud, _headHpPrefab, _player, _player, _runSystem, _enemySystem);
             _runSystem.RestStarted += HandleRestStarted;
             _obstacles.ShowImmediately(_run.WaveFor(_run.StartWave).ObstacleLayout);
             _runSystem.Begin();
