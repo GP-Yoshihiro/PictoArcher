@@ -34,6 +34,9 @@ namespace PictoArcher.Core
 
         public bool IsMaxed(int id) => IsMaxedAt(IndexOf(id));
 
+        /// <summary>重ね取りの上限（0 は上限なし）。</summary>
+        public int MaxStacksOf(int id) => _candidates[IndexOf(id)].MaxStacks;
+
         /// <summary>1段階重ねて、新しい段階を返す。上限に達しているなら例外。</summary>
         public int Take(int id)
         {
