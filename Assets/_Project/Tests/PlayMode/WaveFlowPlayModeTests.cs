@@ -13,6 +13,9 @@ namespace PictoArcher.Tests.PlayMode
 {
     public class WaveFlowPlayModeTests
     {
+        // 保存は Main が読むので、前のテストの記録や武器を持ち越さないよう、毎回消してから始める
+        [SetUp] public void ClearSave() => SaveFileIsolation.Clear();
+
         const float Step = 0.1f;
 
         sealed class FakePlayer : ITarget, IHittable, IPlayerStatus

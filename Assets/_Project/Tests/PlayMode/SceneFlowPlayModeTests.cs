@@ -12,6 +12,9 @@ namespace PictoArcher.Tests.PlayMode
 {
     public class SceneFlowPlayModeTests
     {
+        // 保存は Main が読むので、前のテストの記録や武器を持ち越さないよう、毎回消してから始める
+        [SetUp] public void ClearSave() => SaveFileIsolation.Clear();
+
         const int MaxFrames = 300;
 
         [UnityTest]
@@ -157,6 +160,27 @@ namespace PictoArcher.Tests.PlayMode
             Assert.IsTrue(Field<GameObject>(select, "_laserMark").activeSelf);
             Assert.IsFalse(Field<GameObject>(select, "_gunMark").activeSelf);
             Assert.IsFalse(Field<GameObject>(select, "_launcherMark").activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator Restart_KeepsTheLastWeapon()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_launcherButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.IsTrue(System.IO.File.Exists(JsonFileSaveStore.DefaultPath()), "武器を選んだら保存する");
+
+            // Root を読み直すと、新しい Main が保存を読み込む（終了して起動し直したのと同じ）
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return null;
+            var select = View<WeaponSelectView>();
+            Assert.IsTrue(Field<GameObject>(select, "_launcherMark").activeSelf, "前回の武器に印");
+            Assert.IsFalse(Field<GameObject>(select, "_gunMark").activeSelf);
+            Click<HomeScene>("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            Assert.AreEqual(WeaponId.Gun, Field<GameContext>(Object.FindAnyObjectByType<BattleScene>(), "_context").Weapon);
         }
 
         [UnityTest]
