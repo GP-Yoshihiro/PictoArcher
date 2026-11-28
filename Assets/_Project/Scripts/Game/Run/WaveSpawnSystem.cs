@@ -40,7 +40,7 @@ namespace PictoArcher.Game
             _progress = new WaveProgress();
             _progress.Cleared += HandleCleared;
             var spawns = wave.Spawns;
-            for (int i = 0; i < spawns.Count; i++) _enemies.Spawn(spawns[i].Enemy, spawns[i].Position, wave.TelegraphSeconds);
+            for (int i = 0; i < spawns.Count; i++) _enemies.Spawn(spawns[i].Enemy, spawns[i].Position, wave.TelegraphSeconds, wave.Tier);
             _waitingForSpawns = true;
         }
 
