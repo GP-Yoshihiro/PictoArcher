@@ -5,6 +5,7 @@
         "PictoArcher.Core",
         "PictoArcher.Game",
         "UnityEngine.UI",
+        "Unity.InputSystem",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
