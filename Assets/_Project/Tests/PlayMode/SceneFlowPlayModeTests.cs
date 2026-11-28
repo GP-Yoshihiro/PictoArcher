@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -219,6 +221,74 @@ namespace PictoArcher.Tests.PlayMode
             CollectionAssert.AreEquivalent(new[] { "Root", "Home" }, LoadedSceneNames());
             yield return null;
             Assert.AreEqual(1f, Time.timeScale);
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_PauseRestart_StartsANewBattleWithTheSameWeapon()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_laserButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var first = Object.FindAnyObjectByType<BattleScene>();
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+
+            Click<PauseScene>("_restartButton");
+            // 前の Battle が外れ、新しい Battle がアクティブになるまで待つ
+            for (int i = 0; i < MaxFrames && (first != null || SceneManager.GetActiveScene().name != "Battle"); i++) yield return null;
+            yield return WaitForSceneCount(2);
+            CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames(), "↻ のあとは Root と新しい Battle だけ");
+            yield return null;
+            Assert.AreEqual(1f, Time.timeScale, "やり直したら時間は動く");
+            var second = Object.FindAnyObjectByType<BattleScene>();
+            Assert.IsNotNull(second);
+            Assert.AreEqual(WeaponId.Laser, Field<GameContext>(second, "_context").Weapon, "同じ武器でやり直す");
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_EscOpensPause_AndEscResumes()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            // バッチモードでは画面にフォーカスがないので、テストの間だけフォーカスを気にせず入力を受けるようにする
+            var settings = InputSystem.settings;
+            var oldBackground = settings.backgroundBehavior;
+            var oldEditor = settings.editorInputBehaviorInPlayMode;
+            settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                keyboard.MakeCurrent();
+                yield return TapEscape(keyboard);
+                yield return WaitForSceneLoaded("Pause");
+                yield return null;
+                Assert.AreEqual(0f, Time.timeScale, "Esc で Pause が開いて時間が止まる");
+
+                yield return TapEscape(keyboard);
+                yield return WaitForSceneCount(2);
+                yield return null;
+                CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames(), "もう一度 Esc で閉じて戻る");
+                Assert.AreEqual(1f, Time.timeScale);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+                settings.backgroundBehavior = oldBackground;
+                settings.editorInputBehaviorInPlayMode = oldEditor;
+            }
+        }
+
+        // Esc を押して次のフレームで離す（押したフレームだけ wasPressedThisFrame が true）
+        static IEnumerator TapEscape(Keyboard keyboard)
+        {
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Escape));
+            yield return null;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            yield return null;
         }
 
         [UnityTest]

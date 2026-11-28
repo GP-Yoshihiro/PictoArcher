@@ -5,7 +5,7 @@ namespace PictoArcher.Game
     /// <summary>
     /// 1回のプレイのシーン。ここがお手本の形：
     /// Init で System を作る → Tick で作った順に1行ずつ呼ぶ → Dispose で逆の順に片付ける。
-    /// ウェーブを順に戦い、死ぬか 50 ウェーブを全部クリアしたら結果の画面へ移る。⏸ で Pause を重ねる。
+    /// ウェーブを順に戦い、死ぬか 50 ウェーブを全部クリアしたら結果の画面へ移る。⏸（または Esc）で Pause を重ねる。
     /// レベルが上がったらカード選びの間だけ時間を止め、戦いの System を回さない。
     /// </summary>
     public sealed class BattleScene : SceneBase
@@ -33,6 +33,7 @@ namespace PictoArcher.Game
         [SerializeField] CardSelectView _cardSelect;
 
         GameContext _context;
+        PauseKeyInput _pauseKey;
         EnemyRegistry _enemies;
         PlayerProjectileSystem _shots;
         PlayerSystem _player;
@@ -50,6 +51,7 @@ namespace PictoArcher.Game
         {
             _context = context;
             _pauseButton.Init();
+            _pauseKey = new PauseKeyInput();
             _enemies = new EnemyRegistry();
             // 武器はプレイの前に選んだもの（GameContext.Weapon）
             var weapon = _weapons.DefinitionOf(_context.Weapon);
@@ -74,7 +76,9 @@ namespace PictoArcher.Game
         {
             // カードを選んでいる間は ⏸ を受けず、戦いを進めない（時間は下で止める）
             bool choosing = _levelUp.IsChoosing;
-            if (_pauseButton.ConsumeClicked() && !choosing) _context.OpenOverlay(OverlayId.Pause);
+            // ボタンの記録はいつも取り出して捨てるので、|（両方を必ず読む）でつなぐ
+            bool pausePressed = _pauseButton.ConsumeClicked() | _pauseKey.WasPressed();
+            if (pausePressed && !choosing && !_leaving) _context.OpenOverlay(OverlayId.Pause);
             // 作った順に1行ずつ呼ぶ。順番がそのまま実行順になる。
             if (!choosing)
             {
