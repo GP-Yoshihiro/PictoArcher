@@ -5,17 +5,17 @@ using UnityEngine;
 namespace PictoArcher.Game
 {
     /// <summary>
-    /// プレイヤーの体（移動、自動射撃、被弾と無敵時間の点滅、アニメ）。シーンが Init で作り、Tick で1行呼び、Dispose で片付ける。
+    /// プレイヤーの体（移動、選んだ武器での自動射撃、被弾と無敵時間の点滅、アニメ）。シーンが Init で作り、Tick で1行呼び、Dispose で片付ける。
     /// 敵からは ITarget（追う先）と IHittable（当たり）、HUD からは IPlayerStatus として見える。
     /// </summary>
     public sealed class PlayerSystem : ITickable, IDisposable, ITarget, IHittable, IPlayerStatus
     {
         readonly PlayerView _view;
         readonly PlayerStats _stats;
-        readonly SpriteVisual _shotVisual;
+        readonly IWeapon _weapon;
         readonly IMoveInput _input;
         readonly EnemyRegistry _enemies;
-        readonly PlayerProjectileSystem _shots;
+        readonly IPlayerShotPort _shots;
         readonly Health _health;
         readonly HitInvulnerability _invulnerability;
         readonly FireTimer _fireTimer;
@@ -27,17 +27,17 @@ namespace PictoArcher.Game
         /// <summary>HP が 0 になったとき（1回だけ）。</summary>
         public event Action Died;
 
-        public PlayerSystem(PlayerView prefab, Vector2 position, PlayerStats stats, CharacterVisual visual, SpriteVisual shotVisual,
-            IMoveInput input, EnemyRegistry enemies, PlayerProjectileSystem shots)
+        public PlayerSystem(PlayerView prefab, Vector2 position, PlayerStats stats, CharacterVisual visual, IWeapon weapon,
+            IMoveInput input, EnemyRegistry enemies, IPlayerShotPort shots)
         {
             _stats = stats;
-            _shotVisual = shotVisual;
+            _weapon = weapon;
             _input = input;
             _enemies = enemies;
             _shots = shots;
             _health = new Health(stats.MaxHp);
             _invulnerability = new HitInvulnerability(stats.InvulnerabilitySeconds);
-            _fireTimer = new FireTimer(stats.FireInterval, stats.MoveFireRateMultiplier);
+            _fireTimer = new FireTimer(weapon.FireInterval, stats.MoveFireRateMultiplier);
             _view = UnityEngine.Object.Instantiate(prefab);
             _view.Init(position);
             _animator = new CharacterSpriteAnimator(_view.Sprite, visual);
@@ -70,7 +70,7 @@ namespace PictoArcher.Game
             bool hasTarget = _enemies.TryFindNearest(Position, out var target);
             if (_fireTimer.Tick(deltaTime, hasTarget, moving))
             {
-                _shots.Fire(Position, AimDirection(target.Position - Position), _stats.ProjectileSpeed, _stats.ProjectileDamage, _stats.ProjectileLifetime, _shotVisual);
+                _weapon.Fire(Position, AimDirection(target.Position - Position), _shots);
                 _animator.Play(CharacterPose.Attack);
             }
             else if (_animator.Pose != CharacterPose.Attack || _animator.IsFinished)

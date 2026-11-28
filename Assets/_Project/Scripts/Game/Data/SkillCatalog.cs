@@ -22,15 +22,25 @@ namespace PictoArcher.Game
             return null;
         }
 
-        /// <summary>抽選に渡す候補を作る（空の枠は飛ばす）。</summary>
-        public SkillCandidate[] BuildCandidates()
+        /// <summary>抽選に渡す候補を作る（空の枠と、excluded にあるもの（武器に合わない強化）は飛ばす）。</summary>
+        public SkillCandidate[] BuildCandidates(IReadOnlyList<SkillId> excluded = null)
         {
             var list = new List<SkillCandidate>(_skills.Length);
             for (int i = 0; i < _skills.Length; i++)
             {
-                if (_skills[i] != null) list.Add(_skills[i].ToCandidate());
+                if (_skills[i] != null && !IsExcluded(_skills[i].Id, excluded)) list.Add(_skills[i].ToCandidate());
             }
             return list.ToArray();
+        }
+
+        static bool IsExcluded(SkillId id, IReadOnlyList<SkillId> excluded)
+        {
+            if (excluded == null) return false;
+            for (int i = 0; i < excluded.Count; i++)
+            {
+                if (excluded[i] == id) return true;
+            }
+            return false;
         }
     }
 }

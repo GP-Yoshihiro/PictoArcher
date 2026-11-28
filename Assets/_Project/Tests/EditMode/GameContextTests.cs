@@ -14,6 +14,14 @@ namespace PictoArcher.Tests.EditMode
             return (flow, context);
         }
 
+        [Test] public void Weapon_StartsAsGun_AndChangesWhenSelected()
+        {
+            var (_, context) = Running();
+            Assert.AreEqual(WeaponId.Gun, context.Weapon);
+            context.SelectWeapon(WeaponId.Launcher);
+            Assert.AreEqual(WeaponId.Launcher, context.Weapon);
+        }
+
         [Test] public void RequestScene_ForwardsToFlow()
         {
             var (flow, context) = Running();

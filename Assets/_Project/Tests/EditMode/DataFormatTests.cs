@@ -45,11 +45,7 @@ namespace PictoArcher.Tests.EditMode
             Assert.IsNotNull(stats);
             Assert.AreEqual(100, stats.MaxHp);
             Assert.AreEqual(6f, stats.MoveSpeed);
-            Assert.AreEqual(0.5f, stats.FireInterval);
             Assert.AreEqual(1f, stats.MoveFireRateMultiplier);
-            Assert.AreEqual(10, stats.ProjectileDamage);
-            Assert.AreEqual(14f, stats.ProjectileSpeed);
-            Assert.AreEqual(3f, stats.ProjectileLifetime);
             Assert.AreEqual(0.6f, stats.InvulnerabilitySeconds);
             Assert.AreEqual(80f, stats.DragRadiusPixels);
         }
@@ -60,7 +56,7 @@ namespace PictoArcher.Tests.EditMode
         public void PlayerStats_PrivateFieldsKeepOldNames()
         {
             var fields = typeof(PlayerStats).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
-            Assert.AreEqual(9, fields.Length);
+            Assert.AreEqual(5, fields.Length);
             foreach (var field in fields)
             {
                 var old = field.GetCustomAttribute<FormerlySerializedAsAttribute>();
@@ -148,6 +144,43 @@ namespace PictoArcher.Tests.EditMode
                 else Assert.Greater(def.Weight, 0, ids[i].ToString());
             }
             Assert.AreEqual(26, catalog.BuildCandidates().Length);
+            Assert.AreEqual(25, catalog.BuildCandidates(new[] { SkillId.Pierce }).Length, "武器に合わない強化は候補に出さない");
+        }
+
+        [Test]
+        public void WeaponCatalog_HasTheThreeWeapons_WithTheirOwnWayOfShooting()
+        {
+            const string Dir = "Assets/_Project/Data/Player/";
+            var catalog = AssetDatabase.LoadAssetAtPath<WeaponCatalog>(Dir + "WeaponCatalog.asset");
+            var gun = catalog.DefinitionOf(WeaponId.Gun) as GunWeaponDefinition;
+            var laser = catalog.DefinitionOf(WeaponId.Laser) as LaserWeaponDefinition;
+            var launcher = catalog.DefinitionOf(WeaponId.Launcher) as LauncherWeaponDefinition;
+            Assert.IsNotNull(gun);
+            Assert.IsNotNull(laser);
+            Assert.IsNotNull(launcher);
+
+            // 銃は今までの弾と同じ値。レーザーは遅め、ランチャーは遅い
+            Assert.AreEqual(0.5f, gun.FireInterval);
+            Assert.AreEqual(10, gun.Damage);
+            Assert.AreEqual(14f, gun.ProjectileSpeed);
+            Assert.AreEqual(3f, gun.ProjectileLifetime);
+            Assert.Greater(laser.FireInterval, gun.FireInterval);
+            Assert.Greater(launcher.FireInterval, laser.FireInterval);
+            Assert.Greater(launcher.BlastRadius, 0f);
+
+            Assert.IsNotNull(gun.ProjectileVisual);
+            Assert.IsNotNull(laser.BeamVisual);
+            Assert.IsNotNull(launcher.ProjectileVisual);
+            Assert.IsNotNull(launcher.BlastVisual);
+
+            // レーザーは全部貫くので、貫通は候補から外す（設計書 §4）
+            CollectionAssert.AreEqual(new[] { SkillId.Pierce }, laser.ExcludedSkills);
+            Assert.AreEqual(0, gun.ExcludedSkills.Count);
+            Assert.AreEqual(0, launcher.ExcludedSkills.Count);
+
+            Assert.IsInstanceOf<GunWeapon>(gun.Create());
+            Assert.IsInstanceOf<LaserWeapon>(laser.Create());
+            Assert.IsInstanceOf<LauncherWeapon>(launcher.Create());
         }
 
         [Test]

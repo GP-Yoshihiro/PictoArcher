@@ -24,13 +24,14 @@ namespace PictoArcher.Game
         /// <summary>強化を1段階取ったときに届く（強化と、届いた段階。上限なしの回復は 0）。</summary>
         public event Action<SkillId, int> SkillTaken;
 
-        public LevelUpSystem(LevelUpSettings settings, SkillCatalog catalog, CardSelectView view, IPlayerStatus player, Random random)
+        public LevelUpSystem(LevelUpSettings settings, SkillCatalog catalog, CardSelectView view, IPlayerStatus player, Random random,
+            IReadOnlyList<SkillId> excludedSkills = null)
         {
             _settings = settings;
             _view = view;
             _player = player;
             _levels = new ExperienceLevels(settings.FirstLevelExperience, settings.ExperiencePerLevel);
-            var deck = new SkillDeck(catalog.BuildCandidates(), random);
+            var deck = new SkillDeck(catalog.BuildCandidates(excludedSkills), random);
             _choices = new LevelUpChoices(deck, (int)SkillId.Heal, Math.Min(settings.CardCount, view.Capacity));
             _view.Init();
         }

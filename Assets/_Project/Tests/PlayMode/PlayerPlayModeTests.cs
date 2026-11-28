@@ -28,7 +28,7 @@ namespace PictoArcher.Tests.PlayMode
         sealed class FakeEnemy : IEnemyTarget
         {
             public Vector2 Position { get; set; }
-            public bool IsAlive => true;
+            public bool IsAlive { get; set; } = true;
             public int Hits;
             public void TakeHit(Damage damage) => Hits++;
             public void ApplyStatus(StatusEffect effect) { }
@@ -38,7 +38,13 @@ namespace PictoArcher.Tests.PlayMode
         static PlayerView PlayerPrefab => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Player/Player.prefab").GetComponent<PlayerView>();
         static PlayerStats Stats => AssetDatabase.LoadAssetAtPath<PlayerStats>("Assets/_Project/Data/Player/PlayerStats.asset");
         static SpriteVisual ShotVisual => AssetDatabase.LoadAssetAtPath<SpriteVisual>("Assets/_Project/Data/Visuals/Projectiles/PlayerBullet.asset");
+        static ShotEffectView EffectPrefab => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Projectiles/ShotEffect.prefab").GetComponent<ShotEffectView>();
+        static IWeapon Gun => AssetDatabase.LoadAssetAtPath<GunWeaponDefinition>("Assets/_Project/Data/Player/GunWeapon.asset").Create();
+        static LaserWeaponDefinition Laser => AssetDatabase.LoadAssetAtPath<LaserWeaponDefinition>("Assets/_Project/Data/Player/LaserWeapon.asset");
+        static LauncherWeaponDefinition Launcher => AssetDatabase.LoadAssetAtPath<LauncherWeaponDefinition>("Assets/_Project/Data/Player/LauncherWeapon.asset");
         static CharacterVisual GunVisual => AssetDatabase.LoadAssetAtPath<PlayerVisual>("Assets/_Project/Data/Visuals/PlayerVisual.asset").Gun;
+
+        static PlayerProjectileSystem NewShots(EnemyRegistry registry) => new PlayerProjectileSystem(registry, ShotPrefab, EffectPrefab);
 
         Collider2D Block(int layer, Vector2 position)
         {
@@ -58,10 +64,108 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Laser_HitsEveryEnemyOnTheLine_ButStopsAtAWall()
+        {
+            var registry = new EnemyRegistry();
+            var shots = NewShots(registry);
+            var first = AddEnemy(registry, new Vector2(2f, 0f));
+            var second = AddEnemy(registry, new Vector2(4f, 0.3f));
+            var aside = AddEnemy(registry, new Vector2(3f, 3f));
+            var dead = AddEnemy(registry, new Vector2(3f, 0f));
+            dead.IsAlive = false;
+            Block(Layers.Wall, new Vector2(6f, 0f));
+            var behind = AddEnemy(registry, new Vector2(8f, 0f));
+
+            Laser.Create().Fire(Vector2.zero, Vector2.right, shots);
+
+            Assert.AreEqual(1, first.Hits, "線の上の敵すべてに1回ずつ当たる");
+            Assert.AreEqual(1, second.Hits);
+            Assert.AreEqual(0, aside.Hits, "線から離れた敵には当たらない");
+            Assert.AreEqual(0, dead.Hits, "死んだ敵には当たらない");
+            Assert.AreEqual(0, behind.Hits, "壁の向こうには届かない");
+            Assert.AreEqual(0, shots.Count, "光線は飛ぶ弾にならない");
+            Assert.AreEqual(1, shots.EffectCount, "光線が見える");
+
+            for (int i = 0; i < 20; i++)
+            {
+                yield return null;
+                shots.Tick(Step);
+            }
+            Assert.AreEqual(0, shots.EffectCount, "少しすると消える");
+            shots.Dispose();
+        }
+
+        [UnityTest]
+        public IEnumerator Launcher_ExplodesOnHit_AndHitsEnemiesAround()
+        {
+            var registry = new EnemyRegistry();
+            var shots = NewShots(registry);
+            var target = AddEnemy(registry, new Vector2(3f, 0f));
+            var near = AddEnemy(registry, new Vector2(3f, 1.5f));
+            var far = AddEnemy(registry, new Vector2(3f, Launcher.BlastRadius + 2f));
+
+            Launcher.Create().Fire(Vector2.zero, Vector2.right, shots);
+            for (int i = 0; i < 60 && shots.Count > 0; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                shots.Tick(Step);
+            }
+
+            Assert.AreEqual(0, shots.Count, "当たった弾は消える");
+            Assert.AreEqual(1, target.Hits, "当たった敵には1回だけ");
+            Assert.AreEqual(1, near.Hits, "爆発の半径の内の敵にも当たる");
+            Assert.AreEqual(0, far.Hits, "半径の外には当たらない");
+            Assert.AreEqual(1, shots.EffectCount, "爆発が見える");
+            shots.Dispose();
+        }
+
+        [UnityTest]
+        public IEnumerator Launcher_VanishesWithoutExploding_WhenItHitsNothing()
+        {
+            var registry = new EnemyRegistry();
+            var shots = NewShots(registry);
+            var aside = AddEnemy(registry, new Vector2(0f, 1.5f));
+
+            Launcher.Create().Fire(Vector2.zero, Vector2.right, shots);
+            for (int i = 0; i < 400 && shots.Count > 0; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                shots.Tick(Step);
+            }
+
+            Assert.AreEqual(0, shots.Count, "寿命が切れると消える");
+            Assert.AreEqual(0, shots.EffectCount, "何にも当たらずに消えたら爆発しない");
+            Assert.AreEqual(0, aside.Hits);
+            shots.Dispose();
+        }
+
+        [UnityTest]
+        public IEnumerator Launcher_ExplodesOnAWall_AndHitsEnemiesNearIt()
+        {
+            var registry = new EnemyRegistry();
+            var shots = NewShots(registry);
+            Block(Layers.Wall, new Vector2(3f, 0f));
+            var byWall = AddEnemy(registry, new Vector2(2.5f, 1.4f));
+            var behind = AddEnemy(registry, new Vector2(3f + Launcher.BlastRadius + 2f, 0f));
+
+            Launcher.Create().Fire(Vector2.zero, Vector2.right, shots);
+            for (int i = 0; i < 60 && shots.Count > 0; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                shots.Tick(Step);
+            }
+
+            Assert.AreEqual(0, shots.Count, "壁で爆発して消える");
+            Assert.AreEqual(1, byWall.Hits, "壁のそばの敵に爆発が当たる");
+            Assert.AreEqual(0, behind.Hits);
+            shots.Dispose();
+        }
+
+        [UnityTest]
         public IEnumerator Shot_HitsOnlyOneOfOverlappingEnemies_AndDisappears()
         {
             var registry = new EnemyRegistry();
-            var shots = new PlayerProjectileSystem(registry, ShotPrefab);
+            var shots = NewShots(registry);
             var a = AddEnemy(registry, new Vector2(3f, 0f));
             var b = AddEnemy(registry, new Vector2(3f, 0f));
 
@@ -81,7 +185,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Shot_DisappearsOnWall()
         {
             var registry = new EnemyRegistry();
-            var shots = new PlayerProjectileSystem(registry, ShotPrefab);
+            var shots = NewShots(registry);
             Block(Layers.Wall, new Vector2(3f, 0f));
             var behind = AddEnemy(registry, new Vector2(5f, 0f));
 
@@ -101,8 +205,8 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Player_FiresAtNearestEnemy_OnlyWhenThereIsOne()
         {
             var registry = new EnemyRegistry();
-            var shots = new PlayerProjectileSystem(registry, ShotPrefab);
-            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, ShotVisual, new FakeInput(), registry, shots);
+            var shots = NewShots(registry);
+            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, Gun, new FakeInput(), registry, shots);
 
             for (int i = 0; i < 50; i++)
             {
@@ -130,8 +234,8 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Player_TakeHit_IsBlockedWhileInvulnerable_AndDiesOnce()
         {
             var registry = new EnemyRegistry();
-            var shots = new PlayerProjectileSystem(registry, ShotPrefab);
-            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, ShotVisual, new FakeInput(), registry, shots);
+            var shots = NewShots(registry);
+            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, Gun, new FakeInput(), registry, shots);
             int died = 0;
             player.Died += () => died++;
 
@@ -158,9 +262,9 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Player_MovesAtMoveSpeed_AndFacesLeftWhenMovingLeft()
         {
             var registry = new EnemyRegistry();
-            var shots = new PlayerProjectileSystem(registry, ShotPrefab);
+            var shots = NewShots(registry);
             var input = new FakeInput { Move = new Vector2(-1f, 0f) };
-            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, ShotVisual, input, registry, shots);
+            var player = new PlayerSystem(PlayerPrefab, Vector2.zero, Stats, GunVisual, Gun, input, registry, shots);
 
             player.Tick(Step);
             yield return new WaitForFixedUpdate();

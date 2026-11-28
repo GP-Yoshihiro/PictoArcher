@@ -1121,7 +1121,8 @@ MonoBehaviour:
   _shotPrefab: {fileID: 2568342503906212474, guid: 8f53364bc242e4e3fabdd0973878c748, type: 3}
   _playerStats: {fileID: 11400000, guid: 129a9aec048944b46b86d467918591e6, type: 2}
   _playerVisual: {fileID: 11400000, guid: aff09ac55a5e64fc181d6ccc55006b32, type: 2}
-  _shotVisual: {fileID: 11400000, guid: 01a0734be25b145299ac2757e2869bee, type: 2}
+  _weapons: {fileID: 11400000, guid: 21bf464c41e7c4f93bfd78a7e9b795c9, type: 2}
+  _shotEffectPrefab: {fileID: 3339747287856388269, guid: 87de5378ca680453ba51ffbd6217f9e8, type: 3}
   _telegraphPrefab: {fileID: 1891142686598356304, guid: 201e1abf8f05547488f66701483e613b, type: 3}
   _telegraphSettings: {fileID: 11400000, guid: b3aad67d230c43c4380cb5b762e76ed8, type: 2}
   _attackTelegraphPrefab: {fileID: 7629994177825324415, guid: e496519642238ab4ba512a07c6c8ead0, type: 3}

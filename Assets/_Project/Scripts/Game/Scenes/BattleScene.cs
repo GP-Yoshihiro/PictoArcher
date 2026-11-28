@@ -16,7 +16,8 @@ namespace PictoArcher.Game
         [SerializeField] PlayerProjectileView _shotPrefab;
         [SerializeField] PlayerStats _playerStats;
         [SerializeField] PlayerVisual _playerVisual;
-        [SerializeField] SpriteVisual _shotVisual;
+        [SerializeField] WeaponCatalog _weapons;
+        [SerializeField] ShotEffectView _shotEffectPrefab;
         [SerializeField] SpawnTelegraphView _telegraphPrefab;
         [SerializeField] SpawnTelegraphSettings _telegraphSettings;
         [SerializeField] AttackTelegraphView _attackTelegraphPrefab;
@@ -50,15 +51,17 @@ namespace PictoArcher.Game
             _context = context;
             _pauseButton.Init();
             _enemies = new EnemyRegistry();
-            _shots = new PlayerProjectileSystem(_enemies, _shotPrefab);
-            _player = new PlayerSystem(_playerPrefab, _run.PlayerStart, _playerStats, _playerVisual.Gun, _shotVisual, new PlayerMoveInput(), _enemies, _shots);
+            // 武器はプレイの前に選んだもの（GameContext.Weapon）
+            var weapon = _weapons.DefinitionOf(_context.Weapon);
+            _shots = new PlayerProjectileSystem(_enemies, _shotPrefab, _shotEffectPrefab);
+            _player = new PlayerSystem(_playerPrefab, _run.PlayerStart, _playerStats, _playerVisual.For(weapon.Id), weapon.Create(), new PlayerMoveInput(), _enemies, _shots);
             _obstacles = new ObstacleSystem(_obstaclePrefab, _obstacleRoot, _obstacleSettings, _player);
             _enemyShots = new EnemyProjectileSystem(_player);
             _enemySystem = new EnemySystem(_enemies, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _enemyShots, _player, _player);
             _waves = new WaveSpawnSystem(_enemySystem);
             _pickups = new PickupSystem(_pickupPrefab, _pickupSettings, _enemySystem, _player);
             _waves.Cleared += HandleWaveCleared;
-            _levelUp = new LevelUpSystem(_levelUpSettings, _skills, _cardSelect, _player, new System.Random());
+            _levelUp = new LevelUpSystem(_levelUpSettings, _skills, _cardSelect, _player, new System.Random(), weapon.ExcludedSkills);
             _pickups.Collected += HandleCollected;
             _runSystem = new RunSystem(_run, _waves, _player);
             _hudSystem = new HudSystem(_hud, _headHpPrefab, _player, _player, _runSystem, _enemySystem);
@@ -90,14 +93,13 @@ namespace PictoArcher.Game
             if (_runSystem.IsOver && !_leaving) _leaving = _context.FinishRun(NewResult());
         }
 
-        // 武器は 10 で本物の値につなぐ。今は銃。
         // クリアしたときは、全滅で吸い寄せ中のコインも足す（拾い終わる前に結果へ移るため）。
         RunResult NewResult() => new RunResult(
             _runSystem.IsCleared ? RunOutcome.Cleared : RunOutcome.Died,
             _runSystem.CurrentWave,
             _runSystem.ElapsedSeconds,
             _levelUp.Coins + (_runSystem.IsCleared ? _pickups.PendingCoins : 0),
-            WeaponId.Gun,
+            _context.Weapon,
             _levelUp.TakenSkills);
 
         // ウェーブを全滅させたら、落ちている経験値とコインを全部吸い寄せる。
