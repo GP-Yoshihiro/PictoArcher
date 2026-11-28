@@ -30,3 +30,5 @@ MonoBehaviour:
   _weaponLaser: {fileID: 21300000, guid: 0cfceb2adc929440fbef64cc928e264a, type: 3}
   _weaponLauncher: {fileID: 21300000, guid: ac7b79f5c0764479b99c54399981aab2, type: 3}
   _cardFrame: {fileID: 21300000, guid: 329b1bbd6f5ea46b58b26a3371b670a0, type: 3}
+  _trophy: {fileID: 21300000, guid: 871e9da5ec47442fe8124c496fed39c1, type: 3}
+  _defeat: {fileID: 21300000, guid: 83d9639c7da254d9ca329f01ea54acbf, type: 3}
