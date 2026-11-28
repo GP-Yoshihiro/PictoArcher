@@ -18,8 +18,7 @@ namespace PictoArcher.Tests.EditMode
         // 画面は 270×480px（16.875×30 ユニット）。カメラは (0, 0) で動かない
         static readonly Rect ScreenArea = new Rect(-8.4375f, -15f, 16.875f, 30f);
         // 戦える広さ（壁の内側）は 240×400px（15×25 ユニット）。上の 64px は HUD の下の壁
-        static readonly Rect InnerArea = new Rect(-7.5f, -14f, 15f, 25f);
-        const float MinObstacleDistanceFromCenter = 4f;
+        internal static readonly Rect InnerArea = new Rect(-7.5f, -14f, 15f, 25f);
 
         GameObject _instance;
 
@@ -85,20 +84,12 @@ namespace PictoArcher.Tests.EditMode
             Assert.IsEmpty(problems, string.Join("、", problems));
         }
 
-        [Test] public void Obstacles_AreInsideTheInnerAreaAndAwayFromTheCenter()
+        // 障害物は ObstacleLayout のパターンから ObstacleSystem が出す（ObstacleLayoutAssetTests）。プレハブには親だけを残す
+        [Test] public void Obstacles_RootIsEmpty()
         {
-            var boxes = LoadPrefab().GetComponentsInChildren<BoxCollider2D>(true);
-            Assert.That(boxes.Length, Is.InRange(3, 4), "障害物は3〜4個");
-            var problems = new List<string>();
-            foreach (var box in boxes)
-            {
-                Vector2 center = (Vector2)box.transform.position + box.offset;
-                Vector2 size = Vector2.Scale(box.size, box.transform.lossyScale);
-                var rect = new Rect(center - size / 2f, size);
-                if (!InnerArea.Contains(rect.min) || !InnerArea.Contains(rect.max)) problems.Add($"{box.name} が壁の内側からはみ出す");
-                if (Vector2.Distance(center, InnerArea.center) < MinObstacleDistanceFromCenter) problems.Add($"{box.name} が真ん中に近い");
-            }
-            Assert.IsEmpty(problems, string.Join("、", problems));
+            var obstacles = LoadPrefab().transform.Find("Obstacles");
+            Assert.IsNotNull(obstacles, "Obstacles という子がありません");
+            Assert.AreEqual(0, obstacles.childCount, "固定の障害物を置かない（パターンで出す）");
         }
 
         static bool HasTileAt(Tilemap tilemap, float x, float y) =>

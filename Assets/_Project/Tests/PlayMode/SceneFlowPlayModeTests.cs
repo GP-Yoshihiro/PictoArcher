@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -12,6 +14,9 @@ namespace PictoArcher.Tests.PlayMode
 {
     public class SceneFlowPlayModeTests
     {
+        // 保存は Main が読むので、前のテストの記録や武器を持ち越さないよう、毎回消してから始める
+        [SetUp] public void ClearSave() => SaveFileIsolation.Clear();
+
         const int MaxFrames = 300;
 
         [UnityTest]
@@ -19,7 +24,7 @@ namespace PictoArcher.Tests.PlayMode
         {
             yield return LoadRoot();
 
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
             yield return WaitForSceneCount(2);
@@ -48,6 +53,9 @@ namespace PictoArcher.Tests.PlayMode
             yield return WaitUntilInitialized(second);
             second.Context.RequestScene(SceneId.Result);
             yield return WaitForActiveScene("Result");
+            // 結果なしで開いた Result は、どちらの板も出さない
+            Assert.IsFalse(View<ClearView>().gameObject.activeSelf);
+            Assert.IsFalse(View<DefeatView>().gameObject.activeSelf);
             Click<ResultScene>("_homeButton");
             yield return WaitForActiveScene("Home");
             Assert.AreEqual("Home", SceneManager.GetActiveScene().name);
@@ -113,10 +121,75 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Home_Start_OpensWeaponSelect_AndBackClosesIt()
+        {
+            yield return LoadRoot();
+            var select = View<WeaponSelectView>();
+            Assert.IsFalse(select.IsOpen, "はじめは隠れている");
+
+            Click<HomeScene>("_startButton");
+            yield return null;
+            Assert.IsTrue(select.IsOpen);
+            Assert.IsTrue(Field<GameObject>(select, "_gunMark").activeSelf, "まだ選んでいないときは銃に印");
+            Assert.IsFalse(Field<GameObject>(select, "_laserMark").activeSelf);
+
+            Click<HomeScene>("_backButton");
+            yield return null;
+            Assert.IsFalse(select.IsOpen, "🏠 で閉じる");
+            yield return null;
+            Assert.AreEqual("Home", SceneManager.GetActiveScene().name, "閉じてもホームのまま");
+        }
+
+        [UnityTest]
+        public IEnumerator Home_ChoosingLaser_StartsBattleWithLaser_AndMarksItNextTime()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_laserButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            Assert.AreEqual(WeaponId.Laser, Field<GameContext>(battle, "_context").Weapon, "選んだ武器で始まる");
+
+            // 🏠 でホームへ戻り、もう一度 ▶ を押すと、前回のレーザーに印
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+            Click<PauseScene>("_homeButton");
+            yield return WaitForActiveScene("Home");
+            yield return null;
+            Click<HomeScene>("_startButton");
+            yield return null;
+            var select = View<WeaponSelectView>();
+            Assert.IsTrue(Field<GameObject>(select, "_laserMark").activeSelf);
+            Assert.IsFalse(Field<GameObject>(select, "_gunMark").activeSelf);
+            Assert.IsFalse(Field<GameObject>(select, "_launcherMark").activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator Restart_KeepsTheLastWeapon()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_launcherButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.IsTrue(System.IO.File.Exists(JsonFileSaveStore.DefaultPath()), "武器を選んだら保存する");
+
+            // Root を読み直すと、新しい Main が保存を読み込む（終了して起動し直したのと同じ）
+            yield return LoadRoot();
+            Click<HomeScene>("_startButton");
+            yield return null;
+            var select = View<WeaponSelectView>();
+            Assert.IsTrue(Field<GameObject>(select, "_launcherMark").activeSelf, "前回の武器に印");
+            Assert.IsFalse(Field<GameObject>(select, "_gunMark").activeSelf);
+            Click<HomeScene>("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            Assert.AreEqual(WeaponId.Gun, Field<GameContext>(Object.FindAnyObjectByType<BattleScene>(), "_context").Weapon);
+        }
+
+        [UnityTest]
         public IEnumerator Battle_PauseOpens_StopsTime_ResumeCloses()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
 
             Click<BattleScene>("_pauseButton");
@@ -137,7 +210,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator Battle_PauseThenHome_LeavesOnlyRootAndHome()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Click<BattleScene>("_pauseButton");
             yield return WaitForSceneLoaded("Pause");
@@ -151,10 +224,78 @@ namespace PictoArcher.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Battle_PauseRestart_StartsANewBattleWithTheSameWeapon()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_laserButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var first = Object.FindAnyObjectByType<BattleScene>();
+            Click<BattleScene>("_pauseButton");
+            yield return WaitForSceneLoaded("Pause");
+
+            Click<PauseScene>("_restartButton");
+            // 前の Battle が外れ、新しい Battle がアクティブになるまで待つ
+            for (int i = 0; i < MaxFrames && (first != null || SceneManager.GetActiveScene().name != "Battle"); i++) yield return null;
+            yield return WaitForSceneCount(2);
+            CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames(), "↻ のあとは Root と新しい Battle だけ");
+            yield return null;
+            Assert.AreEqual(1f, Time.timeScale, "やり直したら時間は動く");
+            var second = Object.FindAnyObjectByType<BattleScene>();
+            Assert.IsNotNull(second);
+            Assert.AreEqual(WeaponId.Laser, Field<GameContext>(second, "_context").Weapon, "同じ武器でやり直す");
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_EscOpensPause_AndEscResumes()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            // バッチモードでは画面にフォーカスがないので、テストの間だけフォーカスを気にせず入力を受けるようにする
+            var settings = InputSystem.settings;
+            var oldBackground = settings.backgroundBehavior;
+            var oldEditor = settings.editorInputBehaviorInPlayMode;
+            settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                keyboard.MakeCurrent();
+                yield return TapEscape(keyboard);
+                yield return WaitForSceneLoaded("Pause");
+                yield return null;
+                Assert.AreEqual(0f, Time.timeScale, "Esc で Pause が開いて時間が止まる");
+
+                yield return TapEscape(keyboard);
+                yield return WaitForSceneCount(2);
+                yield return null;
+                CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames(), "もう一度 Esc で閉じて戻る");
+                Assert.AreEqual(1f, Time.timeScale);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+                settings.backgroundBehavior = oldBackground;
+                settings.editorInputBehaviorInPlayMode = oldEditor;
+            }
+        }
+
+        // Esc を押して次のフレームで離す（押したフレームだけ wasPressedThisFrame が true）
+        static IEnumerator TapEscape(Keyboard keyboard)
+        {
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Escape));
+            yield return null;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator Battle_PauseDoubleClick_DoesNotReopenAfterResume()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
 
             // 1回目で Pause を開く。読み込み中（Battle は Tick されない）にもう1回押す。
@@ -173,7 +314,7 @@ namespace PictoArcher.Tests.PlayMode
         public IEnumerator MainDestroyedWhilePaused_RestoresTimeScale()
         {
             yield return LoadRoot();
-            Click<HomeScene>("_startButton");
+            yield return StartWith("_gunButton");
             yield return WaitForActiveScene("Battle");
             Click<BattleScene>("_pauseButton");
             yield return WaitForSceneLoaded("Pause");
@@ -225,6 +366,110 @@ namespace PictoArcher.Tests.PlayMode
             Assert.AreEqual(0f, Time.timeScale, "閉じても GameClock の一時停止は消さないはずです");
             host.Context.Clock.Paused = false;
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Clear_ShowsClearView_ThenHomeShowsBestTime()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
+
+            var host = OpenHostScene("HostClear");
+            yield return WaitUntilInitialized(host);
+            Assert.IsTrue(host.Context.FinishRun(new RunResult(RunOutcome.Cleared, 50, 1425.4f, 321, WeaponId.Gun, null)));
+            yield return WaitForActiveScene("Result");
+            Assert.AreEqual("Result", SceneManager.GetActiveScene().name);
+            var clear = View<ClearView>();
+            Assert.IsTrue(clear.gameObject.activeSelf, "クリアの板が出る");
+            Assert.IsFalse(View<DefeatView>().gameObject.activeSelf);
+            Assert.AreEqual("23:45", TextOf(clear, "_timeText"));
+            Assert.AreEqual("321", TextOf(clear, "_coinText"));
+
+            Click<ResultScene>("_homeButton");
+            yield return WaitForActiveScene("Home");
+            var home = View<HomeView>();
+            Assert.IsTrue(Field<GameObject>(home, "_recordRow").activeSelf);
+            Assert.IsTrue(Field<GameObject>(home, "_bestTimeGroup").activeSelf, "クリア済みなら ⏱ 最短タイム");
+            Assert.IsFalse(Field<Component>(home, "_bestWaveText").gameObject.activeSelf);
+            Assert.AreEqual("23:45", TextOf(home, "_bestTimeText"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Died_ShowsDefeatView_ThenRetryGoesToBattle()
+        {
+            yield return LoadRoot();
+            var host = OpenHostScene("HostDied");
+            yield return WaitUntilInitialized(host);
+            Assert.IsTrue(host.Context.FinishRun(new RunResult(RunOutcome.Died, 23, 0f, 5, WeaponId.Laser, new[] { SkillId.Fire })));
+            yield return WaitForActiveScene("Result");
+            var defeat = View<DefeatView>();
+            Assert.IsTrue(defeat.gameObject.activeSelf, "死亡の板が出る");
+            Assert.IsFalse(View<ClearView>().gameObject.activeSelf);
+            Assert.AreEqual("23/50", TextOf(defeat, "_waveText"));
+            Assert.IsNotNull(Field<Image>(defeat, "_weaponIcon").sprite);
+
+            Click<ResultScene>("_retryButton");
+            yield return WaitForActiveScene("Battle");
+            Assert.AreEqual("Battle", SceneManager.GetActiveScene().name);
+            yield return WaitForSceneCount(2);
+            CollectionAssert.AreEquivalent(new[] { "Root", "Battle" }, LoadedSceneNames());
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator Battle_PlayerDies_ShowsDefeatViewWithReachedWave()
+        {
+            yield return LoadRoot();
+            yield return StartWith("_gunButton");
+            yield return WaitForActiveScene("Battle");
+            yield return null;
+            var battle = Object.FindAnyObjectByType<BattleScene>();
+            Field<PlayerSystem>(battle, "_player").TakeHit(new PictoArcher.Core.Damage(99999));
+
+            // 死んでから結果の画面へ移るまで少し待つ（RunDefinition の EndDelaySeconds）
+            for (float t = 0f; t < 5f && SceneManager.GetActiveScene().name != "Result"; t += Time.unscaledDeltaTime) yield return null;
+            Assert.AreEqual("Result", SceneManager.GetActiveScene().name, "死ぬと結果の画面へ移る");
+            yield return null;
+            var defeat = View<DefeatView>();
+            Assert.IsTrue(defeat.gameObject.activeSelf, "死亡の板が出る");
+            Assert.AreEqual("1/50", TextOf(defeat, "_waveText"));
+        }
+
+        [UnityTest]
+        public IEnumerator Home_FirstTime_HidesRecordRow()
+        {
+            yield return LoadRoot();
+            Assert.IsFalse(Field<GameObject>(View<HomeView>(), "_recordRow").activeSelf, "記録がないときは出さない");
+            yield return null;
+        }
+
+        static T View<T>() where T : Component
+        {
+            var view = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
+            Assert.IsNotNull(view, typeof(T).Name + " がありません");
+            return view;
+        }
+
+        static T Field<T>(object owner, string field) where T : class =>
+            owner.GetType().GetField(field, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(owner) as T;
+
+        // PlayMode のテストは TMP を参照しないので、text はリフレクションで読む
+        static string TextOf(object owner, string field)
+        {
+            var text = Field<Component>(owner, field);
+            return (string)text.GetType().GetProperty("text").GetValue(text);
+        }
+
+        /// <summary>Home で ▶ を押し、武器を選ぶ画面が開いたら、その武器のボタンを押す。</summary>
+        static IEnumerator StartWith(string weaponButton)
+        {
+            Click<HomeScene>("_startButton");
+            yield return null;
+            Assert.IsTrue(View<WeaponSelectView>().IsOpen, "▶ のあとに武器を選ぶ画面が開くはずです");
+            Click<HomeScene>(weaponButton);
         }
 
         /// <summary>

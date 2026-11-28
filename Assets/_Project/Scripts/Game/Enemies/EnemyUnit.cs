@@ -28,12 +28,19 @@ namespace PictoArcher.Game
         AttackTelegraphView _circleView;
         int _linesUsed;
         bool _circleUsed;
+        Color _tint = Color.white;
+        Color _glowColor;
+        float _glowAmount;
+        bool _glowUsed;
+        Color _shownColor = Color.white;
         readonly SplitTracker _splitTracker;
         readonly float _moveSpeed;
+        readonly IChaseRoute _route;
+        readonly float _bodyRadius;
         bool _deathRaised;
 
         public EnemyUnit(EnemyDefinition definition, EnemyView view, ITarget player, IHittable playerBody,
-            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles, int tier = 0)
+            AttackTelegraphView telegraphPrefab, EnemyProjectileSystem projectiles, int tier = 0, IChaseRoute route = null)
         {
             if (definition.Behavior == null) throw new ArgumentException(definition.name + " に動きと攻撃（Behavior）が入っていません。", nameof(definition));
             if (definition.MoveSpeed < 0f) throw new ArgumentOutOfRangeException(nameof(definition), definition.name + " の速度が負です。");
@@ -43,6 +50,8 @@ namespace PictoArcher.Game
             _playerBody = playerBody;
             _telegraphPrefab = telegraphPrefab;
             _projectiles = projectiles;
+            _route = route;
+            _bodyRadius = BodyRadiusOf(view.Body);
             Tier = tier;
             _health = new Health(TierScaling.Scale(definition.MaxHp, definition.HpGrowthPerTier, tier));
             _moveSpeed = TierScaling.Scale(definition.MoveSpeed, definition.SpeedGrowthPerTier, tier);
@@ -58,6 +67,9 @@ namespace PictoArcher.Game
         /// <summary>HP が減って分裂するとき、出す数。EnemySystem が受け取って、次の Tick で出す。</summary>
         public event Action<EnemyUnit, int> SplitRequested;
 
+        /// <summary>雑魚を呼ぶとき（呼んだ敵、呼ぶ敵、位置、予兆の秒数）。EnemySystem が受け取って予兆を出す。</summary>
+        public event Action<EnemyUnit, EnemyDefinition, Vector2, float> SummonRequested;
+
         /// <summary>何回目の登場か（0 が最初）。HP・速さ・分裂の数がこれで増える。</summary>
         public int Tier { get; }
         public EnemyDefinition Definition => _definition;
@@ -65,6 +77,8 @@ namespace PictoArcher.Game
         public Collider2D Body => _view.Body;
         public Vector2 Position => _view.Position;
         public bool IsAlive => !_health.IsDead;
+        public int Hp => _health.Current;
+        public int MaxHp => _health.Max;
 
         /// <summary>死んで、やられのアニメも終わった。EnemySystem が片付けてよい。</summary>
         public bool IsRemovable => _health.IsDead && _animator.IsFinished;
@@ -101,14 +115,19 @@ namespace PictoArcher.Game
         {
             _linesUsed = 0;
             _circleUsed = false;
+            _glowUsed = false;
             var velocity = Vector2.zero;
             if (_player.IsAlive)
             {
-                var context = new EnemyContext(Position, _player.Position, _moveSpeed);
+                var position = Position;
+                var target = _player.Position;
+                var chasePoint = _route != null ? _route.Waypoint(position, _bodyRadius) : target;
+                var context = new EnemyContext(position, target, chasePoint, _moveSpeed, (float)_health.Current / _health.Max);
                 velocity = _behavior.Tick(deltaTime, context, this);
             }
             if (!IsAlive) return;   // 自爆したときは、このあとの動きや見た目を更新しない
             HideUnusedTelegraphs();
+            UpdateColor();
 
             _view.SetVelocity(velocity);
             UpdateAppearance(velocity);
@@ -124,6 +143,15 @@ namespace PictoArcher.Game
             bool telegraphing = _linesUsed > 0 || _circleUsed;
             var pose = telegraphing ? CharacterPose.Attack : velocity != Vector2.zero ? CharacterPose.Move : CharacterPose.Idle;
             if (_animator.Pose != pose) _animator.Play(pose);
+        }
+
+        // 体の色と光り。変わったときだけ SpriteRenderer に入れる
+        void UpdateColor()
+        {
+            var color = _glowUsed ? Color.Lerp(_tint, _glowColor, _glowAmount) : _tint;
+            if (color == _shownColor) return;
+            _shownColor = color;
+            _view.Sprite.color = color;
         }
 
         // 「入ってきた」記録は使わないが、溜まり続けないよう毎回捨てる
@@ -162,6 +190,8 @@ namespace PictoArcher.Game
             _deathRaised = true;
             _view.Freeze();
             ReleaseTelegraphs();
+            _glowUsed = false;   // 光っている途中で倒れても、やられの絵は体の色で出す
+            UpdateColor();
             _animator.Play(CharacterPose.Death);
             Died?.Invoke(this, new EnemyDeath(_definition, Position, _definition.XpReward, _definition.CoinReward));
         }
@@ -195,6 +225,20 @@ namespace PictoArcher.Game
             Die();
         }
 
+        public void Summon(EnemyDefinition enemy, Vector2 position, float seconds)
+        {
+            if (IsAlive) SummonRequested?.Invoke(this, enemy, position, seconds);
+        }
+
+        public void SetTint(Color color) => _tint = color;
+
+        public void ShowGlow(Color color, float amount)
+        {
+            _glowColor = color;
+            _glowAmount = Mathf.Clamp01(amount);
+            _glowUsed = true;
+        }
+
         AttackTelegraphView NewTelegraph()
         {
             var view = UnityEngine.Object.Instantiate(_telegraphPrefab);
@@ -213,5 +257,22 @@ namespace PictoArcher.Game
         {
             if (view != null) UnityEngine.Object.Destroy(view.gameObject);
         }
+
+        // 障害物を回り込むときに空ける、足元から体の端までの長さ（ユニット）
+        static float BodyRadiusOf(Collider2D body)
+        {
+            if (body == null) return 0f;
+            var scale = body.transform.lossyScale;
+            float size = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            switch (body)
+            {
+                case CircleCollider2D circle: return circle.radius * size + (circle.offset * size).magnitude;
+                case BoxCollider2D box: return (box.size * 0.5f * size + Abs(box.offset) * size).magnitude;
+                case CapsuleCollider2D capsule: return Mathf.Max(capsule.size.x, capsule.size.y) * 0.5f * size + (capsule.offset * size).magnitude;
+                default: return Mathf.Max(body.bounds.extents.x, body.bounds.extents.y);
+            }
+        }
+
+        static Vector2 Abs(Vector2 v) => new Vector2(Mathf.Abs(v.x), Mathf.Abs(v.y));
     }
 }

@@ -18,5 +18,10 @@ MonoBehaviour:
   _contactDamage: 5
   _xpReward: 2
   _coinReward: 1
-  _visual: {fileID: 11400000, guid: 66230dc3609414793bed5a278f2c532e, type: 2}
+  _visual: {fileID: 11400000, guid: 798243d8d53e64e3cbfc77023d92c588, type: 2}
   _behavior: {fileID: 11400000, guid: a5ff6022167271749a4b6572dae470e7, type: 2}
+  _split: {fileID: 0}
+  _hpGrowthPerTier: 0
+  _speedGrowthPerTier: 0
+  _spawnTelegraph: {fileID: 0}
+  _showsBossBar: 0

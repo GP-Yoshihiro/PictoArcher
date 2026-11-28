@@ -73,6 +73,10 @@ namespace PictoArcher.Tests.EditMode
 
         // 文字ゼロのルール：ボタンは絵だけで、文字の部品を持たない。
         [TestCase("Home", typeof(HomeScene), "_startButton")]
+        [TestCase("Home", typeof(HomeScene), "_gunButton")]
+        [TestCase("Home", typeof(HomeScene), "_laserButton")]
+        [TestCase("Home", typeof(HomeScene), "_launcherButton")]
+        [TestCase("Home", typeof(HomeScene), "_backButton")]
         [TestCase("Battle", typeof(BattleScene), "_pauseButton")]
         [TestCase("Result", typeof(ResultScene), "_homeButton")]
         [TestCase("Result", typeof(ResultScene), "_retryButton")]
@@ -88,6 +92,48 @@ namespace PictoArcher.Tests.EditMode
             Assert.IsNotNull(button.GetComponent<Button>());
             Assert.IsEmpty(button.GetComponentsInChildren<Text>(true));
             Assert.IsEmpty(button.GetComponentsInChildren<TMP_Text>(true));
+        });
+
+        [TestCase("Home", typeof(HomeScene), "_view")]
+        [TestCase("Home", typeof(HomeScene), "_icons")]
+        [TestCase("Home", typeof(HomeScene), "_weaponSelect")]
+        [TestCase("Result", typeof(ResultScene), "_clearView")]
+        [TestCase("Result", typeof(ResultScene), "_defeatView")]
+        [TestCase("Result", typeof(ResultScene), "_icons")]
+        [TestCase("Result", typeof(ResultScene), "_retryIcon")]
+        [TestCase("Result", typeof(ResultScene), "_homeIcon")]
+        public void SceneField_IsWired(string sceneName, Type sceneType, string field) => WithScene(sceneName, scene =>
+        {
+            var owner = scene.GetRootGameObjects()
+                .Select(go => go.GetComponent(sceneType))
+                .First(c => c != null);
+            Assert.IsNotNull(new SerializedObject(owner).FindProperty(field).objectReferenceValue, sceneName + " の " + field + " がつながっていません");
+        });
+
+        // シーンの文字は、数字と記号だけのフォントで出す
+        [TestCase("Home")]
+        [TestCase("Result")]
+        public void SceneTexts_UseDigitFontOnly(string sceneName) => WithScene(sceneName, scene =>
+        {
+            var texts = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<TMP_Text>(true)).ToArray();
+            Assert.IsNotEmpty(texts, sceneName + " に数字の文字がありません");
+            foreach (var text in texts)
+                Assert.AreEqual("Assets/_Project/Fonts/Digits.asset", AssetDatabase.GetAssetPath(text.font), text.name + " のフォント");
+        });
+
+        // View の部品がすべてつながっている（null のままだと開いたときに例外になる）
+        [TestCase("Home", typeof(HomeView))]
+        [TestCase("Result", typeof(ClearView))]
+        [TestCase("Result", typeof(DefeatView))]
+        public void ViewFields_AreWired(string sceneName, Type viewType) => WithScene(sceneName, scene =>
+        {
+            var view = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren(viewType, true)).Single();
+            var it = new SerializedObject(view).GetIterator();
+            for (bool enter = true; it.NextVisible(enter); enter = false)
+            {
+                if (it.propertyType == SerializedPropertyType.ObjectReference && it.name != "m_Script")
+                    Assert.IsNotNull(it.objectReferenceValue, sceneName + " の " + viewType.Name + "." + it.name + " がつながっていません");
+            }
         });
 
         // 重ねシーンは下のシーンより前に描き、全面の板で下のボタンを押せないようにする。

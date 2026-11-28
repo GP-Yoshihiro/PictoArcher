@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5b8275395f0444ba71d4a949a670081, type: 3}
+  m_Name: WeaponCatalog
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.WeaponCatalog
+  _weapons:
+  - {fileID: 11400000, guid: 97f3649677407410ca6774ed24a35031, type: 2}
+  - {fileID: 11400000, guid: 5989379076db04015b3459ee4a1738bf, type: 2}
+  - {fileID: 11400000, guid: 22ac06d2a03ab4ad39b6128683c4b4af, type: 2}

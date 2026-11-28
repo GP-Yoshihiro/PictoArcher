@@ -20,7 +20,9 @@ namespace PictoArcher.Game
         [SerializeField, Tooltip("登場1回ごとに HP が増える割合（0.5 で、2回目は 1.5 倍）。中ボス・ボスだけ使う")] float _hpGrowthPerTier;
         [SerializeField, Tooltip("登場1回ごとに速さが増える割合")] float _speedGrowthPerTier;
         [SerializeField, Tooltip("出る前の予兆を、ふつうの予兆の代わりにこの絵にする（中ボスの ⚠ など）。空ならふつうの予兆")] SpawnTelegraphView _spawnTelegraph;
+        [SerializeField, Tooltip("出ている間、画面の上にこの敵の HP バーを出す（ボス）")] bool _showsBossBar;
         public EnemyBehaviorDefinition Behavior => _behavior;
+        public bool ShowsBossBar => _showsBossBar;
         public SplitDefinition Split => _split;
         public float HpGrowthPerTier => _hpGrowthPerTier;
         public float SpeedGrowthPerTier => _speedGrowthPerTier;

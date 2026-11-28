@@ -14,10 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.PlayerStats
   maxHp: 100
   moveSpeed: 6
-  fireInterval: 0.5
   moveFireRateMultiplier: 1
-  projectileDamage: 10
-  projectileSpeed: 14
-  projectileLifetime: 3
   invulnerabilitySeconds: 0.6
   dragRadiusPixels: 80

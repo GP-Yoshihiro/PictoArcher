@@ -12,6 +12,9 @@ namespace PictoArcher.Tests.PlayMode
 {
     public class ChaserPlayModeTests
     {
+        // 保存は Main が読むので、前のテストの記録や武器を持ち越さないよう、毎回消してから始める
+        [SetUp] public void ClearSave() => SaveFileIsolation.Clear();
+
         const string ChaserPath = "Assets/_Project/Data/Enemies/Chaser.asset";
         const string SandboxPath = "Assets/_Project/Scenes/Sandbox/Sandbox_B.unity";
 

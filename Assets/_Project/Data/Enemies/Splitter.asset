@@ -24,3 +24,4 @@ MonoBehaviour:
   _hpGrowthPerTier: 0.5
   _speedGrowthPerTier: 0.1
   _spawnTelegraph: {fileID: 147733491698127563, guid: bea03069513d5104dab63d62b1c5a66d, type: 3}
+  _showsBossBar: 0

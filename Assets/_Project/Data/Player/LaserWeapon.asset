@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 040ffbf8c0584bbc81aeb1b87d3c3243, type: 3}
+  m_Name: LaserWeapon
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.LaserWeaponDefinition
+  _id: 1
+  _fireInterval: 0.9
+  _damage: 14
+  _excludedSkills: 0c000000
+  _length: 24
+  _hitRadius: 0.6
+  _visualWidth: 0.25
+  _showSeconds: 0.12
+  _beamVisual: {fileID: 11400000, guid: 0afeb04cf2f554d05b34ed84e147d9ba, type: 2}

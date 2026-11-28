@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d91e8e16e6c24e5b9cd8e56b5677124, type: 3}
+  m_Name: BossABehavior
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.ChargeSummonBehaviorDefinition
+  _approachSeconds: 1.5
+  _chargeWindupSeconds: 0.8
+  _chargeSpeed: 14
+  _chargeDistance: 9
+  _chargeLineWidth: 2
+  _summonWindupSeconds: 1
+  _summonEnemy: {fileID: 11400000, guid: d29a2102cc5f28e45a74ac8d82e9eb02, type: 2}
+  _summonCount: 3
+  _summonDistance: 3
+  _summonArea:
+    serializedVersion: 2
+    x: -6
+    y: -10.5
+    width: 12
+    height: 21

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 814ef94366cec4a63861f8aa624955f3, type: 3}
+  m_Name: PickupSettings
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.PickupSettings
+  _magnetRadius: 2.5
+  _collectRadius: 0.5
+  _startSpeed: 4
+  _acceleration: 30
+  _maxSpeed: 20
+  _dropSpread: 0.3
+  _experienceVisual: {fileID: 11400000, guid: fc59e672532884b569d4f721b0e80be4, type: 2}
+  _coinVisual: {fileID: 11400000, guid: 8bf9edba7d50b4814a37b596e3d3a64a, type: 2}

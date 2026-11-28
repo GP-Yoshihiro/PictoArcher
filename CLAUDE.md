@@ -76,6 +76,7 @@ Assets/_Project/
     Movement/              MoveVectorResolver
     Waves/                 WaveLayout, WaveKind, WaveProgress, WaveSequence, WavePhase
     Skills/                強化の計算（重ね取り、カードの抽選など）
+    Save/                  保存する中身（SaveData。値の確かめと直し）
     Extensions/            拡張メソッド（必要になったら作る）
   Scripts/Game/            PictoArcher.Game（MonoBehaviour と ScriptableObject）
     PictoArcher.Game.asmdef
@@ -90,6 +91,7 @@ Assets/_Project/
     Field/                 フィールド・障害物の配置
     Run/                   1回のプレイの進行（ウェーブ、レベルアップ、経験値）
     UI/                    HUD、カード選択、View
+    Save/                  保存の読み書き（ISaveStore、JSON のファイル）
     Extensions/            拡張メソッド（必要になったら作る）
   Scripts/Editor/          PictoArcher.Editor（エディタ専用）
     PictoArcher.Editor.asmdef

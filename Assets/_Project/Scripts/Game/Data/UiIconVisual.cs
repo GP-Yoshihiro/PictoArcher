@@ -35,6 +35,10 @@ namespace PictoArcher.Game
         [Header("カード")]
         [SerializeField, Tooltip("カードの枠（9スライス）")] Sprite _cardFrame;
 
+        [Header("結果")]
+        [SerializeField, Tooltip("🏆 クリア")] Sprite _trophy;
+        [SerializeField, Tooltip("💀 死亡")] Sprite _defeat;
+
         public Sprite Play => _play;
         public Sprite Pause => _pause;
         public Sprite Retry => _retry;
@@ -53,5 +57,7 @@ namespace PictoArcher.Game
         public Sprite WeaponLaser => _weaponLaser;
         public Sprite WeaponLauncher => _weaponLauncher;
         public Sprite CardFrame => _cardFrame;
+        public Sprite Trophy => _trophy;
+        public Sprite Defeat => _defeat;
     }
 }

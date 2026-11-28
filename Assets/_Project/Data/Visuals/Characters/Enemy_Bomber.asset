@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c17b072ad2fb1415e8c99e4b5d521340, type: 3}
+  m_Name: Enemy_Bomber
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.CharacterVisual
+  _idle:
+    _frames:
+    - {fileID: 9166039837006853725, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    - {fileID: 5888488728669678843, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    _framesPerSecond: 2
+    _loops: 1
+  _move:
+    _frames:
+    - {fileID: 9166039837006853725, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    - {fileID: 5888488728669678843, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    _framesPerSecond: 4
+    _loops: 1
+  _attack:
+    _frames:
+    - {fileID: 5888488728669678843, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    _framesPerSecond: 8
+    _loops: 0
+  _death:
+    _frames:
+    - {fileID: 9166039837006853725, guid: 8b83f2b1650414cf78cb7da4684d5c8f, type: 3}
+    _framesPerSecond: 8
+    _loops: 0
+  _scale: 1
+  _footOffset: {x: 0, y: -1}

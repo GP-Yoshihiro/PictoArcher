@@ -14,23 +14,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.CharacterVisual
   _idle:
     _frames:
-    - {fileID: 21300000, guid: a1b1184e9f94f4fffb92e84830f4be88, type: 3}
-    _framesPerSecond: 8
+    - {fileID: -6948386368880857841, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
+    - {fileID: 7242581846442534782, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
+    _framesPerSecond: 2
     _loops: 1
   _move:
     _frames:
-    - {fileID: 21300000, guid: a1b1184e9f94f4fffb92e84830f4be88, type: 3}
-    - {fileID: 21300000, guid: 73f65cd190fb2472aa6fa2cb0afcf9f8, type: 3}
-    _framesPerSecond: 6
+    - {fileID: -6948386368880857841, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
+    - {fileID: 7242581846442534782, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
+    _framesPerSecond: 4
     _loops: 1
   _attack:
     _frames:
-    - {fileID: 21300000, guid: 73f65cd190fb2472aa6fa2cb0afcf9f8, type: 3}
+    - {fileID: 7242581846442534782, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
     _framesPerSecond: 8
     _loops: 0
   _death:
     _frames:
-    - {fileID: 21300000, guid: 73f65cd190fb2472aa6fa2cb0afcf9f8, type: 3}
+    - {fileID: -6948386368880857841, guid: 04c1bb66b646e48fa99e9062b94c5701, type: 3}
     _framesPerSecond: 8
     _loops: 0
   _scale: 1
