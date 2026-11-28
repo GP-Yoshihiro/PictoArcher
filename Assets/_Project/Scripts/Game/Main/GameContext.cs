@@ -19,6 +19,12 @@ namespace PictoArcher.Game
         /// <summary>最高記録。Home が表示し、FinishRun で更新する。</summary>
         public BestRecord Records { get; }
 
+        /// <summary>次のプレイで使う武器。始めは銃。武器を選ぶ画面が SelectWeapon で変える。</summary>
+        public WeaponId Weapon { get; private set; } = WeaponId.Gun;
+
+        /// <summary>次のプレイで使う武器を決める。</summary>
+        public void SelectWeapon(WeaponId id) => Weapon = id;
+
         /// <summary>最後に終わったプレイの結果。まだなければ null。Result が表示する。</summary>
         public RunResult LastRun { get; private set; }
 

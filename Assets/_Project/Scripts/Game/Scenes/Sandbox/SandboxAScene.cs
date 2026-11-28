@@ -12,7 +12,9 @@ namespace PictoArcher.Game
         [SerializeField] PlayerProjectileView _shotPrefab;
         [SerializeField] PlayerStats _playerStats;
         [SerializeField] PlayerVisual _playerVisual;
-        [SerializeField] SpriteVisual _shotVisual;
+        [SerializeField] WeaponCatalog _weapons;
+        [SerializeField, Tooltip("試す武器")] WeaponId _weapon;
+        [SerializeField] ShotEffectView _shotEffectPrefab;
         [SerializeField] Vector2 _playerStart = new Vector2(0f, -6f);
         [SerializeField] SpawnTelegraphView _telegraphPrefab;
         [SerializeField] SpawnTelegraphSettings _telegraphSettings;
@@ -35,8 +37,9 @@ namespace PictoArcher.Game
         public override void Init(GameContext context)
         {
             _registry = new EnemyRegistry();
-            _shots = new PlayerProjectileSystem(_registry, _shotPrefab);
-            _player = new PlayerSystem(_playerPrefab, _playerStart, _playerStats, _playerVisual.Gun, _shotVisual, new PlayerMoveInput(), _registry, _shots);
+            var weapon = _weapons.DefinitionOf(_weapon);
+            _shots = new PlayerProjectileSystem(_registry, _shotPrefab, _shotEffectPrefab);
+            _player = new PlayerSystem(_playerPrefab, _playerStart, _playerStats, _playerVisual.For(weapon.Id), weapon.Create(), new PlayerMoveInput(), _registry, _shots);
             _enemyShots = new EnemyProjectileSystem(_player);
             _enemies = new EnemySystem(_registry, _telegraphPrefab, _telegraphSettings, _attackTelegraphPrefab, _enemyShots, _player, _player);
             _player.Damaged += HandleDamaged;
