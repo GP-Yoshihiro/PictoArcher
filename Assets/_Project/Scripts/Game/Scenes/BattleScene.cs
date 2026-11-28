@@ -86,10 +86,10 @@ namespace PictoArcher.Game
             WeaponId.Gun,
             null);
 
-        // 休みに入ったら、次のウェーブの障害物の並びへ切り替える（空なら今のまま）。
         // ウェーブを全滅させたら、落ちている経験値とコインを全部吸い寄せる。
         void HandleWaveCleared() => _pickups.AttractAll();
 
+        // 休みに入ったら、次のウェーブの障害物の並びへ切り替える（空なら今のまま）。
         void HandleRestStarted(int nextWave) => _obstacles.SwitchTo(_run.WaveFor(nextWave).ObstacleLayout);
 
         public override void OnOverlayClosed(OverlayId id, int result)

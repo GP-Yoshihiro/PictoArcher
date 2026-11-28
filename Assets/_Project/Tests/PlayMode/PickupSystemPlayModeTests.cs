@@ -20,11 +20,10 @@ namespace PictoArcher.Tests.PlayMode
 
         sealed class FakeEnemies : IEnemyEvents
         {
-            public event Action<DamageReport> Damaged;
+            public event Action<DamageReport> Damaged { add { } remove { } }   // このテストでは使わない
             public event Action<EnemyDeath> Died;
             public void Kill(Vector2 at, int xp, int coins) => Died?.Invoke(new EnemyDeath(null, at, xp, coins));
             public bool HasListeners => Died != null;
-            public void Unused() => Damaged?.Invoke(default);
         }
 
         FakePlayer _player;
