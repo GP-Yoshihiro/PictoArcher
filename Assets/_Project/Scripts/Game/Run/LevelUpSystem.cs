@@ -41,7 +41,7 @@ namespace PictoArcher.Game
         public int ExperienceToNextLevel => _levels.ToNextLevel;
         /// <summary>拾ったコインとコインのカードの合計。</summary>
         public int Coins => _pickedCoins + _cardCoins;
-        /// <summary>取った強化（初めて取った順、重ね取りしても1回）。</summary>
+        /// <summary>取った強化（初めて取った順、重ね取りしても1回）。回復はその場で使い切るので入れない。</summary>
         public IReadOnlyList<SkillId> TakenSkills => _taken;
 
         /// <summary>拾ったものを数える。シーンが PickupSystem.Collected から渡す。</summary>
@@ -75,7 +75,7 @@ namespace PictoArcher.Game
                 return;
             }
             var id = (SkillId)card.SkillId;
-            if (!_taken.Contains(id)) _taken.Add(id);
+            if (id != SkillId.Heal && !_taken.Contains(id)) _taken.Add(id);
             SkillTaken?.Invoke(id, card.NextStack);
         }
     }
