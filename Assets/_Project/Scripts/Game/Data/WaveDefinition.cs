@@ -10,8 +10,10 @@ namespace PictoArcher.Game
     {
         [SerializeField, FormerlySerializedAs("spawns")] List<SpawnEntry> _spawns = new List<SpawnEntry>();
         [SerializeField, FormerlySerializedAs("telegraphSeconds")] float _telegraphSeconds = 0.8f;
+        [SerializeField, Tooltip("このウェーブの障害物の並び。空なら前のウェーブのまま")] ObstacleLayout _obstacleLayout;
 
         public IReadOnlyList<SpawnEntry> Spawns => _spawns;
         public float TelegraphSeconds => _telegraphSeconds;
+        public ObstacleLayout ObstacleLayout => _obstacleLayout;
     }
 }
