@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3de65a6685c8a498e8a60417672d7930, type: 3}
+  m_Name: RunDefinition
+  m_EditorClassIdentifier: PictoArcher.Game::PictoArcher.Game.RunDefinition
+  _waves:
+  - {fileID: 11400000, guid: d64f7869ef31046c5aa07a9f7515fa51, type: 2}
+  - {fileID: 11400000, guid: 17b40c5d13d8d4f88831ecc2076b9d0f, type: 2}
+  _startWave: 1
+  _restSeconds: 1.5
+  _endDelaySeconds: 1.2
+  _playerStart: {x: 0, y: -2}
